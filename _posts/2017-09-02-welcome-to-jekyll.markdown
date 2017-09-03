@@ -1,26 +1,23 @@
 ---
 layout: post
-title:  "Welcome to Jekyll!"
+title:  "迁移博客"
 date:   2017-09-02 08:05:18 +0800
 categories: jekyll update
 category: start
 ---
-You’ll find this post in your `_posts` directory. Go ahead and edit it and re-build the site to see your changes. You can rebuild the site in many different ways, but the most common way is to run `jekyll serve`, which launches a web server and auto-regenerates your site when a file is updated.
+<p>
+	<span style="color:#00ff00;"><strong>最近原来的空间里到期了，钱包吃紧又想diy，最后还是选择了转入Github page。</strong></span>
+</p>
 
-To add new posts, simply add a file in the `_posts` directory that follows the convention `YYYY-MM-DD-name-of-post.ext` and includes the necessary front matter. Take a look at the source for this post to get an idea about how it works.
+在转入时遇到许多坑，尤其是ruby gem安装时老遇到依赖问题，下载也老卡住。
 
-Jekyll also offers powerful support for code snippets:
+好不容易弄好后，本来想自己改个简答的主题，又遇到分页和一系列插件配置问题，搞得我头都大了。
 
-{% highlight ruby %}
-def print_hi(name)
-  puts "Hi, #{name}"
-end
-print_hi('Tom')
-#=> prints 'Hi, Tom' to STDOUT.
-{% endhighlight %}
+作为老年人差点崩溃，最后无奈下了个Jekyll主题，稍微改下就全部搞定了。
 
-Check out the [Jekyll docs][jekyll-docs] for more info on how to get the most out of Jekyll. File all bugs/feature requests at [Jekyll’s GitHub repo][jekyll-gh]. If you have questions, you can ask them on [Jekyll Talk][jekyll-talk].
+好吧，以前用CMS差点被人搞，这次全静态，could you tell me how to play with it?
 
-[jekyll-docs]: https://jekyllrb.com/docs/home
-[jekyll-gh]:   https://github.com/jekyll/jekyll
-[jekyll-talk]: https://talk.jekyllrb.com/
+If you can...
+
+Dalao,  ball dai fly...
+
