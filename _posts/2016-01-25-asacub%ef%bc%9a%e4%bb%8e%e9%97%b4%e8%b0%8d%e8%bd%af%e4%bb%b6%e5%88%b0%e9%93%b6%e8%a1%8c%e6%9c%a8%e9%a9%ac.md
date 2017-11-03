@@ -6,7 +6,7 @@ author: DEMON
 comments: true
 categories: translate
 ---
-<span style="color: #00ff00;"><strong>我们最近分析了一个系列银行木马Trojan-Banker.AndroidOS.Asacub，发现了其中在用的一台CC服务器chugumshimusona.com，也在为一款名为CoreBot的Windows木马所使用,这让我们起了对这款移动端银行木马进行分析的心思。</strong></span>
+<span style="color: #00B050;"><strong>我们最近分析了一个系列银行木马Trojan-Banker.AndroidOS.Asacub，发现了其中在用的一台CC服务器chugumshimusona.com，也在为一款名为CoreBot的Windows木马所使用,这让我们起了对这款移动端银行木马进行分析的心思。</strong></span>
 
 <!--more-->
 据我们所知，最初版本的Asacub木马出现在2015年6月。与其说当时的Asacub是银行恶意软件，不如说它是一款木马。早期的Asacub会窃取用户收到的所有短信，并上传到黑客的服务器。这款木马能够从CC服务器接收和处理下面的命令：

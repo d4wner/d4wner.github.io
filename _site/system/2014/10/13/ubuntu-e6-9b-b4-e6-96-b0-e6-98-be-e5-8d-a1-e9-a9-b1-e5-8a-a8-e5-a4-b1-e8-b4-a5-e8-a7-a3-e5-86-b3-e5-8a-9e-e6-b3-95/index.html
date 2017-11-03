@@ -1,0 +1,785 @@
+
+<!doctype html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<html class="theme-next muse use-motion" lang="en">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/assets/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/assets/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/assets/css/main.css?v=5.1.1" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="" />
+
+
+
+
+
+  <link rel="alternate" href="/atom.xml" title="地狱爬行者's Blog" type="application/atom+xml" />
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/assets/favicon.ico?v=5.1.1" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="前段时间因为做项目，一直整夜整夜地挂机爬站，笔记本用成台式机的负荷也是醉了-_-  ">
+<meta name="keywords" content="blog, security, web, php, python">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Ubuntu更新显卡驱动失败解决办法">
+<meta property="og:url" content="http://localhost:4000/system/2014/10/13/ubuntu-e6-9b-b4-e6-96-b0-e6-98-be-e5-8d-a1-e9-a9-b1-e5-8a-a8-e5-a4-b1-e8-b4-a5-e8-a7-a3-e5-86-b3-e5-8a-9e-e6-b3-95/">
+<meta property="og:site_name" content="地狱爬行者's Blog">
+<meta property="og:description" content="前段时间因为做项目，一直整夜整夜地挂机爬站，笔记本用成台式机的负荷也是醉了-_-  ">
+<meta property="og:locale" content="en">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Ubuntu更新显卡驱动失败解决办法">
+<meta name="twitter:description" content="前段时间因为做项目，一直整夜整夜地挂机爬站，笔记本用成台式机的负荷也是醉了-_-  ">
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '',
+    scheme: 'Muse',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":0,"b2t":false,"scrollpercent":false},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: 'Author'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://localhost:4000/"/>
+
+
+
+
+
+  <title>Ubuntu更新显卡驱动失败解决办法</title>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="en">
+
+  
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"> <div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">地狱爬行者's Blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            Home
+          </a>
+        </li>
+      
+        
+        
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            Archives
+          </a>
+        </li>
+      
+        
+        
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            Tags
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+<div id="posts" class="posts-expand">
+  
+  
+
+  
+
+  
+  
+  
+
+  <article class="post post-type- " itemscope itemtype="http://schema.org/Article">
+    <link itemprop="mainEntityOfPage" href="http://localhost:4000/system/2014/10/13/ubuntu-e6-9b-b4-e6-96-b0-e6-98-be-e5-8d-a1-e9-a9-b1-e5-8a-a8-e5-a4-b1-e8-b4-a5-e8-a7-a3-e5-86-b3-e5-8a-9e-e6-b3-95/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="demon">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="assets/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="地狱爬行者's Blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+          
+          
+            Ubuntu更新显卡驱动失败解决办法
+          
+        </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2014-10-13T00:32:00+08:00">
+                2014-10-13
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/category/#/system" itemprop="url" rel="index">
+                    <span itemprop="name">system</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+            
+                <div class="post-description">
+                    
+                </div>
+            
+          
+
+        </div>
+      </header>
+    
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <table>
+  <tbody>
+    <tr>
+      <td>前段时间因为做项目，一直整夜整夜地挂机爬站，笔记本用成台式机的负荷也是醉了-_-</td>
+      <td> </td>
+    </tr>
+  </tbody>
+</table>
+
+<p>由此出现了一个问题，鄙人笔记本物理机装的Ubuntu13.04，在挂机或者待机一段时间不能恢复登录状态，一直黑屏。对于这种情况本屌只有一个劲儿的敲键盘试图唤醒，结果只能弹出一个纯命令行，切回图形界面后控制面板却没了。</p>
+
+<p>于是乎，本屌在网上查了下，似乎是因为显卡驱动的原因，好嘛，那就更新显卡驱动，在Ubuntu软件更新器里面（图形化的）点了一个最新版的，兴冲冲地重启然后登陆，啪，尼玛，黑屏。。不死心再来一遍，还是那样，差点就泪奔了，这项目还没做完呢，一会儿搞半天没时间了咋办  T_T</p>
+
+<p>找大牛求助，指点去Ubuntu社区翻了翻，找出一篇<span style="color: #ff0000;"><a href="http://forum.ubuntu.org.cn/viewtopic.php?t=217062" target="_blank"><span style="color: #ff0000;">帖子</span></a></span>，说是可以恢复模式切回原来的状态，重启看了下，似乎需要安装盘，我去，屌丝表示没准备Ubuntu的安装盘，这条果断Pass。</p>
+
+<p>接着找到一篇<span style="color: #ff0000;"><a href="http://forum.ubuntu.org.cn/viewtopic.php?f=94&amp;t=140531" target="_blank"><span style="color: #ff0000;">帖子</span></a></span>，让本屌在错误日志里面，找到安装新显卡驱动时的报错，查了下并没有出错，估计只是不兼容？然后在安装日志里试图直接进行卸载，未果。</p>
+
+<p>网上还有坑爹<span style="color: #00B050;"><a href="http://blog.csdn.net/crazyboy2009/article/details/8232158" target="_blank"><span style="color: #00B050;">教程</span></a></span>让直接卸载显卡驱动，然后后来就没后文了，尼玛，当本屌傻麽，直接卸载了不管依赖关系想重装系统麽，最好别酱紫做！</p>
+
+<p>后来本屌的解决办法是通过<strong><span style="color: #ff00ff;"><a href="http://jishu.zol.com.cn/140483.html" target="_blank"><span style="color: #ff00ff;">更新软件列表源</span></a></span></strong>，搞一个叫Paa的玩意儿，将所有的包更新到了最新版本（还是13.x），然后才解决了。</p>
+
+<p>附上：<span style="color: #ff00ff;"><strong>sudo apt-get dist-upgrade</strong></span>（里面的上两条其实不用）</p>
+
+<p>顺便附上一个没有成功的<span style="color: #00B050;"><a href="http://forum.ubuntu.org.cn/viewtopic.php?f=42&amp;p=2973310" target="_blank"><span style="color: #00B050;">案例</span></a></span>，以及后来看到的一个复杂<span style="color: #00B050;"><a href="http://forum.ubuntu.org.cn/viewtopic.php?t=384333" target="_blank"><span style="color: #00B050;">例子</span></a></span>。</p>
+
+<p>现在暂时用着笔记本还没出问题，如果再出现相应情况，打算试试这个<span style="color: #ff0000;"><a href="http://zhidao.baidu.com/link?url=rBeSSVPGK3lwAQVX3Rlj6oHY6_8bUiz-oY8CsIJAs4gTHg747YRiG8OVxSU21jS0GX7DqC4XVDO1EKlvBZViHK" target="_blank"><span style="color: #ff0000;">案例</span></a></span>，似乎是啥笔记本模式，看起来有点靠谱。其实最好的法子就是设置电源选项让它不挂起，不过在公司有闲杂人员出入，也只能将就了。</p>
+
+<p><strong><span style="color: #00B050;">还有，大家没事不要乱更新卸载驱动之类的，坑爹的一B。。</span></strong></p>
+
+<p>===================</p>
+
+<p><strong><span style="color: #00B050;">Enjoy yourself！</span></strong></p>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+
+      
+      
+      
+      
+      
+
+      
+      
+        <div class="post-nav" id="post-nav-id">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/%E7%BC%96%E7%A8%8B%E4%B9%8B%E8%B7%AF/2015/08/04/python-e5-ad-97-e7-ac-a6-e7-bc-96-e7-a0-81-e5-a4-84-e7-90-86/" rel="next" title="python字符编码处理">
+                <i class="fa fa-chevron-left"></i> python字符编码处理
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/other/2014/09/20/e5-af-b9-e4-ba-8epython-e6-a1-86-e6-9e-b6scrapygevent-e7-9a-84-e7-a0-94-e7-a9-b6/" rel="prev" title="对于python框架Scrapy+Gevent的研究">
+                对于python框架Scrapy+Gevent的研究 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+      
+
+      
+    </footer>
+  </article>
+
+  <div class="post-spread">
+    
+  </div>
+</div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+  </div>
+
+
+        </div>
+        
+          
+
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+        
+        
+        
+
+
+
+
+      
+
+      
+
+      <section class="site-overview sidebar-panel sidebar-panel-active">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/assets/images/avatar.gif"
+               alt="demon" />
+          <p class="site-author-name" itemprop="name">demon</p>
+           
+              <p class="site-description motion-element" itemprop="description">原创网络安全博客</p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives/">
+                <span class="site-state-item-count">39</span>
+                <span class="site-state-item-name">posts</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-categories">
+              <a href="/categories/">
+                <span class="site-state-item-count">13</span>
+                <span class="site-state-item-name">categories</span>
+              </a>
+            </div>
+          
+
+          
+
+        </nav>
+
+        
+        
+        
+          <div class="feed-link motion-element">
+            <a href="/atom.xml" rel="alternate">
+              <i class="fa fa-rss"></i>
+              RSS
+            </a>
+          </div>
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+
+      
+
+    </div>
+  </aside>
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2017</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">demon</span>
+</div>
+
+
+<div class="powered-by">
+  Powered by <a class="theme-link" href="https://jekyllrb.com">Jekyll</a>
+</div>
+
+<div class="theme-info">
+  Theme -
+  <a class="theme-link" href="https://github.com/simpleyyt/jekyll-theme-next">
+    NexT.Muse
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+   
+  
+  
+  
+  
+  
+  <script type="text/javascript" src="/assets/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  
+  
+  
+  
+  <script type="text/javascript" src="/assets/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  
+  
+  
+  
+  <script type="text/javascript" src="/assets/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  
+  
+  
+  
+  <script type="text/javascript" src="/assets/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  
+  
+  
+  
+  <script type="text/javascript" src="/assets/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  
+  
+  
+  
+  <script type="text/javascript" src="/assets/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/assets/js/src/utils.js?v=5.1.1"></script>
+
+  <script type="text/javascript" src="/assets/js/src/motion.js?v=5.1.1"></script>
+
+
+
+  
+  
+
+  <script type="text/javascript" src="/assets/js/src/scrollspy.js?v=5.1.1"></script>
+<script type="text/javascript" src="/assets/js/src/post-details.js?v=5.1.1"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/assets/js/src/bootstrap.js?v=5.1.1"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+  
+
+    
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+  
+
+  
+
+  
+  
+
+
+  
+
+  
+
+  
+
+</body>
+</html>
+

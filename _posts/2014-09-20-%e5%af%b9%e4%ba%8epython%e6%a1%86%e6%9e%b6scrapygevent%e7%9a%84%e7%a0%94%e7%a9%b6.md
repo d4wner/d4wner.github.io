@@ -20,13 +20,13 @@ RUL末尾，如 www.example.com/&lt;script&gt;alert(1)&lt;/script&gt;
 
 由于英文说明书的原作者说该Scrapy的XSS延伸版不能进行Ajax判断，还是有点小遗憾，希望日后改进。
 
-感觉其提供的测试页面爬下来效果不错，我这儿没有图床可用，就不展示了。（<strong><span style="color: #00ff00;">话说有朋友可以给鄙人一免费图床地址么，2333333</span></strong>）
+感觉其提供的测试页面爬下来效果不错，我这儿没有图床可用，就不展示了。（<strong><span style="color: #00B050;">话说有朋友可以给鄙人一免费图床地址么，2333333</span></strong>）
 
 附上该Git的地址：<a title="xsscrapy" href="https://github.com/DanMcInerney/xsscrapy" target="_blank"><span style="color: #ff0000;">下载</span></a>。
 
 还有就是，本人测试用的是Ubuntu13.04，作者建议pip安装，鄙人使用自带的安装包pip，表示有不少问题，后来在网上下了一个<span style="color: #ff0000;"><a title="pip1.5" href="https://pypi.python.org/packages/source/p/pip/pip-1.5.4.tar.gz" target="_blank"><span style="color: #ff0000;">1.5版本</span></a></span>的才成功。此外，个人感觉apt-get安装确实挺给力，除了没有的包以外，基本很难报错（知道肯定有人吐槽这B说的不是废话么^_^，以前一个朋友就挺爱骂我SB，不过可惜再也没能见到他了）。
 
-PS：里面所需的BeautifulSoup最好用BeautifulSoup3.2.1，BeautifulSoup4.x版本已改名为bs4，坑惨小弟了，半天没反应过来。其他的pip安装（如pybloom），也可apt-get安装（如py-requests）,最后，对付某<span style="color: #00ff00;">error: command 'x86_64-linux-gnu-gcc' failed with exit status 1</span>错误时，<span style="color: #00ff00;">sudo apt-get install python-twisted-web python2.7-dev</span>，可能会用的上。
+PS：里面所需的BeautifulSoup最好用BeautifulSoup3.2.1，BeautifulSoup4.x版本已改名为bs4，坑惨小弟了，半天没反应过来。其他的pip安装（如pybloom），也可apt-get安装（如py-requests）,最后，对付某<span style="color: #00B050;">error: command 'x86_64-linux-gnu-gcc' failed with exit status 1</span>错误时，<span style="color: #00B050;">sudo apt-get install python-twisted-web python2.7-dev</span>，可能会用的上。
 
 Scrapy是个不错的爬虫框架，最近笔者自己打算好好研究一下，结合注入工具进行爬虫式扫描，感觉应该不错的样子。如果有朋友有兴趣，或者有现货，欢迎提出宝贵建议，不胜感激。
 

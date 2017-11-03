@@ -1,0 +1,1207 @@
+
+<!doctype html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<html class="theme-next muse use-motion" lang="en">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/assets/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/assets/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/assets/css/main.css?v=5.1.1" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="" />
+
+
+
+
+
+  <link rel="alternate" href="/atom.xml" title="地狱爬行者's Blog" type="application/atom+xml" />
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/assets/favicon.ico?v=5.1.1" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="众所周知，vim是一种非常强大的IDE，不少朋友说他配合上插件几乎超越市面上任何一款编辑器。鄙人水平有限，对vim还处于待入门的阶段，经一位死党机油的精心指点和资料的查阅，终于更新了自己vim。 其实本文有点标题党的意味，主要不是给大家展示如何配置而是给大家说明如何在借鉴别人的配置或者在另一台电脑上复原vim配置时，中间需要注意的一些东西。">
+<meta name="keywords" content="blog, security, web, php, python">
+<meta property="og:type" content="article">
+<meta property="og:title" content="打造个性版vim">
+<meta property="og:url" content="http://localhost:4000/tips/2013/07/26/e6-89-93-e9-80-a0-e4-b8-aa-e6-80-a7-e7-89-88vim/">
+<meta property="og:site_name" content="地狱爬行者's Blog">
+<meta property="og:description" content="众所周知，vim是一种非常强大的IDE，不少朋友说他配合上插件几乎超越市面上任何一款编辑器。鄙人水平有限，对vim还处于待入门的阶段，经一位死党机油的精心指点和资料的查阅，终于更新了自己vim。 其实本文有点标题党的意味，主要不是给大家展示如何配置而是给大家说明如何在借鉴别人的配置或者在另一台电脑上复原vim配置时，中间需要注意的一些东西。">
+<meta property="og:locale" content="en">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="打造个性版vim">
+<meta name="twitter:description" content="众所周知，vim是一种非常强大的IDE，不少朋友说他配合上插件几乎超越市面上任何一款编辑器。鄙人水平有限，对vim还处于待入门的阶段，经一位死党机油的精心指点和资料的查阅，终于更新了自己vim。 其实本文有点标题党的意味，主要不是给大家展示如何配置而是给大家说明如何在借鉴别人的配置或者在另一台电脑上复原vim配置时，中间需要注意的一些东西。">
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '',
+    scheme: 'Muse',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":0,"b2t":false,"scrollpercent":false},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: 'Author'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://localhost:4000/"/>
+
+
+
+
+
+  <title>打造个性版vim</title>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="en">
+
+  
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"> <div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">地狱爬行者's Blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            Home
+          </a>
+        </li>
+      
+        
+        
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            Archives
+          </a>
+        </li>
+      
+        
+        
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            Tags
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+<div id="posts" class="posts-expand">
+  
+  
+
+  
+
+  
+  
+  
+
+  <article class="post post-type- " itemscope itemtype="http://schema.org/Article">
+    <link itemprop="mainEntityOfPage" href="http://localhost:4000/tips/2013/07/26/e6-89-93-e9-80-a0-e4-b8-aa-e6-80-a7-e7-89-88vim/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="demon">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="assets/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="地狱爬行者's Blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+          
+          
+            打造个性版vim
+          
+        </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2013-07-26T02:49:00+08:00">
+                2013-07-26
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/category/#/tips" itemprop="url" rel="index">
+                    <span itemprop="name">tips</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+            
+                <div class="post-description">
+                    
+                </div>
+            
+          
+
+        </div>
+      </header>
+    
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>众所周知，vim是一种非常强大的IDE，不少朋友说他配合上插件几乎超越市面上任何一款编辑器。鄙人水平有限，对vim还处于待入门的阶段，经一位死党机油的精心指点和资料的查阅，终于更新了自己vim。
+其实本文有点标题党的意味，主要不是给大家展示如何配置而是给大家说明如何在借鉴别人的配置或者在另一台电脑上复原vim配置时，中间需要注意的一些东西。</p>
+
+<p>以下配置代码引自习科，这里就不多说了。</p>
+
+<p>+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++</p>
+
+<p><span style="color: #ff0000;">”———————基本设置————————-</span></p>
+
+<p><span style="color: #ff0000;">“语言设置</span></p>
+
+<p><span style="color: #ff0000;">set langmenu=zh_CN.UTF-8</span></p>
+
+<p><span style="color: #ff0000;">set helplang=cn</span></p>
+
+<p><span style="color: #ff0000;">“解决某些文档编码造成中文乱码的问题</span></p>
+
+<p><span style="color: #ff0000;">set fileencodings=utf-8,gb18030,utf-16,big5</span></p>
+
+<p><span style="color: #ff0000;">”——————————————————</span></p>
+
+<p><span style="color: #ff0000;">syntax on “自动语法高亮</span></p>
+
+<p><span style="color: #ff0000;">set mouse=a “所有模式下允许使用鼠标</span></p>
+
+<p><span style="color: #ff0000;">set background=dark “设置背景颜色为Dark,让字体更加醒目</span></p>
+
+<p><span style="color: #ff0000;">set nu “显示行号</span></p>
+
+<p><span style="color: #ff0000;">set showcmd “显示输入命令</span></p>
+
+<p><span style="color: #ff0000;">set smartindent “智能语法对齐</span></p>
+
+<p><span style="color: #ff0000;">set foldenable “允许折叠</span></p>
+
+<p><span style="color: #ff0000;">set foldmethod=manual “手动折叠</span></p>
+
+<p><span style="color: #ff0000;">set shiftwidth=4 “代码缩进为4个字符</span></p>
+
+<p><span style="color: #ff0000;">set softtabstop=4 “按一次Tab前进4个字符</span></p>
+
+<p><span style="color: #ff0000;">set tabstop=4 “保存Tab宽度为4个字符</span></p>
+
+<p><span style="color: #ff0000;">set history=300 “保存300条历史记录</span></p>
+
+<p><span style="color: #ff0000;">set expandtab “使用空格代替制表符</span></p>
+
+<p><span style="color: #ff0000;">set hlsearch “搜索高亮</span></p>
+
+<p><span style="color: #ff0000;">set incsearch “搜素逐字高亮</span></p>
+
+<p><span style="color: #ff0000;">set nowrapscan “禁止搜索到文件两端时重新搜索</span></p>
+
+<p><span style="color: #ff0000;">set ignorecase smartcase “搜索时智能忽略大小写</span></p>
+
+<p><span style="color: #ff0000;">set magic “设置魔术</span></p>
+
+<p><span style="color: #ff0000;">set ttimeoutlen=100 “设置键码超时</span></p>
+
+<p><span style="color: #ff0000;">colorscheme ron “ron配色方案</span></p>
+
+<p><span style="color: #ff0000;">autocmd InsertEnter * se cul “进入编辑模式下高亮当前行</span></p>
+
+<p><span style="color: #ff0000;">autocmd InsertLeave * se nocul “回到普通模式下取消高亮当前行</span></p>
+
+<p><span style="color: #ff0000;">“vimrc修改之后自动加载</span></p>
+
+<p><span style="color: #ff0000;">autocmd! bufwritepost .vimrc source %</span></p>
+
+<p><span style="color: #ff0000;">”———————插件相关————————-</span></p>
+
+<p><span style="color: #ff0000;">“vundle插件管理器</span></p>
+
+<p><span style="color: #ff0000;">set nocompatible “关闭vi兼容模式,vundle需求设置</span></p>
+
+<p><span style="color: #ff0000;">filetype off “关闭文件类型检测,vundle需求设置</span></p>
+
+<p><span style="color: #ff0000;">set rtp+=~/.vim/bundle/vundle/</span></p>
+
+<p><span style="color: #ff0000;">call vundle#rc()</span></p>
+
+<p><span style="color: #ff0000;">” 让Vundle管理自身</span></p>
+
+<p><span style="color: #ff0000;">Bundle ‘gmarik/vundle’</span></p>
+
+<p><span style="color: #ff0000;">“使用vundle管理的插件在下面声明:</span></p>
+
+<p><span style="color: #ff0000;">” github上使用如下方式填写</span></p>
+
+<p><span style="color: #ff0000;">“Bundle ‘tpope/vim-fugitive’</span></p>
+
+<p><span style="color: #ff0000;">“Bundle ‘rstacruz/sparkup’, {‘rtp’: ‘vim/’}</span></p>
+
+<p><span style="color: #ff0000;">Bundle “scrooloose/syntastic”</span></p>
+
+<p><span style="color: #ff0000;">Bundle “Shougo/neocomplcache”</span></p>
+
+<p><span style="color: #ff0000;">” vim-scripts上的插件按照下面方式填写</span></p>
+
+<p><span style="color: #ff0000;">” 插件名可以在这里搜索[url=http://vim-scripts.org/vim/scripts.html]http://vim-scripts.org/vim/scripts.html[/url]</span></p>
+
+<p><span style="color: #ff0000;">Bundle ‘The-NERD-tree’</span></p>
+
+<p><span style="color: #ff0000;">Bundle ‘The-NERD-Commenter’</span></p>
+
+<p><span style="color: #ff0000;">Bundle ‘fcitx.vim’</span></p>
+
+<p><span style="color: #ff0000;">Bundle ‘colorizer’</span></p>
+
+<p><span style="color: #ff0000;">Bundle ‘vim-javascript’</span></p>
+
+<p><span style="color: #ff0000;">Bundle ‘taglist.vim’</span></p>
+
+<p><span style="color: #ff0000;">Bundle ‘sgmlendtag’</span></p>
+
+<p><span style="color: #ff0000;">Bundle ‘EasyMotion’</span></p>
+
+<p><span style="color: #ff0000;">“其他的插件按照下面方式填写</span></p>
+
+<p><span style="color: #ff0000;">“Bundle ‘git://git.wincent.com/command-t.git’</span></p>
+
+<p><span style="color: #ff0000;">Bundle ‘https://github.com/Lokaltog/vim-powerline.git’</span></p>
+
+<p><span style="color: #ff0000;">filetype plugin indent on “根据文件类型启用插件,vundle需求设置</span></p>
+
+<p><span style="color: #ff0000;">“vundle使用方法:</span></p>
+
+<p><span style="color: #ff0000;">” :BundleList - 列出已声明的插件</span></p>
+
+<p><span style="color: #ff0000;">” :BundleInstall(!) - 安装(更新)插件</span></p>
+
+<p><span style="color: #ff0000;">” :BundleSearch(!) foo - 搜索插件(或先刷新缓存)</span></p>
+
+<p><span style="color: #ff0000;">” :BundleClean(!) - 清除不在声明列表中插件</span></p>
+
+<p><span style="color: #ff0000;">”</span></p>
+
+<p><span style="color: #ff0000;">” 输入:h vundle查看更多帮助文档与细节</span></p>
+
+<p><span style="color: #ff0000;">” NOTE: comments after Bundle command are not allowed..</span></p>
+
+<p><span style="color: #ff0000;">“vim-powerline配置(状态栏扩展)</span></p>
+
+<p><span style="color: #ff0000;">set laststatus=2</span></p>
+
+<p><span style="color: #ff0000;">set t_Co=256</span></p>
+
+<p><span style="color: #ff0000;">let g:Powerline_symbols = ‘unicode’</span></p>
+
+<p><span style="color: #ff0000;">“NERDTree”</span></p>
+
+<p><span style="color: #ff0000;">“F4打开/关闭NERDtree插件</span></p>
+
+<p><span style="color: #ff0000;">map :NERDTreeToggle</span></p>
+
+<p><span style="color: #ff0000;">“imap :NERDTreeToggle</span></p>
+
+<p><span style="color: #ff0000;">“The-NERD-Commenter</span></p>
+
+<p><span style="color: #ff0000;">let mapleader=”,” “改变默认’'键，将其改映射为’,’键</span></p>
+
+<p><span style="color: #ff0000;">“普通模式下：</span></p>
+
+<p><span style="color: #ff0000;">” ,cc 注释当前行</span></p>
+
+<p><span style="color: #ff0000;">” ,cs 以”性感”的方式注释</span></p>
+
+<p><span style="color: #ff0000;">” ,cu 取消注释</span></p>
+
+<p><span style="color: #ff0000;">” ,ca 在可选的注释方式之间切换，比如C/C++ 的块注释/* */和行注释//</span></p>
+
+<p><span style="color: #ff0000;">” ,cm 添加块注释</span></p>
+
+<p><span style="color: #ff0000;">” ,cA 当前行未添加注释符号</span></p>
+
+<p><span style="color: #ff0000;">” colorizer</span></p>
+
+<p><span style="color: #ff0000;">” 普通模式下输入 ,tc 开启/关闭CSS中显示颜色</span></p>
+
+<p><span style="color: #ff0000;">“javascript</span></p>
+
+<p><span style="color: #ff0000;">let b:javascript_fold=1 “ 打开javascript折叠</span></p>
+
+<p><span style="color: #ff0000;">let javascript_enable_domhtmlcss=1 “ 打开javascript对dom、html和css的支持</span></p>
+
+<p><span style="color: #ff0000;">” syntastic(一个非常好用的多语言的语法与编码风格检查插件)</span></p>
+
+<p><span style="color: #ff0000;">let g:syntastic_auto_jump=1</span></p>
+
+<p><span style="color: #ff0000;">let g:syntastic_check_on_open = 1</span></p>
+
+<p><span style="color: #ff0000;">let g:syntastic_error_symbol = ‘✗’</span></p>
+
+<p><span style="color: #ff0000;">let g:syntastic_warning_symbol = ‘⚠’</span></p>
+
+<p><span style="color: #ff0000;">let g:syntastic_auto_loc_list = 1</span></p>
+
+<p><span style="color: #ff0000;">let g:syntastic_loc_list_height = 6</span></p>
+
+<p><span style="color: #ff0000;">let g:syntastic_enable_highlighting = 0</span></p>
+
+<p><span style="color: #ff0000;">“Taglist(按F3启动代码浏览)</span></p>
+
+<p><span style="color: #ff0000;">nmap :Tlist</span></p>
+
+<p><span style="color: #ff0000;">let Tlist_Use_Right_Window=1</span></p>
+
+<p><span style="color: #ff0000;">let Tlist_Exit_OnlyWindow = 1</span></p>
+
+<p><span style="color: #ff0000;">let Tlist_Show_One_File = 1</span></p>
+
+<p><span style="color: #ff0000;">let Tlist_Use_SingleClick=1</span></p>
+
+<p><span style="color: #ff0000;">“easymotion(快速一定光标)</span></p>
+
+<p><span style="color: #ff0000;">let g:EasyMotion_leader_key = ‘’</span></p>
+
+<p><span style="color: #ff0000;">“双空格+w出现行关键字字母然后快速跳跃</span></p>
+
+<p><span style="color: #ff0000;">“neocomplcache(自动补全插件)</span></p>
+
+<p><span style="color: #ff0000;">” 启动vim时开启neocomplcache.</span></p>
+
+<p><span style="color: #ff0000;">let g:neocomplcache_enable_at_startup = 1</span></p>
+
+<p><span style="color: #ff0000;">” Use smartcase.</span></p>
+
+<p><span style="color: #ff0000;">let g:neocomplcache_enable_smart_case = 1</span></p>
+
+<p><span style="color: #ff0000;">” Set minimum syntax keyword length.</span></p>
+
+<p><span style="color: #ff0000;">let g:neocomplcache_min_syntax_length = 3</span></p>
+
+<p><span style="color: #ff0000;">let g:neocomplcache_lock_buffer_name_pattern = ‘*ku*’</span></p>
+
+<p><span style="color: #ff0000;">” Enable heavy features.</span></p>
+
+<p><span style="color: #ff0000;">” Use camel case completion.</span></p>
+
+<p><span style="color: #ff0000;">let g:neocomplcache_enable_camel_case_completion = 1</span></p>
+
+<p><span style="color: #ff0000;">” Use underbar completion.</span></p>
+
+<p><span style="color: #ff0000;">let g:neocomplcache_enable_underbar_completion = 1</span></p>
+
+<p><span style="color: #ff0000;">” Define keyword.</span></p>
+
+<p><span style="color: #ff0000;">if !exists(‘g:neocomplcache_keyword_patterns’)</span></p>
+
+<p><span style="color: #ff0000;">let g:neocomplcache_keyword_patterns = {}</span></p>
+
+<p><span style="color: #ff0000;">endif</span></p>
+
+<p><span style="color: #ff0000;">let g:neocomplcache_keyword_patterns[‘default’] = ‘\h\w*’</span></p>
+
+<p><span style="color: #ff0000;">” Enable omni completion.</span></p>
+
+<p><span style="color: #ff0000;">autocmd FileType css setlocal omnifunc=csscomplete#CompleteCSS</span></p>
+
+<p><span style="color: #ff0000;">autocmd FileType html,markdown setlocal omnifunc=htmlcomplete#CompleteTags</span></p>
+
+<p><span style="color: #ff0000;">autocmd FileType javascript setlocal omnifunc=javascriptcomplete#CompleteJS</span></p>
+
+<p><span style="color: #ff0000;">autocmd FileType python setlocal omnifunc=pythoncomplete#Complete</span></p>
+
+<p><span style="color: #ff0000;">autocmd FileType xml setlocal omnifunc=xmlcomplete#CompleteTags</span></p>
+
+<p><span style="color: #ff0000;">autocmd FileType ruby setlocal omnifunc=rubycomplete#Complete</span></p>
+
+<p><span style="color: #ff0000;">” Enable heavy omni completion.</span></p>
+
+<p><span style="color: #ff0000;">if !exists(‘g:neocomplcache_omni_patterns’)</span></p>
+
+<p><span style="color: #ff0000;">let g:neocomplcache_omni_patterns = {}</span></p>
+
+<p><span style="color: #ff0000;">endif</span></p>
+
+<p><span style="color: #ff0000;">let g:neocomplcache_omni_patterns.ruby = ‘[^. <em>\t].\h\w</em>|\h\w*::’</span></p>
+
+<p><span style="color: #ff0000;">let g:neocomplcache_omni_patterns.php = ‘[^. \t]-&gt;\h\w<em>|\h\w</em>::’</span></p>
+
+<p><span style="color: #ff0000;">let g:neocomplcache_omni_patterns.c = ‘[^.[:digit:] *\t]\%(.|-&gt;)’</span></p>
+
+<p><span style="color: #ff0000;">let g:neocomplcache_omni_patterns.cpp = ‘[^.[:digit:] <em>\t]\%(.|-&gt;)|\h\w</em>::’</span></p>
+
+<p><span style="color: #ff0000;">”——————–自定义功能————————–</span></p>
+
+<p><span style="color: #ff0000;">“F8/F9开启/关闭粘贴模式(粘贴代码时避免自动缩进)</span></p>
+
+<p><span style="color: #ff0000;">map :set paste</span></p>
+
+<p><span style="color: #ff0000;">map :set nopaste</span></p>
+
+<p><span style="color: #ff0000;">“新建.c,.h,.sh,.java文件，自动插入文件头</span></p>
+
+<p><span style="color: #ff0000;">autocmd BufNewFile <em>.cpp,</em>.[ch],<em>.sh,</em>.java,*.py exec “:call SetTitle()”</span></p>
+
+<p><span style="color: #ff0000;">"”定义函数SetTitle，自动插入文件头</span></p>
+
+<p><span style="color: #ff0000;">func SetTitle()</span></p>
+
+<p><span style="color: #ff0000;">“如果文件类型为.sh文件</span></p>
+
+<p><span style="color: #ff0000;">if &amp;filetype == ‘sh’</span></p>
+
+<p><span style="color: #ff0000;">call setline(1,”#########################################################################”)</span></p>
+
+<p><span style="color: #ff0000;">call append(line(“.”), “# File Name: “.expand(“%”))</span></p>
+
+<p><span style="color: #ff0000;">call append(line(“.”)+1, “# Author: 这里修改为您的名字”)</span></p>
+
+<p><span style="color: #ff0000;">call append(line(“.”)+2, “# mail: 这里修改为您的邮箱”)</span></p>
+
+<p><span style="color: #ff0000;">call append(line(“.”)+3, “# Created Time: “.strftime(“%c”))</span></p>
+
+<p><span style="color: #ff0000;">call append(line(“.”)+4, “#########################################################################”)</span></p>
+
+<p><span style="color: #ff0000;">call append(line(“.”)+5, “#!/bin/bash”)</span></p>
+
+<p><span style="color: #ff0000;">call append(line(“.”)+6, “”)</span></p>
+
+<p><span style="color: #ff0000;">elseif &amp;filetype == ‘python’</span></p>
+
+<p><span style="color: #ff0000;">call setline(1,”#!/usr/bin/env python”)</span></p>
+
+<p><span style="color: #ff0000;">call append(line(“.”),”#coding=utf-8”)</span></p>
+
+<p><span style="color: #ff0000;">call append(line(“.”)+1, “”)</span></p>
+
+<p><span style="color: #ff0000;">else</span></p>
+
+<p><span style="color: #ff0000;">call setline(1, “/<strong>**</strong><strong>**</strong><strong>**</strong><strong>**</strong><strong>**</strong><strong>**</strong><strong>**</strong><strong>**</strong><strong>**</strong><strong>**</strong><strong>**</strong><strong>**</strong>*”)</span></p>
+
+<p><span style="color: #ff0000;">call append(line(“.”), “ &gt; File Name: “.expand(“%”))</span></p>
+
+<p><span style="color: #ff0000;">call append(line(“.”)+1, “ &gt; Author: 这里修改为您的名字”)</span></p>
+
+<p><span style="color: #ff0000;">call append(line(“.”)+2, “ &gt; Mail: 这里修改为您的邮箱 “)</span></p>
+
+<p><span style="color: #ff0000;">call append(line(“.”)+3, “ &gt; Created Time: “.strftime(“%c”))</span></p>
+
+<p><span style="color: #ff0000;">call append(line(“.”)+4, “ <strong>**</strong><strong>**</strong><strong>**</strong><strong>**</strong><strong>**</strong><strong>**</strong><strong>**</strong><strong>**</strong><strong>**</strong><strong>**</strong><strong>**</strong><strong>**</strong>/”)</span></p>
+
+<p><span style="color: #ff0000;">call append(line(“.”)+5, “”)</span></p>
+
+<p><span style="color: #ff0000;">endif</span></p>
+
+<p><span style="color: #ff0000;">if &amp;filetype == ‘cpp’</span></p>
+
+<p><span style="color: #ff0000;">call append(line(“.”)+6, “#include”)</span></p>
+
+<p><span style="color: #ff0000;">call append(line(“.”)+7, “using namespace std;”)</span></p>
+
+<p><span style="color: #ff0000;">call append(line(“.”)+8, “”)</span></p>
+
+<p><span style="color: #ff0000;">endif</span></p>
+
+<p><span style="color: #ff0000;">if &amp;filetype == ‘c’</span></p>
+
+<p><span style="color: #ff0000;">call append(line(“.”)+6, “#include”)</span></p>
+
+<p><span style="color: #ff0000;">call append(line(“.”)+7, “”)</span></p>
+
+<p><span style="color: #ff0000;">endif</span></p>
+
+<p><span style="color: #ff0000;">if &amp;filetype == ‘java’</span></p>
+
+<p><span style="color: #ff0000;">call append(line(“.”)+6,”public class “.expand(“%”))</span></p>
+
+<p><span style="color: #ff0000;">call append(line(“.”)+7,””)</span></p>
+
+<p><span style="color: #ff0000;">endif</span></p>
+
+<p><span style="color: #ff0000;">endfunc</span></p>
+
+<p><span style="color: #ff0000;">“新建文件后，自动定位到文件末尾</span></p>
+
+<p><span style="color: #ff0000;">autocmd BufNewFile * normal G</span></p>
+
+<p><span style="color: #ff0000;">“C/C++/shell脚本/Python/Java/html按F5自动编译/运行</span></p>
+
+<p><span style="color: #ff0000;">map :call AutoCompileRun()</span></p>
+
+<p><span style="color: #ff0000;">func! AutoCompileRun()</span></p>
+
+<p><span style="color: #ff0000;">exec “w”</span></p>
+
+<p><span style="color: #ff0000;">if &amp;filetype == ‘c’</span></p>
+
+<p><span style="color: #ff0000;">exec “!g++ % -o %&lt;”</span></p>
+
+<p><span style="color: #ff0000;">exec “!time ./%&lt;”</span></p>
+
+<p><span style="color: #ff0000;">elseif &amp;filetype == ‘cpp’</span></p>
+
+<p><span style="color: #ff0000;">exec “!g++ % -o %&lt;”</span></p>
+
+<p><span style="color: #ff0000;">exec “!time ./%&lt;”</span></p>
+
+<p><span style="color: #ff0000;">elseif &amp;filetype == ‘sh’</span></p>
+
+<p><span style="color: #ff0000;">:!time bash %</span></p>
+
+<p><span style="color: #ff0000;">elseif &amp;filetype == ‘python’</span></p>
+
+<p><span style="color: #ff0000;">exec “!time python2.7 %”</span></p>
+
+<p><span style="color: #ff0000;">elseif &amp;filetype == ‘java’</span></p>
+
+<p><span style="color: #ff0000;">exec “!javac %”</span></p>
+
+<p><span style="color: #ff0000;">exec “!time java %&lt;”</span></p>
+
+<p><span style="color: #ff0000;">elseif &amp;filetype == ‘html’</span></p>
+
+<p><span style="color: #ff0000;">exec “!firefox % &amp;”</span></p>
+
+<p><span style="color: #ff0000;">endif</span></p>
+
+<p><span style="color: #ff0000;">endfunc</span></p>
+
+<p><span style="color: #ff0000;">“C/C++按F6使用GDB进行调试</span></p>
+
+<p><span style="color: #ff0000;">map :call Rungdb()</span></p>
+
+<p><span style="color: #ff0000;">func! Rungdb()</span></p>
+
+<p><span style="color: #ff0000;">exec “w”</span></p>
+
+<p><span style="color: #ff0000;">exec “!g++ % -g -o %&lt;”</span></p>
+
+<p><span style="color: #ff0000;">exec “!gdb ./%&lt;”</span></p>
+
+<p><span style="color: #ff0000;">endfunc</span></p>
+
+<p>+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++</p>
+
+<p>配置问题：楼主在配置时遇到以下几个问题。
+第一：git
+由于博主采用的是centos，默认没装git。而vim中的插件管理器Vundle，最方便的方法是git安装。然后楼主在网上查了下，一大堆，为了省事，发现直接yum install git即可，查看git –version,得到版本，安装成功。
+第二：安装Vundle
+git clone http://github.com/gmarik/vundle.git ~/.vim/bundle/vundle 即可。这个主要是配置vimrc时用到，vimrc是更改vim所需，配置文件可放在github上。
+第三：配置文件作者的小问题
+据发布这个配置的网友所说，复制配置文件.vimrc到用户目录后，要进入vim命令模式:BundleInstall，才能更新写入配置，但不知道是因为root权限或者centos系统本身还是其他神马的缘故，并不用更新，直接可用。暗自揣测可能是配置文件本身直接更新了的缘故吧。
+第四：关于配置文件格式的整改
+由于部分github上程序猿开发的跨平台性并不是特好，诸多异处，比如换行符。在win下开发的拿到linux下用各种出错，我们可以采用dos2unix转换下格式，（在centos下没有好像默认安装，附上链接：
+<a href="http://blog.csdn.net/bluewhale1/article/details/8074978">http://blog.csdn.net/bluewhale1/article/details/8074978</a>。</p>
+
+<p>补充一点 载入配置可用:BundleInstall</p>
+
+<p>如：颜色配置文件在里，/usr/share/vim/vim71/colors/  中间那个vim71数字可能会不一样，视情况而定。</p>
+
+<p>PS:推荐一篇vim配置的文章，朋友们可以diy喔。<a href="http://blog.chinaunix.net/uid-179573-id-2856644.html">http://blog.chinaunix.net/uid-179573-id-2856644.html</a>
+vim是一款非常强大的编辑器，能改善程序猿码字调试时的错误率，大幅度提高速度，但需要较好的掌握语法和对其的熟练度，与君共勉！</p>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+
+      
+      
+      
+      
+      
+
+      
+      
+        <div class="post-nav" id="post-nav-id">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/coding/2013/08/05/python-e5-ad-a6-e4-b9-a0-e6-9c-ad-e8-ae-b0-ef-bc-88-e4-b8-80-ef-bc-89/" rel="next" title="python学习札记（一）">
+                <i class="fa fa-chevron-left"></i> python学习札记（一）
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/coding/2013/07/11/php-e5-ad-a6-e4-b9-a0-e6-9c-ad-e8-ae-b0-ef-bc-88-e4-b8-80-ef-bc-89/" rel="prev" title="PHP学习札记（一）">
+                PHP学习札记（一） <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+      
+
+      
+    </footer>
+  </article>
+
+  <div class="post-spread">
+    
+  </div>
+</div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+  </div>
+
+
+        </div>
+        
+          
+
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+        
+        
+        
+
+
+
+
+      
+
+      
+
+      <section class="site-overview sidebar-panel sidebar-panel-active">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/assets/images/avatar.gif"
+               alt="demon" />
+          <p class="site-author-name" itemprop="name">demon</p>
+           
+              <p class="site-description motion-element" itemprop="description">原创网络安全博客</p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives/">
+                <span class="site-state-item-count">39</span>
+                <span class="site-state-item-name">posts</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-categories">
+              <a href="/categories/">
+                <span class="site-state-item-count">13</span>
+                <span class="site-state-item-name">categories</span>
+              </a>
+            </div>
+          
+
+          
+
+        </nav>
+
+        
+        
+        
+          <div class="feed-link motion-element">
+            <a href="/atom.xml" rel="alternate">
+              <i class="fa fa-rss"></i>
+              RSS
+            </a>
+          </div>
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+
+      
+
+    </div>
+  </aside>
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2017</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">demon</span>
+</div>
+
+
+<div class="powered-by">
+  Powered by <a class="theme-link" href="https://jekyllrb.com">Jekyll</a>
+</div>
+
+<div class="theme-info">
+  Theme -
+  <a class="theme-link" href="https://github.com/simpleyyt/jekyll-theme-next">
+    NexT.Muse
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+   
+  
+  
+  
+  
+  
+  <script type="text/javascript" src="/assets/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  
+  
+  
+  
+  <script type="text/javascript" src="/assets/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  
+  
+  
+  
+  <script type="text/javascript" src="/assets/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  
+  
+  
+  
+  <script type="text/javascript" src="/assets/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  
+  
+  
+  
+  <script type="text/javascript" src="/assets/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  
+  
+  
+  
+  <script type="text/javascript" src="/assets/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/assets/js/src/utils.js?v=5.1.1"></script>
+
+  <script type="text/javascript" src="/assets/js/src/motion.js?v=5.1.1"></script>
+
+
+
+  
+  
+
+  <script type="text/javascript" src="/assets/js/src/scrollspy.js?v=5.1.1"></script>
+<script type="text/javascript" src="/assets/js/src/post-details.js?v=5.1.1"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/assets/js/src/bootstrap.js?v=5.1.1"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+  
+
+    
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+  
+
+  
+
+  
+  
+
+
+  
+
+  
+
+  
+
+</body>
+</html>
+

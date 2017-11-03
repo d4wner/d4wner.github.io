@@ -1,0 +1,828 @@
+
+<!doctype html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<html class="theme-next muse use-motion" lang="en">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/assets/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/assets/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/assets/css/main.css?v=5.1.1" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="" />
+
+
+
+
+
+  <link rel="alternate" href="/atom.xml" title="地狱爬行者's Blog" type="application/atom+xml" />
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/assets/favicon.ico?v=5.1.1" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="在几天的对完结项目的修正中，涉及到一些对python和php数据库的连接问题的处理。 在其中有关于系统方面的，也有库相关的，在这里做一个小小的总结。">
+<meta name="keywords" content="blog, security, web, php, python">
+<meta property="og:type" content="article">
+<meta property="og:title" content="关于python和php数据库连接问题">
+<meta property="og:url" content="http://localhost:4000/data/2014/05/17/e5-85-b3-e4-ba-8epython-e5-92-8cphp-e6-95-b0-e6-8d-ae-e5-ba-93-e8-bf-9e-e6-8e-a5-e9-97-ae-e9-a2-98/">
+<meta property="og:site_name" content="地狱爬行者's Blog">
+<meta property="og:description" content="在几天的对完结项目的修正中，涉及到一些对python和php数据库的连接问题的处理。 在其中有关于系统方面的，也有库相关的，在这里做一个小小的总结。">
+<meta property="og:locale" content="en">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="关于python和php数据库连接问题">
+<meta name="twitter:description" content="在几天的对完结项目的修正中，涉及到一些对python和php数据库的连接问题的处理。 在其中有关于系统方面的，也有库相关的，在这里做一个小小的总结。">
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '',
+    scheme: 'Muse',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":0,"b2t":false,"scrollpercent":false},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: 'Author'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://localhost:4000/"/>
+
+
+
+
+
+  <title>关于python和php数据库连接问题</title>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="en">
+
+  
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"> <div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">地狱爬行者's Blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            Home
+          </a>
+        </li>
+      
+        
+        
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            Archives
+          </a>
+        </li>
+      
+        
+        
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            Tags
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+<div id="posts" class="posts-expand">
+  
+  
+
+  
+
+  
+  
+  
+
+  <article class="post post-type- " itemscope itemtype="http://schema.org/Article">
+    <link itemprop="mainEntityOfPage" href="http://localhost:4000/data/2014/05/17/e5-85-b3-e4-ba-8epython-e5-92-8cphp-e6-95-b0-e6-8d-ae-e5-ba-93-e8-bf-9e-e6-8e-a5-e9-97-ae-e9-a2-98/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="demon">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="assets/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="地狱爬行者's Blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+          
+          
+            关于python和php数据库连接问题
+          
+        </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2014-05-17T03:54:00+08:00">
+                2014-05-17
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/category/#/data" itemprop="url" rel="index">
+                    <span itemprop="name">data</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+            
+                <div class="post-description">
+                    
+                </div>
+            
+          
+
+        </div>
+      </header>
+    
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>在几天的对完结项目的修正中，涉及到一些对python和php数据库的连接问题的处理。
+在其中有关于系统方面的，也有库相关的，在这里做一个小小的总结。</p>
+
+<p><span style="color: #ff0000;">1.python数据库连接</span>
+mysql：import MySQLdb
+mssql：import pymssql
+这里小提一下，pyodbc也是可以连接的，至于有没有pdo的库，偶也不知道。</p>
+
+<p><span style="color: #ff0000;">2.php的数据库连接</span>
+mysql：
+连接方法海了去了，pdo,odbc,mysql默认连接法子（不需要加扩展，一般用这个）。
+<span style="color: #00B050;">mssql：</span>
+在这里要分在win下和在linux下了，在win下很是方便：
+可以sqlsrv,这个是微软官方提供的连接方式，在大多数dll啥失效后还能用，如：
+http://www.php.net/manual/zh/book.sqlsrv.php</p>
+
+<p>鄙人在codeigniter论坛找到一个利用方法，如：
+https://github.com/EllisLab/CodeIgniter/tree/develop/system/database/drivers/sqlsrv
+下载两个文件sqlsrv_driver.php，sqlsrv_result.php即可。
+然后在入口文件包含核心文件之前包含上面两个文件。
+配置方法：
+http://stackoverflow.com/questions/19460025/how-do-i-connect-codeigniter-to-a-sql-server</p>
+
+<p>PS:这个也是php标准拓展。
+在win下也需要处理一系列php高版本后对mssql不再支持的问题，话说在php6后只支持pdo连接了。
+在此之前可以用pdo和odbc，或者服务器开启了mssql模块的话，可以直接mssql_connect，但仍要在php.ini里改下extension配置即可。</p>
+
+<p><span style="color: #00B050;">在linux下：</span>
+不想提了，蛋都碎了。
+在linux下做mssql连接，很重要的一点就是freetds,这玩意儿linux连接mssql必备。mssql是从sybase衍生出来的，有一些哥们做了一些sybase的linux下的连接库，这些连接库同时也能支持mssql，
+我用的时候是0.9吧（0.8也可），在这时配置的版本需要弄成8.0,具体的我就不再详述，多查阅资料大家会恍然的。
+安装完freetds后（可以下载安装包安装，也可以yum、apt-get源安装），
+在这里提供一个下载链接：http://blog.csdn.net/kunp/article/details/387013</p>
+
+<p>然后就是选择mssql_connect还是pdo还是odbc,暂时找到这几种方法，令人纠结心痛的是这几种方法似乎都要重新编译php，将环境啥配置啥的重新编译进去，由于鄙人找了半天确实没找到他说的php源代码安装目录下ext目录的mssql目录，然后去configure，所以这条路pass掉，其中需要phpize编译的步奏，也pass掉，鄙人perl环境出过问题，执行老出相关错误（明白怎么回事的大牛欢迎吐槽，偶是昏了）。所以意思是php扩展的连接库文件**.so等压根不能生成，也谈不上去php.ini里去改啥扩展配置路径，蛋碎一地。
+怎么办呢？基友告诉我个法子，让我不装扩展，直接用php-mssql，鄙人centos6，yum了一下，坑比的没有安装包，直接被丢了一脸的链接：
+https://gist.github.com/shf/2052432
+通过这个方法我装上了php-mssql（需要代理），然后yum安装了php-odbc，然后，然后木有连上mssql，不知道咋回事，这个问题留着解决，猜测应该是还要做其他配置，完全是基友跟我瞎摸索有木有。。</p>
+
+<p><span style="color: #00B050;">后记：此方法可行！不过需要关闭selinux，它拦截了端口！远程连接mysql相同，不止需要注意iptables！</span></p>
+
+<p><span style="color: #00B050;">附上链接：http://blog.csdn.net/feng2375/article/details/7354045</span></p>
+
+<p><span style="color: #00B050;">权限授予：http://blog.163.com/guotao_163/blog/static/2368282201010422031307/</span></p>
+
+<p><span style="color: #00B050;">特殊模式改密码需注意：http://blog.csdn.net/hzw2312/article/details/8968806</span></p>
+
+<p> </p>
+
+<p><span style="color: #ff0000;">3.关于mssql开启远程</span>
+大家知道如果要让外服务器访问，sqlserver必须开启远程，开启1433，在这里稍稍说下。
+http://www.360doc.com/content/13/0525/23/19147_288191810.shtml
+这篇文章介绍的比较全，但是偶的1433端口一直没开，telnet xx.xx.xx.xx 1433不上。</p>
+
+<p>怎么办，如：
+http://hi.baidu.com/daheshuiman/item/6dad61982dd267895814615d
+把1433端口配上启用、活动。
+记住sql-server browser必须打开。
+在网上有说sqlserver2005 版本0.8以下的需要打补丁才开的了，也就说至少要打上sp3以上的补丁。
+PS:在这里提下，我自己用时sql-server browser没有打开，按钮灰色，所以需要要把所有属性勾上活动，所有勾上是，这点特别注意。
+开启了后一般就能看的1433能telnet上了。外连时，据网上说，可以直接用ip,还有说需要加sqlserver实例名，偶表示不明觉厉。</p>
+
+<p>附上另两篇参考文章:
+http://www.2cto.com/database/201304/204867.html
+http://wenwen.sogou.com/z/q410734670.htm</p>
+
+<p>最后，偶因为在linux环境下，无法连接mssql，只好退而求其次，连接mysql，但是原来的数据却是放在mssql里的，所以需要将数据转移：
+https://github.com/Nick011/MSSQL-to-MySQL/blob/master/convert_db.py
+在这里看到，在两个数据库都在开始开启了cursor后，在insert了才commit(),但是注意看最后，每一次循环都要commit一次，
+说明连接时只连接一次的。好吧，这个好像弱爆了。。</p>
+
+<p><span style="color: #00ffff;">最后，上面讲的很粗不是本人意愿啊！！！完全是因为实验时老爷机崩溃了，资料引用全部丢失，以上大部分凭记忆拼接，所以缺漏之处，</span>
+<span style="color: #00ffff;"> 还请不吝赐教，感谢！’</span></p>
+
+<p> </p>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+
+      
+      
+      
+      
+      
+
+      
+      
+        <div class="post-nav" id="post-nav-id">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/coding/2014/06/29/php-e9-87-87-e9-9b-86-e5-99-a8-e5-b0-8f-e8-ae-b0/" rel="next" title="php采集器小记">
+                <i class="fa fa-chevron-left"></i> php采集器小记
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/data/2014/04/20/sql-e5-8e-86-e5-8f-b2-e8-af-ad-e5-8f-a5-e7-9a-84-e8-bf-bd-e8-b8-aa-e5-ae-9d-e5-85-b8/" rel="prev" title="SQL历史语句的追踪宝典">
+                SQL历史语句的追踪宝典 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+      
+
+      
+    </footer>
+  </article>
+
+  <div class="post-spread">
+    
+  </div>
+</div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+  </div>
+
+
+        </div>
+        
+          
+
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+        
+        
+        
+
+
+
+
+      
+
+      
+
+      <section class="site-overview sidebar-panel sidebar-panel-active">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/assets/images/avatar.gif"
+               alt="demon" />
+          <p class="site-author-name" itemprop="name">demon</p>
+           
+              <p class="site-description motion-element" itemprop="description">原创网络安全博客</p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives/">
+                <span class="site-state-item-count">39</span>
+                <span class="site-state-item-name">posts</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-categories">
+              <a href="/categories/">
+                <span class="site-state-item-count">13</span>
+                <span class="site-state-item-name">categories</span>
+              </a>
+            </div>
+          
+
+          
+
+        </nav>
+
+        
+        
+        
+          <div class="feed-link motion-element">
+            <a href="/atom.xml" rel="alternate">
+              <i class="fa fa-rss"></i>
+              RSS
+            </a>
+          </div>
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+
+      
+
+    </div>
+  </aside>
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2017</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">demon</span>
+</div>
+
+
+<div class="powered-by">
+  Powered by <a class="theme-link" href="https://jekyllrb.com">Jekyll</a>
+</div>
+
+<div class="theme-info">
+  Theme -
+  <a class="theme-link" href="https://github.com/simpleyyt/jekyll-theme-next">
+    NexT.Muse
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+   
+  
+  
+  
+  
+  
+  <script type="text/javascript" src="/assets/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  
+  
+  
+  
+  <script type="text/javascript" src="/assets/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  
+  
+  
+  
+  <script type="text/javascript" src="/assets/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  
+  
+  
+  
+  <script type="text/javascript" src="/assets/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  
+  
+  
+  
+  <script type="text/javascript" src="/assets/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  
+  
+  
+  
+  <script type="text/javascript" src="/assets/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/assets/js/src/utils.js?v=5.1.1"></script>
+
+  <script type="text/javascript" src="/assets/js/src/motion.js?v=5.1.1"></script>
+
+
+
+  
+  
+
+  <script type="text/javascript" src="/assets/js/src/scrollspy.js?v=5.1.1"></script>
+<script type="text/javascript" src="/assets/js/src/post-details.js?v=5.1.1"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/assets/js/src/bootstrap.js?v=5.1.1"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+  
+
+    
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+  
+
+  
+
+  
+  
+
+
+  
+
+  
+
+  
+
+</body>
+</html>
+
