@@ -1,8 +1,6 @@
----
-layout: page
-title: About
-permalink: /about/
----
+# NexT
+
+> 精于心，简于形
 
 <blockquote>
 <p style="text-align: center;">冷月缺，</p>
