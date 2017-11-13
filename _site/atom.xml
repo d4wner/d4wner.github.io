@@ -1,4 +1,135 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.5.2">Jekyll</generator><link href="/atom.xml" rel="self" type="application/atom+xml" /><link href="/" rel="alternate" type="text/html" /><updated>2017-11-03T20:43:07+08:00</updated><id>/</id><title type="html">地狱爬行者’s Blog</title><subtitle>原创网络安全博客</subtitle><author><name>demon</name></author><entry><title type="html">域名采集爬虫</title><link href="/spider/2017/10/19/domain-spider/" rel="alternate" type="text/html" title="域名采集爬虫" /><published>2017-10-19T20:59:18+08:00</published><updated>2017-10-19T20:59:18+08:00</updated><id>/spider/2017/10/19/domain-spider</id><content type="html" xml:base="/spider/2017/10/19/domain-spider/">&lt;p&gt;
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.5.2">Jekyll</generator><link href="http://localhost:4000/atom.xml" rel="self" type="application/atom+xml" /><link href="http://localhost:4000/" rel="alternate" type="text/html" /><updated>2017-11-13T16:52:16+08:00</updated><id>http://localhost:4000/</id><title type="html">地狱爬行者’s Blog</title><subtitle>原创网络安全博客</subtitle><author><name>demon</name></author><entry><title type="html">黑盒漏洞挖掘（WEB篇）</title><link href="http://localhost:4000/pentest/2017/11/13/pentest-for-blackbox/" rel="alternate" type="text/html" title="黑盒漏洞挖掘（WEB篇）" /><published>2017-11-13T16:41:18+08:00</published><updated>2017-11-13T16:41:18+08:00</updated><id>http://localhost:4000/pentest/2017/11/13/pentest-for-blackbox</id><content type="html" xml:base="http://localhost:4000/pentest/2017/11/13/pentest-for-blackbox/">&lt;p&gt;
+	&lt;span style=&quot;color:#DAA520;&quot;&gt;&lt;strong&gt;在安全测试中，我们常常会遇到一些重复性工作。而鄙人记性不佳，有时候并不能高效的进行工作。因此，自己萌生了撰写工作总结的想法，将以往的工作列清单，做一个总结，以作查阅之用。&lt;/strong&gt;&lt;/span&gt;
+&lt;/p&gt;
+
+&lt;p&gt;当然，这个系列也希望会持续更新。人，总是要有进步不是。&lt;/p&gt;
+
+&lt;h3 id=&quot;克敌机先&quot;&gt;克敌机先&lt;/h3&gt;
+
+&lt;p&gt;在测试某个网站时，我们常常需要先探测该网站的基本信息：&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;是否存在WAF，像创宇盾这种检测到攻击会马上暂时性封IP，阿里云盾偷偷摸摸检测到攻击行为后，会直接无前兆地封禁你IP，至于安全狗、D盾、云锁、百度云安全这种就不一一例举了，暂时不细说。&lt;/li&gt;
+  &lt;li&gt;路径扫描，如果存在WAF或者目标较为脆弱，可以直接调整为非常低的线程数，比如一个线程，然后对目标进行文件/目录低速探测。如果没有太多限制，那就使劲儿造作。&lt;/li&gt;
+  &lt;li&gt;如果需要测试的网站比较大且比较耐操，且没有WAF/IDS，建议配置好去重和线程，使用大型扫描器对网站进行探测。这样做的好处是不会漏掉一些常用的漏洞，而且可以获取网站的结构。但缺点是需要等待比较长的时间，也容易被管理发现。&lt;/li&gt;
+  &lt;li&gt;部分网站的后台，可能存在于域名的其他端口上。如果服务器不存在CDN，这时候可以借助类nmap的扫描器来探测端口开放情况，比如使用命令：
+```
+nmap -sS -sV -p- –script=”http-title,banner” 192.168.2.10&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;```&lt;/p&gt;
+&lt;ul&gt;
+  &lt;li&gt;插件检测server类型，是否为tomcat/jboss/glassfish之类，探测是否存在可访问webserver console。&lt;/li&gt;
+  &lt;li&gt;检测网站是否为公开的CMS，探测CMS类型，漏洞库是否存在相关漏洞。&lt;/li&gt;
+  &lt;li&gt;查看有无列目录的权限。&lt;/li&gt;
+  &lt;li&gt;查看是否提供附件下载，如果是参数传递的URL，这类链接通常比较敏感。如果可以明显给出了文件的相对/绝对路径/可预测的类文件名id，我们可以优先进行任意文件下载测试，其次再进行常规漏洞测试。如果仅仅是给出了普通的id值，那可以直接进行常规漏洞测试。&lt;/li&gt;
+  &lt;li&gt;查看网站是否有明显的配置漏洞，比如提供了allow *的crossdomain.xml；没有进行过滤的robots.txt；容易猜测名字的源码压缩包；泄露敏感信息的配置文件、JS文件甚至普通html文件；.git/.svn文件供下载等。&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&quot;权限权限&quot;&gt;权限，权限！&lt;/h3&gt;
+
+&lt;p&gt;在遇到某个网站时，窃以为应该先寻找能够获取更大权限的地方，而登录后的权限无疑会更大。&lt;/p&gt;
+
+&lt;p&gt;这时，我们可以尝试进行注册，或者夺取原有的账户权限。&lt;/p&gt;
+
+&lt;p&gt;此时有一点需要注意，在登录的入口处和搜索处，可能存在一定的脆弱性，建议同其他前台产生的敏感数据包一同进行fuzz检测。&lt;/p&gt;
+
+&lt;h5 id=&quot;自给自足&quot;&gt;自给自足&lt;/h5&gt;
+
+&lt;p&gt;在本身无权限时，我们可以去寻找注册的地方，间接获取更高的权限。
+同时在此过程中，我们有几个点需要注意：&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;研究找回密码功能，查看是否有无逻辑漏洞可以跳过，可否预测和爆破验证码。&lt;/li&gt;
+  &lt;li&gt;可能存在上传，查看能否直接获取webshell&lt;/li&gt;
+  &lt;li&gt;可能存在XSS，如果在注册能直接通过时，需要等待注册完毕，去用户中心再继续测试。如若需要等待审核，可以尝试植入XSS平台代码，等待机器上线。&lt;/li&gt;
+  &lt;li&gt;如若存在手机和邮箱验证，可尝试有无邮箱炸弹漏洞。&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h5 id=&quot;鸠占鹊巢&quot;&gt;鸠占鹊巢&lt;/h5&gt;
+
+&lt;p&gt;有时候管理或者开发不够细心，我们可以通过各种手段去获取原有普通用户或者管理用户的权限。在我们能够比较容易的获取后台登陆口，或者在无法注册用户时，我们可以如此操作：&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;通过手工猜测密码/识别简单验证码/验证码绕过/直接爆破，猜测密码，来获取原有用户的权限。&lt;/li&gt;
+  &lt;li&gt;查看用户名是否存在，尝试能否预测/枚举用户，可能有机会猜测管理账号。&lt;/li&gt;
+  &lt;li&gt;搜寻文档，后台页面可能存在一些敏感说明文档提供下载，里面有可能会记录测试账号等敏感内容，对测试会比较有帮助。&lt;/li&gt;
+  &lt;li&gt;万能密码绕过，这种情况一般asp和php类型的网站会存在的稍微多些，不过新一点的网站这样的问题越来越少了。&lt;/li&gt;
+  &lt;li&gt;禁用JS，直接卡入后台管理页面。这种情况一般需要预先爆破或者在JS源码里找寻后台路径，然后再使用该方法。&lt;/li&gt;
+  &lt;li&gt;工具/插件修改cookie，直接进入管理后台。这种方法比较古老了，现在成功的几率是比较小的。&lt;/li&gt;
+  &lt;li&gt;善用类Google/类Github/类shodan引擎，搜寻泄露的后台账号密码/带认证的链接等等。&lt;/li&gt;
+  &lt;li&gt;设法找寻网站管理和开发者的相关信息，查找社工库组合相关密码。如果是针对企业和组织进行渗透，可设法查询社工库里相关的邮箱密码，再借助可登入的邮箱翻看敏感内容，从而达到进入后台的目的。&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&quot;用户中心&quot;&gt;用户中心&lt;/h3&gt;
+
+&lt;p&gt;登入网站用户中心后，我们一般可以做如下测试。&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;抓包测试，查看在数据包中修改参数，能否越权枚举和修改用户的基本信息/订单/地址等内容。&lt;/li&gt;
+  &lt;li&gt;在用户互发私信功能处，可能存在存储型XSS。&lt;/li&gt;
+  &lt;li&gt;如若在注册时，并未测试存储XSS、邮箱/手机/私信炸弹、越权修改密码，可在此测试。&lt;/li&gt;
+  &lt;li&gt;查看是否存在附件上传/头像上传，文件命名规律也可稍作检查，最后查看能否直接获取webshell。&lt;/li&gt;
+  &lt;li&gt;查看搜索功能是否有别于前台，能否间接枚举用户或者手机号。&lt;/li&gt;
+  &lt;li&gt;在用户中心进行SQL注入和XSS的fuzz测试，成功几率大抵会高于前台。&lt;/li&gt;
+  &lt;li&gt;对于邀请注册/登出系统/登录跳转/注册验证的链接，都可能存在任意URL跳转的漏洞。&lt;/li&gt;
+  &lt;li&gt;如果用户中心未启用token验证，在修改密码/修改用户名和昵称/修改地址/修改邮箱和手机号等地方，很可能存在CSRF漏洞。&lt;/li&gt;
+  &lt;li&gt;上传后的地址可能存在列目录漏洞。&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&quot;管理后台&quot;&gt;管理后台&lt;/h3&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;管理后台可能存在上传的地方，可以尝试能否获取webshell。&lt;/li&gt;
+  &lt;li&gt;上传处，如若能上传文本类型文档，查看是否有预览功能，进而考虑能否写入存储型XSS。&lt;/li&gt;
+  &lt;li&gt;上传处，如果能够上传XML文档，或者只是提交XML内容，可以尝试XXE攻击。&lt;/li&gt;
+  &lt;li&gt;上传处，如果过滤了大多数动态文件，但并不是使用的白名单，可以考虑上传shtml，同样可能执行命令。&lt;/li&gt;
+  &lt;li&gt;配置处可能存在未过滤的地方，可以直接写入存储型XSS。&lt;/li&gt;
+  &lt;li&gt;php类的网站，有的可以通过转义和截断，往配置文件里写入webshell。&lt;/li&gt;
+  &lt;li&gt;asp类的网站，可以通过写配置，然后数据库备份得到webshell，这里不细说。&lt;/li&gt;
+  &lt;li&gt;后台大多验证不严，可以尝试SQL注入和XSS的fuzz测试。&lt;/li&gt;
+  &lt;li&gt;后台可能存在执行命令的地方，可进行fuzz，获取敏感配置或者直接反弹shell。&lt;/li&gt;
+  &lt;li&gt;如若后台存在通讯录，在不违反合规条款的情况下，可尝试自行处理。&lt;/li&gt;
+  &lt;li&gt;部分后台如果存在管理用户表，在不违反合规条款的情况下，可尝试自行处理。&lt;/li&gt;
+  &lt;li&gt;管理后台大概率不会验证token的，所以很多网站后台也因此存在CSRF。&lt;/li&gt;
+  &lt;li&gt;如果非管理用户，也可以尝试越权修改其他用户的密码。&lt;/li&gt;
+  &lt;li&gt;后台有时会存在读取文件内容，或者探测内网存活的功能，抑或是上传特殊文件进行解析，可以尝试是否存在SSRF。&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&quot;权宜之计&quot;&gt;权宜之计&lt;/h3&gt;
+
+&lt;p&gt;如果我们无法登陆后台，也无法注册怎么办？我们可以尝试以下几种做法：&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;评论处可能存在上传和存储型XSS，也可能存在没有验证重复提交的CSRF。&lt;/li&gt;
+  &lt;li&gt;提交个人建议等供审核的内容时，有可能后台没有做XSS过滤，这时候就可以进行盲打。&lt;/li&gt;
+  &lt;li&gt;某些用户的个人页面可以通过枚举id获得，里面可能存在一些敏感信息。&lt;/li&gt;
+  &lt;li&gt;在前台或者用户中心，可能存在星号隐藏一些敏感信息，比如说手机号。这些信息在某些时候，可能在源码里直接或者间接能看到。&lt;/li&gt;
+  &lt;li&gt;前台可能存在一些伪静态页面，建议随手尝试注入，虽然现在这样的案例已经比较少了。&lt;/li&gt;
+  &lt;li&gt;在尝试列目录漏洞时，可以在目录后面加上XSS字符尝试是否有反馈，也可以尝试不存在的文件名（hacksb.php）或者错误的文件名（~list.aspx、error.jspx）进行报错。&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&quot;端口入侵&quot;&gt;端口入侵&lt;/h3&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;某些端口存在服务认证，如果有弱口令/默认口令，可以爆破进入。&lt;/li&gt;
+  &lt;li&gt;某些WebServer在特定端口，同样存在单独的WEB登陆口，如果突破进入后台，可以部署包拿webshell，也可能执行命令反弹shell。&lt;/li&gt;
+  &lt;li&gt;代理端口，这类服务比较少，如果找到可以尝试连接，设法将其作为跳板，切入内网。&lt;/li&gt;
+  &lt;li&gt;特定端口开启的服务，可能存在RCE，结合MSF可以反弹shell。&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&quot;细节思考&quot;&gt;细节思考&lt;/h3&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;测试敏感点注入时，最好多尝试几遍，加上risk、level、random-ua以及tamper，不要过于依赖扫描器或者fuzz工具。&lt;/li&gt;
+  &lt;li&gt;测试XSS的时候，最好先用字符试水查看过滤情况，有时候不能直接使用payload的时候，可以尝试绕过。&lt;/li&gt;
+  &lt;li&gt;上传时可能存在黑/白名单时，每次手动改包会很麻烦。最好是通过字典批量发包进行fuzz。另外，%00不管用时，可以替换成类似的空白字符段（以后补上细节）。&lt;/li&gt;
+  &lt;li&gt;绕过逻辑改包，无论是上传还是找回密码，记得每步截图，也许有时候只有一次机会。&lt;/li&gt;
+  &lt;li&gt;修改状态码时，也许能够通过辅助插件，自动化fuzz判断。&lt;/li&gt;
+  &lt;li&gt;调用callback内容时，其内容也许可控，我们可以尝试往里面注入污染语句。最后，再尝试寻找调用callback的地方。&lt;/li&gt;
+  &lt;li&gt;找后台一般有几种情况，可以是子目录，也可以是同域名下其他端口，甚至是其他子域名。比如统一SSO登录的情况下，一套网站总会有一个唯一入口。但由于历史的原因，总会遗漏和不统一的地方，那就是我们的突破口。&lt;/li&gt;
+  &lt;li&gt;待续。&lt;/li&gt;
+&lt;/ul&gt;</content><author><name>demon</name></author><category term="pentest" /><summary type="html">在安全测试中，我们常常会遇到一些重复性工作。而鄙人记性不佳，有时候并不能高效的进行工作。因此，自己萌生了撰写工作总结的想法，将以往的工作列清单，做一个总结，以作查阅之用。</summary></entry><entry><title type="html">域名采集爬虫</title><link href="http://localhost:4000/spider/2017/10/19/domain-spider/" rel="alternate" type="text/html" title="域名采集爬虫" /><published>2017-10-19T20:59:18+08:00</published><updated>2017-10-19T20:59:18+08:00</updated><id>http://localhost:4000/spider/2017/10/19/domain-spider</id><content type="html" xml:base="http://localhost:4000/spider/2017/10/19/domain-spider/">&lt;p&gt;
     &lt;span style=&quot;color:#00B050;&quot;&gt;&lt;strong&gt;
     前段时间在研究扫描器的问题，在涉及域名采集这块时， 突然有了一些特别的想法，所以单独将这个模块提取出来，做成了一套独立系统。
     &lt;/strong&gt;&lt;/span&gt;
@@ -59,7 +190,7 @@
 
 &lt;p&gt;代码由于还需要优化，暂时没有放出，以后会补上。&lt;/p&gt;
 
-&lt;p&gt;待续。&lt;/p&gt;</content><author><name>demon</name></author><category term="spider" /><summary type="html">前段时间在研究扫描器的问题，在涉及域名采集这块时， 突然有了一些特别的想法，所以单独将这个模块提取出来，做成了一套独立系统。</summary></entry><entry><title type="html">爬虫去重优化</title><link href="/spider/2017/10/14/url-duplicate-removal/" rel="alternate" type="text/html" title="爬虫去重优化" /><published>2017-10-14T08:05:18+08:00</published><updated>2017-10-14T08:05:18+08:00</updated><id>/spider/2017/10/14/url-duplicate-removal</id><content type="html" xml:base="/spider/2017/10/14/url-duplicate-removal/">&lt;p&gt;
+&lt;p&gt;待续。&lt;/p&gt;</content><author><name>demon</name></author><category term="spider" /><summary type="html">前段时间在研究扫描器的问题，在涉及域名采集这块时， 突然有了一些特别的想法，所以单独将这个模块提取出来，做成了一套独立系统。</summary></entry><entry><title type="html">爬虫去重优化</title><link href="http://localhost:4000/spider/2017/10/14/url-duplicate-removal/" rel="alternate" type="text/html" title="爬虫去重优化" /><published>2017-10-14T08:05:18+08:00</published><updated>2017-10-14T08:05:18+08:00</updated><id>http://localhost:4000/spider/2017/10/14/url-duplicate-removal</id><content type="html" xml:base="http://localhost:4000/spider/2017/10/14/url-duplicate-removal/">&lt;p&gt;
     &lt;span style=&quot;color:#DAA520;&quot;&gt;&lt;strong&gt;以前在做漏洞Fuzz爬虫时，曾做过URL去重相关的工作，当时是参考了seay法师的文章以及网上零碎的一些资料，感觉做的很简单。近来又遇到相关问题，于是乎有了再次改进算法的念头。&lt;/strong&gt;&lt;/span&gt;
 &lt;/p&gt;
 
@@ -265,7 +396,7 @@ http://blog.csdn.net/lemon_tree12138/article/details/47973715&lt;/p&gt;
 http://www.cnseay.com/?p=4102&lt;/p&gt;
 
 &lt;p&gt;网络爬虫 (spider) URL消重设计 URL去重设计
-http://woshizn.iteye.com/blog/532605&lt;/p&gt;</content><author><name>DEMON</name></author><summary type="html">以前在做漏洞Fuzz爬虫时，曾做过URL去重相关的工作，当时是参考了seay法师的文章以及网上零碎的一些资料，感觉做的很简单。近来又遇到相关问题，于是乎有了再次改进算法的念头。</summary></entry><entry><title type="html">迁移博客</title><link href="/jekyll/update/start/2017/09/02/welcome-to-jekyll/" rel="alternate" type="text/html" title="迁移博客" /><published>2017-09-02T08:05:18+08:00</published><updated>2017-09-02T08:05:18+08:00</updated><id>/jekyll/update/start/2017/09/02/welcome-to-jekyll</id><content type="html" xml:base="/jekyll/update/start/2017/09/02/welcome-to-jekyll/">&lt;p&gt;
+http://woshizn.iteye.com/blog/532605&lt;/p&gt;</content><author><name>DEMON</name></author><summary type="html">以前在做漏洞Fuzz爬虫时，曾做过URL去重相关的工作，当时是参考了seay法师的文章以及网上零碎的一些资料，感觉做的很简单。近来又遇到相关问题，于是乎有了再次改进算法的念头。</summary></entry><entry><title type="html">迁移博客</title><link href="http://localhost:4000/jekyll/update/start/2017/09/02/welcome-to-jekyll/" rel="alternate" type="text/html" title="迁移博客" /><published>2017-09-02T08:05:18+08:00</published><updated>2017-09-02T08:05:18+08:00</updated><id>http://localhost:4000/jekyll/update/start/2017/09/02/welcome-to-jekyll</id><content type="html" xml:base="http://localhost:4000/jekyll/update/start/2017/09/02/welcome-to-jekyll/">&lt;p&gt;
 	&lt;span style=&quot;color:#00B050;&quot;&gt;&lt;strong&gt;最近原来的空间服务里到期了，钱包吃紧又想diy，最后就选择了转入Github page。&lt;/strong&gt;&lt;/span&gt;
 &lt;/p&gt;
 
@@ -279,7 +410,7 @@ http://woshizn.iteye.com/blog/532605&lt;/p&gt;</content><author><name>DEMON</nam
 
 &lt;p&gt;If you can…&lt;/p&gt;
 
-&lt;p&gt;Dalao,  ball dai fly…&lt;/p&gt;</content><author><name>demon</name></author><category term="start" /><summary type="html">最近原来的空间服务里到期了，钱包吃紧又想diy，最后就选择了转入Github page。</summary></entry><entry><title type="html">Selenium+phantomjs刷量</title><link href="/spider/2016/11/12/seleniumphantomjs-e5-88-b7-e9-87-8f/" rel="alternate" type="text/html" title="Selenium+phantomjs刷量" /><published>2016-11-12T21:52:00+08:00</published><updated>2016-11-12T21:52:00+08:00</updated><id>/spider/2016/11/12/seleniumphantomjs%E5%88%B7%E9%87%8F</id><content type="html" xml:base="/spider/2016/11/12/seleniumphantomjs-e5-88-b7-e9-87-8f/">&lt;p&gt;
+&lt;p&gt;Dalao,  ball dai fly…&lt;/p&gt;</content><author><name>demon</name></author><category term="start" /><summary type="html">最近原来的空间服务里到期了，钱包吃紧又想diy，最后就选择了转入Github page。</summary></entry><entry><title type="html">Selenium+phantomjs刷量</title><link href="http://localhost:4000/spider/2016/11/12/seleniumphantomjs-e5-88-b7-e9-87-8f/" rel="alternate" type="text/html" title="Selenium+phantomjs刷量" /><published>2016-11-12T21:52:00+08:00</published><updated>2016-11-12T21:52:00+08:00</updated><id>http://localhost:4000/spider/2016/11/12/seleniumphantomjs%E5%88%B7%E9%87%8F</id><content type="html" xml:base="http://localhost:4000/spider/2016/11/12/seleniumphantomjs-e5-88-b7-e9-87-8f/">&lt;p&gt;
 	&lt;span style=&quot;color:#DAA520;&quot;&gt;&lt;strong&gt;最近有这方面的需求，要帮人在某网站上刷点击量。由于该网站是一家比较知名的大型门户，反作弊机制肯定是有的，所以突发奇想用Selenium试试。&lt;/strong&gt;&lt;/span&gt;
 &lt;/p&gt;
 
@@ -388,7 +519,7 @@ print driver.page_source&lt;/pre&gt;
 
 &lt;p&gt;
 	&lt;strong&gt;&lt;span style=&quot;color:#FFD700;&quot;&gt;[转载请注明来源&lt;/span&gt;&lt;a href=&quot;http://www.dawner.info/&quot; target=&quot;_blank&quot;&gt;&lt;span style=&quot;color:#FFD700;&quot;&gt;本站&lt;/span&gt;&lt;/a&gt;&lt;span style=&quot;color:#FFD700;&quot;&gt;,谢谢。]&lt;/span&gt;&lt;/strong&gt;
-&lt;/p&gt;</content><author><name>DEMON</name></author><summary type="html">最近有这方面的需求，要帮人在某网站上刷点击量。由于该网站是一家比较知名的大型门户，反作弊机制肯定是有的，所以突发奇想用Selenium试试。</summary></entry><entry><title type="html">看我如何从邮箱附件的逆向分析到揪出黑客源头</title><link href="/translate/2016/07/06/e7-9c-8b-e6-88-91-e5-a6-82-e4-bd-95-e4-bb-8e-e9-82-ae-e7-ae-b1-e9-99-84-e4-bb-b6-e7-9a-84-e9-80-86-e5-90-91-e5-88-86-e6-9e-90-e5-88-b0-e6-8f-aa-e5-87-ba-e9-bb-91-e5-ae-a2-e6-ba-90-e5-a4-b4/" rel="alternate" type="text/html" title="看我如何从邮箱附件的逆向分析到揪出黑客源头" /><published>2016-07-06T08:55:00+08:00</published><updated>2016-07-06T08:55:00+08:00</updated><id>/translate/2016/07/06/%E7%9C%8B%E6%88%91%E5%A6%82%E4%BD%95%E4%BB%8E%E9%82%AE%E7%AE%B1%E9%99%84%E4%BB%B6%E7%9A%84%E9%80%86%E5%90%91%E5%88%86%E6%9E%90%E5%88%B0%E6%8F%AA%E5%87%BA%E9%BB%91%E5%AE%A2%E6%BA%90%E5%A4%B4</id><content type="html" xml:base="/translate/2016/07/06/e7-9c-8b-e6-88-91-e5-a6-82-e4-bd-95-e4-bb-8e-e9-82-ae-e7-ae-b1-e9-99-84-e4-bb-b6-e7-9a-84-e9-80-86-e5-90-91-e5-88-86-e6-9e-90-e5-88-b0-e6-8f-aa-e5-87-ba-e9-bb-91-e5-ae-a2-e6-ba-90-e5-a4-b4/">&lt;p&gt;&lt;strong&gt;&lt;span style=&quot;color: #00B050;&quot;&gt;这个故事要从一次垃圾邮件攻击事件说起，下图是一个笔者从某封垃圾邮件里提取的可疑附件。至于下面这蹩脚的英语，这也是值得我们注意的地方。&lt;/span&gt;&lt;/strong&gt;&lt;/p&gt;
+&lt;/p&gt;</content><author><name>DEMON</name></author><summary type="html">最近有这方面的需求，要帮人在某网站上刷点击量。由于该网站是一家比较知名的大型门户，反作弊机制肯定是有的，所以突发奇想用Selenium试试。</summary></entry><entry><title type="html">看我如何从邮箱附件的逆向分析到揪出黑客源头</title><link href="http://localhost:4000/translate/2016/07/06/e7-9c-8b-e6-88-91-e5-a6-82-e4-bd-95-e4-bb-8e-e9-82-ae-e7-ae-b1-e9-99-84-e4-bb-b6-e7-9a-84-e9-80-86-e5-90-91-e5-88-86-e6-9e-90-e5-88-b0-e6-8f-aa-e5-87-ba-e9-bb-91-e5-ae-a2-e6-ba-90-e5-a4-b4/" rel="alternate" type="text/html" title="看我如何从邮箱附件的逆向分析到揪出黑客源头" /><published>2016-07-06T08:55:00+08:00</published><updated>2016-07-06T08:55:00+08:00</updated><id>http://localhost:4000/translate/2016/07/06/%E7%9C%8B%E6%88%91%E5%A6%82%E4%BD%95%E4%BB%8E%E9%82%AE%E7%AE%B1%E9%99%84%E4%BB%B6%E7%9A%84%E9%80%86%E5%90%91%E5%88%86%E6%9E%90%E5%88%B0%E6%8F%AA%E5%87%BA%E9%BB%91%E5%AE%A2%E6%BA%90%E5%A4%B4</id><content type="html" xml:base="http://localhost:4000/translate/2016/07/06/e7-9c-8b-e6-88-91-e5-a6-82-e4-bd-95-e4-bb-8e-e9-82-ae-e7-ae-b1-e9-99-84-e4-bb-b6-e7-9a-84-e9-80-86-e5-90-91-e5-88-86-e6-9e-90-e5-88-b0-e6-8f-aa-e5-87-ba-e9-bb-91-e5-ae-a2-e6-ba-90-e5-a4-b4/">&lt;p&gt;&lt;strong&gt;&lt;span style=&quot;color: #00B050;&quot;&gt;这个故事要从一次垃圾邮件攻击事件说起，下图是一个笔者从某封垃圾邮件里提取的可疑附件。至于下面这蹩脚的英语，这也是值得我们注意的地方。&lt;/span&gt;&lt;/strong&gt;&lt;/p&gt;
 
 &lt;p&gt;上图的附件使用了“.doc”作为后缀，但它其实是RTF（富文本）格式的文件。该文件包含了一个针对性的RTF栈溢出exp，它利用了CVE-2010-3333，也就是在微软Word RTF解析器在处理pFragments时会产生的一个漏洞。然而，该漏洞在五年前就已经修补了。&lt;/p&gt;
 
@@ -482,7 +613,7 @@ print driver.page_source&lt;/pre&gt;
 
 &lt;p&gt;攻击中的这两个漏洞虽然已经比较早了，但是仍广泛用于电子邮件攻击之中，这里建议读者更新好补丁，使用好相应的杀软，从而防御黑客的攻击。&lt;/p&gt;
 
-&lt;p&gt;&lt;span style=&quot;color: #ff0000;&quot;&gt;&lt;strong&gt;[参考来源&lt;a style=&quot;color: #ff0000;&quot; href=&quot;https://www.trustwave.com/Resources/SpiderLabs-Blog/How-I-Cracked-a-Keylogger-and-Ended-Up-in-Someone-s-Inbox/&quot; target=&quot;_blank&quot;&gt;trustwave&lt;/a&gt;，转载请注明本站翻译]&lt;/strong&gt;&lt;/span&gt;&lt;/p&gt;</content><author><name>DEMON</name></author><summary type="html">这个故事要从一次垃圾邮件攻击事件说起，下图是一个笔者从某封垃圾邮件里提取的可疑附件。至于下面这蹩脚的英语，这也是值得我们注意的地方。</summary></entry><entry><title type="html">Asacub：从间谍软件到银行木马</title><link href="/translate/2016/01/25/asacub-ef-bc-9a-e4-bb-8e-e9-97-b4-e8-b0-8d-e8-bd-af-e4-bb-b6-e5-88-b0-e9-93-b6-e8-a1-8c-e6-9c-a8-e9-a9-ac/" rel="alternate" type="text/html" title="Asacub：从间谍软件到银行木马" /><published>2016-01-25T00:17:00+08:00</published><updated>2016-01-25T00:17:00+08:00</updated><id>/translate/2016/01/25/asacub:%E4%BB%8E%E9%97%B4%E8%B0%8D%E8%BD%AF%E4%BB%B6%E5%88%B0%E9%93%B6%E8%A1%8C%E6%9C%A8%E9%A9%AC</id><content type="html" xml:base="/translate/2016/01/25/asacub-ef-bc-9a-e4-bb-8e-e9-97-b4-e8-b0-8d-e8-bd-af-e4-bb-b6-e5-88-b0-e9-93-b6-e8-a1-8c-e6-9c-a8-e9-a9-ac/">&lt;p&gt;&lt;span style=&quot;color: #00B050;&quot;&gt;&lt;strong&gt;我们最近分析了一个系列银行木马Trojan-Banker.AndroidOS.Asacub，发现了其中在用的一台CC服务器chugumshimusona.com，也在为一款名为CoreBot的Windows木马所使用,这让我们起了对这款移动端银行木马进行分析的心思。&lt;/strong&gt;&lt;/span&gt;&lt;/p&gt;
+&lt;p&gt;&lt;span style=&quot;color: #ff0000;&quot;&gt;&lt;strong&gt;[参考来源&lt;a style=&quot;color: #ff0000;&quot; href=&quot;https://www.trustwave.com/Resources/SpiderLabs-Blog/How-I-Cracked-a-Keylogger-and-Ended-Up-in-Someone-s-Inbox/&quot; target=&quot;_blank&quot;&gt;trustwave&lt;/a&gt;，转载请注明本站翻译]&lt;/strong&gt;&lt;/span&gt;&lt;/p&gt;</content><author><name>DEMON</name></author><summary type="html">这个故事要从一次垃圾邮件攻击事件说起，下图是一个笔者从某封垃圾邮件里提取的可疑附件。至于下面这蹩脚的英语，这也是值得我们注意的地方。</summary></entry><entry><title type="html">Asacub：从间谍软件到银行木马</title><link href="http://localhost:4000/translate/2016/01/25/asacub-ef-bc-9a-e4-bb-8e-e9-97-b4-e8-b0-8d-e8-bd-af-e4-bb-b6-e5-88-b0-e9-93-b6-e8-a1-8c-e6-9c-a8-e9-a9-ac/" rel="alternate" type="text/html" title="Asacub：从间谍软件到银行木马" /><published>2016-01-25T00:17:00+08:00</published><updated>2016-01-25T00:17:00+08:00</updated><id>http://localhost:4000/translate/2016/01/25/asacub:%E4%BB%8E%E9%97%B4%E8%B0%8D%E8%BD%AF%E4%BB%B6%E5%88%B0%E9%93%B6%E8%A1%8C%E6%9C%A8%E9%A9%AC</id><content type="html" xml:base="http://localhost:4000/translate/2016/01/25/asacub-ef-bc-9a-e4-bb-8e-e9-97-b4-e8-b0-8d-e8-bd-af-e4-bb-b6-e5-88-b0-e9-93-b6-e8-a1-8c-e6-9c-a8-e9-a9-ac/">&lt;p&gt;&lt;span style=&quot;color: #00B050;&quot;&gt;&lt;strong&gt;我们最近分析了一个系列银行木马Trojan-Banker.AndroidOS.Asacub，发现了其中在用的一台CC服务器chugumshimusona.com，也在为一款名为CoreBot的Windows木马所使用,这让我们起了对这款移动端银行木马进行分析的心思。&lt;/strong&gt;&lt;/span&gt;&lt;/p&gt;
 
 &lt;!--more--&gt;
 &lt;p&gt;据我们所知，最初版本的Asacub木马出现在2015年6月。与其说当时的Asacub是银行恶意软件，不如说它是一款木马。早期的Asacub会窃取用户收到的所有短信，并上传到黑客的服务器。这款木马能够从CC服务器接收和处理下面的命令：
@@ -534,7 +665,7 @@ print driver.page_source&lt;/pre&gt;
 此外，我们还分析了该木马和CC服务器的通信，它似乎对俄罗斯手机银行服务特别感兴趣，
 在新年假期，新的改动在俄罗斯通过短信疯狂传播。短短一个星期内，从2015.12.28到2016.01.04，我们已发现6500名感染的用户，该木马由此跻身最活跃的恶意程序TOP5.。Asacub改版后发展的速度才有所减缓，我们将继续跟踪这类恶意软件。&lt;/p&gt;
 
-&lt;p&gt;&lt;strong&gt;[参考来源&lt;a href=&quot;https://securelist.com/blog/research/73211/the-asacub-trojan-from-spyware-to-banking-malware/&quot; target=&quot;_blank&quot;&gt;securelist&lt;/a&gt;，转载请注明本站翻译]&lt;/strong&gt;&lt;/p&gt;</content><author><name>DEMON</name></author><summary type="html">我们最近分析了一个系列银行木马Trojan-Banker.AndroidOS.Asacub，发现了其中在用的一台CC服务器chugumshimusona.com，也在为一款名为CoreBot的Windows木马所使用,这让我们起了对这款移动端银行木马进行分析的心思。</summary></entry><entry><title type="html">python字符编码处理</title><link href="/%E7%BC%96%E7%A8%8B%E4%B9%8B%E8%B7%AF/2015/08/04/python-e5-ad-97-e7-ac-a6-e7-bc-96-e7-a0-81-e5-a4-84-e7-90-86/" rel="alternate" type="text/html" title="python字符编码处理" /><published>2015-08-04T18:58:00+08:00</published><updated>2015-08-04T18:58:00+08:00</updated><id>/%E7%BC%96%E7%A8%8B%E4%B9%8B%E8%B7%AF/2015/08/04/python%E5%AD%97%E7%AC%A6%E7%BC%96%E7%A0%81%E5%A4%84%E7%90%86</id><content type="html" xml:base="/%E7%BC%96%E7%A8%8B%E4%B9%8B%E8%B7%AF/2015/08/04/python-e5-ad-97-e7-ac-a6-e7-bc-96-e7-a0-81-e5-a4-84-e7-90-86/">&lt;p&gt;&lt;strong&gt;&lt;span style=&quot;color: #00B050;&quot;&gt;最近因业务需求在写爬虫时，遇到点编码的问题，加上以前曾被类似问题困扰过，特此记录一下。&lt;/span&gt;&lt;/strong&gt;
+&lt;p&gt;&lt;strong&gt;[参考来源&lt;a href=&quot;https://securelist.com/blog/research/73211/the-asacub-trojan-from-spyware-to-banking-malware/&quot; target=&quot;_blank&quot;&gt;securelist&lt;/a&gt;，转载请注明本站翻译]&lt;/strong&gt;&lt;/p&gt;</content><author><name>DEMON</name></author><summary type="html">我们最近分析了一个系列银行木马Trojan-Banker.AndroidOS.Asacub，发现了其中在用的一台CC服务器chugumshimusona.com，也在为一款名为CoreBot的Windows木马所使用,这让我们起了对这款移动端银行木马进行分析的心思。</summary></entry><entry><title type="html">python字符编码处理</title><link href="http://localhost:4000/%E7%BC%96%E7%A8%8B%E4%B9%8B%E8%B7%AF/2015/08/04/python-e5-ad-97-e7-ac-a6-e7-bc-96-e7-a0-81-e5-a4-84-e7-90-86/" rel="alternate" type="text/html" title="python字符编码处理" /><published>2015-08-04T18:58:00+08:00</published><updated>2015-08-04T18:58:00+08:00</updated><id>http://localhost:4000/%E7%BC%96%E7%A8%8B%E4%B9%8B%E8%B7%AF/2015/08/04/python%E5%AD%97%E7%AC%A6%E7%BC%96%E7%A0%81%E5%A4%84%E7%90%86</id><content type="html" xml:base="http://localhost:4000/%E7%BC%96%E7%A8%8B%E4%B9%8B%E8%B7%AF/2015/08/04/python-e5-ad-97-e7-ac-a6-e7-bc-96-e7-a0-81-e5-a4-84-e7-90-86/">&lt;p&gt;&lt;strong&gt;&lt;span style=&quot;color: #00B050;&quot;&gt;最近因业务需求在写爬虫时，遇到点编码的问题，加上以前曾被类似问题困扰过，特此记录一下。&lt;/span&gt;&lt;/strong&gt;
 由于开发和使用环境常在Linux和Win下切换，常遇到字符处理错误，总结一些问题如下：&lt;/p&gt;
 
 &lt;p&gt;&lt;span style=&quot;color: #ff0000;&quot;&gt;1.如何中文匹配网页内容，而不会被各种编码扰乱&lt;/span&gt;&lt;/p&gt;
@@ -583,7 +714,7 @@ UnicodeDecodeError: 'ascii' codec can't decode byte 0xe7 in position 0: ordinal 
 &lt;span style=&quot;color: #ff00ff;&quot;&gt;&lt;a title=&quot;Python、Unicode和中文&quot; href=&quot;http://blog.csdn.net/summerhust/article/details/6654150&quot; target=&quot;_blank&quot;&gt;&lt;span style=&quot;color: #ff00ff;&quot;&gt;Python、Unicode和中文&lt;/span&gt;&lt;/a&gt;&lt;/span&gt;&lt;/p&gt;
 
 &lt;p&gt;文章是记录型，很简单的东西，不喜勿喷。
-&lt;span style=&quot;color: #00B050;&quot;&gt;[转载请注明来源&lt;a href=&quot;http://www.dawner.info&quot; target=&quot;_blank&quot;&gt;&lt;span style=&quot;color: #00B050;&quot;&gt;本站&lt;/span&gt;&lt;/a&gt;,谢谢。]&lt;/span&gt;&lt;/p&gt;</content><author><name>DEMON</name></author><summary type="html">最近因业务需求在写爬虫时，遇到点编码的问题，加上以前曾被类似问题困扰过，特此记录一下。 由于开发和使用环境常在Linux和Win下切换，常遇到字符处理错误，总结一些问题如下：</summary></entry><entry><title type="html">Ubuntu更新显卡驱动失败解决办法</title><link href="/system/2014/10/13/ubuntu-e6-9b-b4-e6-96-b0-e6-98-be-e5-8d-a1-e9-a9-b1-e5-8a-a8-e5-a4-b1-e8-b4-a5-e8-a7-a3-e5-86-b3-e5-8a-9e-e6-b3-95/" rel="alternate" type="text/html" title="Ubuntu更新显卡驱动失败解决办法" /><published>2014-10-13T00:32:00+08:00</published><updated>2014-10-13T00:32:00+08:00</updated><id>/system/2014/10/13/ubuntu%E6%9B%B4%E6%96%B0%E6%98%BE%E5%8D%A1%E9%A9%B1%E5%8A%A8%E5%A4%B1%E8%B4%A5%E8%A7%A3%E5%86%B3%E5%8A%9E%E6%B3%95</id><content type="html" xml:base="/system/2014/10/13/ubuntu-e6-9b-b4-e6-96-b0-e6-98-be-e5-8d-a1-e9-a9-b1-e5-8a-a8-e5-a4-b1-e8-b4-a5-e8-a7-a3-e5-86-b3-e5-8a-9e-e6-b3-95/">&lt;table&gt;
+&lt;span style=&quot;color: #00B050;&quot;&gt;[转载请注明来源&lt;a href=&quot;http://www.dawner.info&quot; target=&quot;_blank&quot;&gt;&lt;span style=&quot;color: #00B050;&quot;&gt;本站&lt;/span&gt;&lt;/a&gt;,谢谢。]&lt;/span&gt;&lt;/p&gt;</content><author><name>DEMON</name></author><summary type="html">最近因业务需求在写爬虫时，遇到点编码的问题，加上以前曾被类似问题困扰过，特此记录一下。 由于开发和使用环境常在Linux和Win下切换，常遇到字符处理错误，总结一些问题如下：</summary></entry><entry><title type="html">Ubuntu更新显卡驱动失败解决办法</title><link href="http://localhost:4000/system/2014/10/13/ubuntu-e6-9b-b4-e6-96-b0-e6-98-be-e5-8d-a1-e9-a9-b1-e5-8a-a8-e5-a4-b1-e8-b4-a5-e8-a7-a3-e5-86-b3-e5-8a-9e-e6-b3-95/" rel="alternate" type="text/html" title="Ubuntu更新显卡驱动失败解决办法" /><published>2014-10-13T00:32:00+08:00</published><updated>2014-10-13T00:32:00+08:00</updated><id>http://localhost:4000/system/2014/10/13/ubuntu%E6%9B%B4%E6%96%B0%E6%98%BE%E5%8D%A1%E9%A9%B1%E5%8A%A8%E5%A4%B1%E8%B4%A5%E8%A7%A3%E5%86%B3%E5%8A%9E%E6%B3%95</id><content type="html" xml:base="http://localhost:4000/system/2014/10/13/ubuntu-e6-9b-b4-e6-96-b0-e6-98-be-e5-8d-a1-e9-a9-b1-e5-8a-a8-e5-a4-b1-e8-b4-a5-e8-a7-a3-e5-86-b3-e5-8a-9e-e6-b3-95/">&lt;table&gt;
   &lt;tbody&gt;
     &lt;tr&gt;
       &lt;td&gt;前段时间因为做项目，一直整夜整夜地挂机爬站，笔记本用成台式机的负荷也是醉了-_-&lt;/td&gt;
@@ -614,7 +745,7 @@ UnicodeDecodeError: 'ascii' codec can't decode byte 0xe7 in position 0: ordinal 
 
 &lt;p&gt;===================&lt;/p&gt;
 
-&lt;p&gt;&lt;strong&gt;&lt;span style=&quot;color: #00B050;&quot;&gt;Enjoy yourself！&lt;/span&gt;&lt;/strong&gt;&lt;/p&gt;</content><author><name>DEMON</name></author><summary type="html">前段时间因为做项目，一直整夜整夜地挂机爬站，笔记本用成台式机的负荷也是醉了-_-  </summary></entry><entry><title type="html">对于python框架Scrapy+Gevent的研究</title><link href="/other/2014/09/20/e5-af-b9-e4-ba-8epython-e6-a1-86-e6-9e-b6scrapygevent-e7-9a-84-e7-a0-94-e7-a9-b6/" rel="alternate" type="text/html" title="对于python框架Scrapy+Gevent的研究" /><published>2014-09-20T21:26:00+08:00</published><updated>2014-09-20T21:26:00+08:00</updated><id>/other/2014/09/20/%E5%AF%B9%E4%BA%8Epython%E6%A1%86%E6%9E%B6scrapygevent%E7%9A%84%E7%A0%94%E7%A9%B6</id><content type="html" xml:base="/other/2014/09/20/e5-af-b9-e4-ba-8epython-e6-a1-86-e6-9e-b6scrapygevent-e7-9a-84-e7-a0-94-e7-a9-b6/">&lt;p&gt;&lt;span style=&quot;color: #00ffff;&quot;&gt;&lt;strong&gt;没错，标题党君又来了！文章只是做些第三方评论，不喜勿喷。&lt;/strong&gt;&lt;/span&gt;&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;&lt;span style=&quot;color: #00B050;&quot;&gt;Enjoy yourself！&lt;/span&gt;&lt;/strong&gt;&lt;/p&gt;</content><author><name>DEMON</name></author><summary type="html">前段时间因为做项目，一直整夜整夜地挂机爬站，笔记本用成台式机的负荷也是醉了-_-  </summary></entry><entry><title type="html">对于python框架Scrapy+Gevent的研究</title><link href="http://localhost:4000/other/2014/09/20/e5-af-b9-e4-ba-8epython-e6-a1-86-e6-9e-b6scrapygevent-e7-9a-84-e7-a0-94-e7-a9-b6/" rel="alternate" type="text/html" title="对于python框架Scrapy+Gevent的研究" /><published>2014-09-20T21:26:00+08:00</published><updated>2014-09-20T21:26:00+08:00</updated><id>http://localhost:4000/other/2014/09/20/%E5%AF%B9%E4%BA%8Epython%E6%A1%86%E6%9E%B6scrapygevent%E7%9A%84%E7%A0%94%E7%A9%B6</id><content type="html" xml:base="http://localhost:4000/other/2014/09/20/e5-af-b9-e4-ba-8epython-e6-a1-86-e6-9e-b6scrapygevent-e7-9a-84-e7-a0-94-e7-a9-b6/">&lt;p&gt;&lt;span style=&quot;color: #00ffff;&quot;&gt;&lt;strong&gt;没错，标题党君又来了！文章只是做些第三方评论，不喜勿喷。&lt;/strong&gt;&lt;/span&gt;&lt;/p&gt;
 
 &lt;p&gt;前几天看到&lt;span style=&quot;color: #ff0000;&quot;&gt;&lt;a title=&quot;Freebuf&quot; href=&quot;http://www.freebuf.com/tools/43194.html&quot; target=&quot;_blank&quot;&gt;&lt;span style=&quot;color: #ff0000;&quot;&gt;FB上的一篇文章&lt;/span&gt;&lt;/a&gt;&lt;/span&gt;，是将用Scrapy爬虫框架加以关键词词尝试，从而将可用的关键词与相应的URL返回存到结果里，个人感觉还是有比较大的改进空间的。覆盖攻击向量字段如下：&lt;/p&gt;
 
@@ -648,272 +779,4 @@ RUL末尾，如 www.example.com/&amp;lt;script&amp;gt;alert(1)&amp;lt;/script&am
 
 &lt;p&gt; &lt;/p&gt;
 
-&lt;p&gt; &lt;/p&gt;</content><author><name>DEMON</name></author><summary type="html">没错，标题党君又来了！文章只是做些第三方评论，不喜勿喷。</summary></entry><entry><title type="html">Md5批量+多接口破解脚本</title><link href="/tools/2014/09/08/md5-e6-89-b9-e9-87-8f-e5-a4-9a-e6-8e-a5-e5-8f-a3-e7-a0-b4-e8-a7-a3-e8-84-9a-e6-9c-ac/" rel="alternate" type="text/html" title="Md5批量+多接口破解脚本" /><published>2014-09-08T00:50:00+08:00</published><updated>2014-09-08T00:50:00+08:00</updated><id>/tools/2014/09/08/md5%E6%89%B9%E9%87%8F%E5%A4%9A%E6%8E%A5%E5%8F%A3%E7%A0%B4%E8%A7%A3%E8%84%9A%E6%9C%AC</id><content type="html" xml:base="/tools/2014/09/08/md5-e6-89-b9-e9-87-8f-e5-a4-9a-e6-8e-a5-e5-8f-a3-e7-a0-b4-e8-a7-a3-e8-84-9a-e6-9c-ac/">&lt;p&gt;=~~~~~~~~~~~~~~~~~~~~&lt;del&gt;=
-+———–DemonSpider—————-+
-+-Code reset by demon@f4ck.net—-+
-+———-&lt;a title=&quot;www.dawner.info&quot; href=&quot;http://www.dawner.info&quot; target=&quot;_blank&quot;&gt;www.dawner.info&lt;/a&gt;————+
-=&lt;/del&gt;~~~~~~~~~~~~~~~~~~~~=
-&lt;span style=&quot;color: #ff0000;&quot;&gt;PS:个人觉得这脚本最大的特点就是多接口+批量，当然，也可单选。&lt;/span&gt;
-代码预览如下：&lt;/p&gt;
-&lt;pre lang=&quot;python&quot;&gt;
-# -*- coding=utf-8 -*-
-import sys
-import socket
-import urllib
-import re
-import string
-import urllib2
-import threading
-import HTMLParser
-import cookielib
-
-def showInfo():
-    print &quot;&quot;&quot;
-     命令格式：md5_crack.py -hash md5hash \n
-			or md5_crack.py -dic
-           &quot;&quot;&quot;
-
-comcn_tmp=[]
-
-
-class timer(threading.Thread): 
-    def __init__(self, HASH):  
-        threading.Thread.__init__(self)  
-        self.HASH = HASH    
-   
-    def run(self):  
-        try:
-            if crack_md5asia(self.HASH):
-                return True
-        except Exception,e:
-            print e
-            pass
-        
-        try:
-            if crack_cc(self.HASH):
-                return True
-        except Exception,e:
-            print e
-            pass
-        
-        try:
-            if crack_silic(self.HASH):
-                return True
-        except Exception,e:
-            print e
-            pass
-        
-        try:
-            if crack_comcn(self.HASH):
-                return True
-        except Exception,e:
-            print e
-            pass
-
-        try:
-            if crack_somd5(self.HASH):
-                return True
-        except Exception,e:
-            print e
-            pass
-        
-        print &quot;[x]HASH Crack: &quot;+self.HASH+&quot; failed.&quot;
-        f.writelines(HASH+'\n')
-        return False 
-              
-
-
-class Parselinks(HTMLParser.HTMLParser):
-    def handle_starttag(self,tag,attrs):
-        if tag == 'input':
-            for name,value in attrs:
-                if name == 'name':
-                    if value != 'sand':
-                        continue
-                    else:
-                        count=0
-                        for name,value in attrs:
-                            count=count+1
-                            if count == 3: 
-                                comcn_tmp.append(value)
-
-        if tag == 'input':
-            for name,value in attrs:
-                if name == 'name':
-                    if value != 'token':
-                        continue
-                    else:
-                        count=0
-                        for name,value in attrs:
-                            count=count+1
-                            if count == 3: 
-                                comcn_tmp.append(value)
-
-
-#From http://www.md5.asia/
-def crack_md5asia(Hash):   
-    str_url=[&quot;http://md5ss.sinaapp.com/md5_decode.php?decoder=1&amp;amp;timeout=10&amp;amp;hash=&quot;,Hash]
-    url=&quot;&quot;.join(str_url)
-    #print url
-            
-    try:
-        sock=urllib.urlopen(url)
-        htmlSources=sock.read()
-    except:
-        #print &quot;Not Found&quot;
-        return False
-    else:
-        sock.close()
-    #本来这个地方，应该比较&quot;未找到,&quot;，但是由于编码的问题，会出问题。因此，改为16进制了。
-    if string.find(htmlSources,&quot;\346\234\252\346&quot;)!=-1:
-        return False
-        #print &quot;Not Found2&quot;
-    else:
-        print &quot;Password Found:&quot;,htmlSources
-        s.writelines(HASH+' '+resp+'\n')
-        print 'asia:',resp
-        return True
-        #exit(1)
-
-
-def crack_comcn(HASH):
-
-    cj = cookielib.CookieJar();
-    opener = urllib2.build_opener(urllib2.HTTPCookieProcessor(cj))
-    urllib2.install_opener(opener)
-    parsed = Parselinks()
-    parsed.feed(urllib.urlopen('http://www.md5.com.cn').read())
-    post_data = {'md': HASH ,'sand':comcn_tmp[0],'token':comcn_tmp[1],'submit':'MD5+Crack'}
-    post_data_urlencode = urllib.urlencode(post_data)
-    requrl = &quot;http://www.md5.com.cn/md5reverse&quot;
-    req = urllib2.Request(url = requrl,data =post_data_urlencode)
-    req.add_header('Referer', &quot;http://www.md5.com.cn/&quot;)
-    resps = urllib2.urlopen(req)
-    match = re.findall('Result:.*green&quot;&amp;gt;.*&amp;lt;\/span',resps.read())
-    re_match=re.findall('green&quot;&amp;gt;.*&amp;lt;\/span&amp;gt;&amp;lt;div',match[0])[0][7:-11]
-    #print re_match[0][7:-11]
-    s.writelines(HASH+' '+re_match+'\n')
-    print 'comcn:',re_match
-    return True
-
-
-
-def crack_silic(HASH):
-    post_data = {'isajax':'1' ,'md5':HASH}
-    post_data_urlencode = urllib.urlencode(post_data)
-    requrl = &quot;http://cracker.blackbap.org/?do=search&amp;amp;language=en&quot;
-    req = urllib2.Request(url = requrl,data =post_data_urlencode)
-    res_data = urllib2.urlopen(req)
-    res = res_data.read()
-    #print res
-    resp = re.findall('Password &lt;strong&gt;.*&amp;lt;\/strong&amp;gt;',res)[0][17:-9]
-    #print resp
-    s.writelines(HASH+' '+resp+'\n')
-    print 'silic:',resp
-    return True
-
-def crack_cc(HASH):
-    url='http://www.md5.cc/ShowMD5Info.asp?GetType=ShowInfo&amp;amp;no-cache=0.4669540437658686&amp;amp;md5_str='+HASH+'&amp;amp;_='
-    request = urllib2.Request(url)
-    request.add_header('Referer', &quot;http://www.md5.cc/&quot;)
-    res=urllib2.urlopen(request).read()
-    resp = re.findall('25px&quot;&amp;gt;.*&amp;lt;\/span&amp;gt;',res)[0][6:-7].strip()
-    #print resp[6:-7].strip()
-    s.writelines(HASH+' '+resp+'\n')
-    print &quot;cc:&quot;,resp
-    return True
-
-def crack_somd5(HASH):
-
-    resp=urllib.urlopen('http://www.somd5.com/somd5-md5-js.html').read()
-    ajax_data=re.findall('isajax=.*&amp;amp;',resp)[0][7:-1]
-    post_data = {'isajax':ajax_data,'md5':HASH}
-    post_data_urlencode = urllib.urlencode(post_data)
-    requrl = &quot;http://www.somd5.com/somd5-index-md5.html&quot;
-    req = urllib2.Request(url = requrl,data =post_data_urlencode)
-    resps = urllib2.urlopen(req).read()
-    match = re.findall('&amp;lt;h1.*line;&quot;&amp;gt;.*&amp;lt;\/h1',resps)[0]
-    re_match = re.findall('&quot;&amp;gt;.*&amp;lt;/',match)[0][2:-2]
-    s.writelines(HASH+' '+resp+'\n')
-    print &quot;somd5&quot;,resp
-    return True
-
-
-if '__main__' == __name__:         
-
-#这个简单脚本借用了一哥们儿的框架，虽然改动不少，按理确实应该留下原先那个兄弟版权的。。
-#可是我在论坛搜了半天都没搜到。。完全遗忘了原版在哪儿找的有木有！！
-#要是这兄弟看到了可以跟小弟联系，不嫌弃的话我加上~	
-
-    print &quot;&quot;&quot;
-     =~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~=
-     +-----------DemonSpider-----------+
-     +--------Md5-Cracker--V1.0--------+
-     +----------www.dawner.info--------+
-     +--md5_crack.py for single or dic-+
-     ===================================
-                    = =
-                   == ==
-                ===&amp;lt;-|-&amp;gt;===
-                 ====D====
-                  ===e===
-                   ==m==
-                    =o=
-                     n
-    &quot;&quot;&quot;
-    global f,s
-
-    if len(sys.argv)&amp;lt;2 :
-         print &quot;参数错误&quot;
-         showInfo()
-         exit(1)
-     
-    cmds = ['-hash','-dic']
-     
-    s=open('success_result.txt','w+')
-    f=open('fail_result.txt','w+')
-    cmd = sys.argv[1]
-    if len(sys.argv) == 3 :
-        Hash=sys.argv[2]
-         
-		 
-    if 0 == cmds.count(cmd):  
-        print cmd
-        print &quot;参数错误&quot;
-        showInfo()
-        exit(1)
-    else:
-        print 'Start working,Please waiting...'
-        if cmd == '-hash':
-            if len(Hash)==16 or len(Hash)==32:
-                crack_thread = timer(Hash)
-                crack_thread.start()
-                #crack_thread.setDamon()
-                crack_thread.join()
-            else:
-                print &quot;Hash长度出错.&quot;
-        elif cmd == 'dic':
-            for line in open('hash.txt','r'):
-                if len(line.strip())==16 or len(line.strip())==32:
-                    crack_thread = timer(line.strip())
-                    crack_thread.start()
-
-                else:
-                    continue
-    s.close()
-    f.close()
-    print &quot;Crack ending....&quot;
-&amp;lt;/pre&amp;gt;
-接口共五个，经小弟自己测试还算合手。
-
-用法：
-python md5_cracker.py -hash md5hash
-python md5_cracker.py -dic
-
-字典文件：
-hash.txt
-成功结果文件：success_result.txt
-失败结果文件：fail_result.txt
-
-&lt;span style=&quot;color: #00B050;&quot;&gt;附件。。就懒得发了吧。。^m^&lt;/span&gt;
-&lt;/strong&gt;&lt;/pre&gt;</content><author><name>DEMON</name></author><summary type="html">=~~~~~~~~~~~~~~~~~~~~= +———–DemonSpider—————-+ +-Code reset by demon@f4ck.net—-+ +———-www.dawner.info————+ =~~~~~~~~~~~~~~~~~~~~= PS:个人觉得这脚本最大的特点就是多接口+批量，当然，也可单选。 代码预览如下： # -*- coding=utf-8 -*- import sys import socket import urllib import re import string import urllib2 import threading import HTMLParser import cookielib</summary></entry></feed>
+&lt;p&gt; &lt;/p&gt;</content><author><name>DEMON</name></author><summary type="html">没错，标题党君又来了！文章只是做些第三方评论，不喜勿喷。</summary></entry></feed>
