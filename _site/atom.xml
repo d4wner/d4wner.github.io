@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.5.2">Jekyll</generator><link href="http://localhost:4000/atom.xml" rel="self" type="application/atom+xml" /><link href="http://localhost:4000/" rel="alternate" type="text/html" /><updated>2017-11-13T16:52:16+08:00</updated><id>http://localhost:4000/</id><title type="html">地狱爬行者’s Blog</title><subtitle>原创网络安全博客</subtitle><author><name>demon</name></author><entry><title type="html">黑盒漏洞挖掘（WEB篇）</title><link href="http://localhost:4000/pentest/2017/11/13/pentest-for-blackbox/" rel="alternate" type="text/html" title="黑盒漏洞挖掘（WEB篇）" /><published>2017-11-13T16:41:18+08:00</published><updated>2017-11-13T16:41:18+08:00</updated><id>http://localhost:4000/pentest/2017/11/13/pentest-for-blackbox</id><content type="html" xml:base="http://localhost:4000/pentest/2017/11/13/pentest-for-blackbox/">&lt;p&gt;
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.5.2">Jekyll</generator><link href="http://localhost:4000/atom.xml" rel="self" type="application/atom+xml" /><link href="http://localhost:4000/" rel="alternate" type="text/html" /><updated>2017-11-21T12:30:59+08:00</updated><id>http://localhost:4000/</id><title type="html">地狱爬行者’s Blog</title><subtitle>原创网络安全博客</subtitle><author><name>demon</name></author><entry><title type="html">黑盒漏洞挖掘（WEB篇）</title><link href="http://localhost:4000/pentest/2017/11/13/pentest-for-blackbox/" rel="alternate" type="text/html" title="黑盒漏洞挖掘（WEB篇）" /><published>2017-11-13T16:41:18+08:00</published><updated>2017-11-13T16:41:18+08:00</updated><id>http://localhost:4000/pentest/2017/11/13/pentest-for-blackbox</id><content type="html" xml:base="http://localhost:4000/pentest/2017/11/13/pentest-for-blackbox/">&lt;p&gt;
 	&lt;span style=&quot;color:#DAA520;&quot;&gt;&lt;strong&gt;在安全测试中，我们常常会遇到一些重复性工作。而鄙人记性不佳，有时候并不能高效的进行工作。因此，自己萌生了撰写工作总结的想法，将以往的工作列清单，做一个总结，以作查阅之用。&lt;/strong&gt;&lt;/span&gt;
 &lt;/p&gt;
 
@@ -143,6 +143,8 @@ nmap -sS -sV -p- –script=”http-title,banner” 192.168.2.10&lt;/li&gt;
   &lt;li&gt;字典枚举&lt;/li&gt;
   &lt;li&gt;Github泄露&lt;/li&gt;
   &lt;li&gt;搜索引擎泄露&lt;/li&gt;
+  &lt;li&gt;SSL/TLS证书泄露&lt;/li&gt;
+  &lt;li&gt;DNS历史记录泄露&lt;/li&gt;
 &lt;/ul&gt;
 
 &lt;p&gt;不过这里要谈的显然不是这种，尽管自研的扫描器里已经集成了前面说的这些，今天的主角是域名采集爬虫。&lt;/p&gt;
