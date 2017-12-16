@@ -1,4 +1,110 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.5.2">Jekyll</generator><link href="/atom.xml" rel="self" type="application/atom+xml" /><link href="/" rel="alternate" type="text/html" /><updated>2017-11-28T13:38:25+08:00</updated><id>/</id><title type="html">地狱爬行者’s Blog</title><subtitle>原创网络安全博客</subtitle><author><name>demon</name></author><entry><title type="html">黑盒漏洞挖掘（WEB篇）</title><link href="/pentest/2017/11/13/pentest-for-blackbox/" rel="alternate" type="text/html" title="黑盒漏洞挖掘（WEB篇）" /><published>2017-11-13T16:41:18+08:00</published><updated>2017-11-13T16:41:18+08:00</updated><id>/pentest/2017/11/13/pentest-for-blackbox</id><content type="html" xml:base="/pentest/2017/11/13/pentest-for-blackbox/">&lt;p&gt;
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.5.2">Jekyll</generator><link href="http://localhost:4000/atom.xml" rel="self" type="application/atom+xml" /><link href="http://localhost:4000/" rel="alternate" type="text/html" /><updated>2017-12-17T01:12:48+08:00</updated><id>http://localhost:4000/</id><title type="html">地狱爬行者’s Blog</title><subtitle>原创网络安全博客&lt;-|-&gt;WISH MY SWORD FLAME SHINING FOREVER.</subtitle><author><name>demon</name></author><entry><title type="html">规模渗透架构部署设想</title><link href="http://localhost:4000/pentest/2017/12/16/architecture-of-apt-pentest/" rel="alternate" type="text/html" title="规模渗透架构部署设想" /><published>2017-12-16T20:52:18+08:00</published><updated>2017-12-16T20:52:18+08:00</updated><id>http://localhost:4000/pentest/2017/12/16/architecture-of-apt-pentest</id><content type="html" xml:base="http://localhost:4000/pentest/2017/12/16/architecture-of-apt-pentest/">&lt;p&gt;
+	&lt;span style=&quot;color:#00B050;&quot;&gt;&lt;strong&gt;在我们的测试中，可能在对大型目标进行探测时，人手不足就会显得特别无力。这时候，使用机器代替人工进行一些重复性工作，就显得尤为重要。咱们在这儿来谈谈，如何开发和部署APT渗透系统的架构。&lt;/strong&gt;&lt;/span&gt;
+&lt;/p&gt;
+
+&lt;h3 id=&quot;web扫描系统&quot;&gt;web扫描系统&lt;/h3&gt;
+
+&lt;p&gt;在web扫描框架上，我们可以这样设计：&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;信息探测模块：通过指定URL，自动获取该网站的基本信息。&lt;/li&gt;
+  &lt;li&gt;资产发现模块：收集子域名，并对主机IP资产进行梳理。&lt;/li&gt;
+  &lt;li&gt;基础扫描模块：对网站进行路径探测，对系统进行端口探测。&lt;/li&gt;
+  &lt;li&gt;弱口令核查模块：对主机系统和常用CMS网站进行默认/弱口令检测。&lt;/li&gt;
+  &lt;li&gt;漏洞扫描模块：以体系内域名URL为入口点，可以只单独探测该URL的web漏洞；也可以根据该入口点，进行自动化资产发现和检测，再统一对获得的资产进行扫描。&lt;/li&gt;
+  &lt;li&gt;社工搜集模块：从多个搜索引擎和接口中，提取有需要的信息，供给其他模块使用。&lt;/li&gt;
+  &lt;li&gt;第三方扫描模块：可集成第三方扫描器，通过接口进行模块化整合。&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&quot;口令核查系统&quot;&gt;口令核查系统&lt;/h3&gt;
+
+&lt;p&gt;在web扫描系统里，本来是集成了弱口令核查模块。但其中仅仅对常用的CMS和系统服务进行了核查，而且力度比较有限。&lt;/p&gt;
+
+&lt;p&gt;此处对口令核查系统的设计，旨在对特定的系统服务或者后台进行爆破，功能大概如下：&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;定制化社工字典，拥有生成选项。&lt;/li&gt;
+  &lt;li&gt;可以破解简单验证码。&lt;/li&gt;
+  &lt;li&gt;可附加验证码绕过、明文提取选项。&lt;/li&gt;
+  &lt;li&gt;集成扫描框架的爆破脚本。&lt;/li&gt;
+  &lt;li&gt;集成Hydra和Medusa以及某些工具，供给调用。&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&quot;漏洞分储系统&quot;&gt;漏洞分储系统&lt;/h3&gt;
+
+&lt;p&gt;在这个系统上，鄙人将它设计为漏洞库，提供api给第三方调用。&lt;/p&gt;
+
+&lt;p&gt;其中，需要注意以下几点：&lt;/p&gt;
+&lt;ul&gt;
+  &lt;li&gt;部分提供poc调用，无poc的提供详情。&lt;/li&gt;
+  &lt;li&gt;前端提供搜索和查看功能。&lt;/li&gt;
+  &lt;li&gt;提供API调用。&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&quot;漏洞验证系统&quot;&gt;漏洞验证系统&lt;/h3&gt;
+
+&lt;p&gt;这个功能本来想和漏洞分储系统相结合的，但后来为了耦合性，还是分离了出来。&lt;/p&gt;
+&lt;ul&gt;
+  &lt;li&gt;支持单条和批量验证。&lt;/li&gt;
+  &lt;li&gt;搜索选取漏洞exp。&lt;/li&gt;
+  &lt;li&gt;采用中间件来传递消息。&lt;/li&gt;
+  &lt;li&gt;延时结果记录。&lt;/li&gt;
+  &lt;li&gt;不做数据记录。&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&quot;域名采集系统&quot;&gt;域名采集系统&lt;/h3&gt;
+
+&lt;p&gt;最初的版本只做了域名采集的爬虫，但后来考虑到实用性，后期会集成市面上已有的一些域名采集技术。
+另外，这里会支持分布式/命令行运行，提供api给第三方调用。管控中心可以一键发送执行。功能如下：&lt;/p&gt;
+&lt;ul&gt;
+  &lt;li&gt;域名爬虫。&lt;/li&gt;
+  &lt;li&gt;其他域名采集技术。&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;至于细节，可以参加之前撰写的博文&lt;a href=&quot;/spider/2017/10/19/domain-spider/&quot;&gt;《域名采集爬虫》&lt;/a&gt;。&lt;/p&gt;
+
+&lt;h3 id=&quot;渗透方案查询&quot;&gt;渗透方案查询&lt;/h3&gt;
+
+&lt;p&gt;这是在某产品经理启发下的产物，在渗透中常常在进行到某一步时，会遇到卡壳的时候。&lt;/p&gt;
+
+&lt;p&gt;这时候我们就需要一个可查阅的清单或者wiki，甚至能给出完整的建设性方案。后来大概考虑了下，大概可以这样构建：&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;知名系统获取shell建议（扫描有限制）&lt;/li&gt;
+  &lt;li&gt;提权流程列表&lt;/li&gt;
+  &lt;li&gt;横向和后渗透命令清单&lt;/li&gt;
+  &lt;li&gt;复杂系统获取权限详情&lt;/li&gt;
+  &lt;li&gt;powershell脚本功能查询&lt;/li&gt;
+  &lt;li&gt;武器库列表&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&quot;渗透报告管理&quot;&gt;渗透报告管理&lt;/h3&gt;
+
+&lt;p&gt;当然，在渗透后可能会有报告输出。也有可能需要上传和填写报告，本系统可能会要求几个点：&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;拥有固定格式，可以导出pdf、word等格式。&lt;/li&gt;
+  &lt;li&gt;自动整理可能获取权限的机器和敏感IP段。&lt;/li&gt;
+  &lt;li&gt;上传报告时，需要填写固定几个要点，比如IP和主机名以及网段，然后再填写细节。&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&quot;核管控中心&quot;&gt;核管控中心&lt;/h3&gt;
+
+&lt;p&gt;一套完整的APT渗透框架，总是需要核心管控的，这样方便管理，也能方便全局统筹的需求。
+大体功能，可能有以下几点：&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;系统机器上线和下线控制。&lt;/li&gt;
+  &lt;li&gt;可以API命令调用各系统。&lt;/li&gt;
+  &lt;li&gt;以IP或者域名为入口，对所有现存系统数据库进行检索。&lt;/li&gt;
+  &lt;li&gt;配置全局参数，不定期更新，对各系统推送。&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&quot;总结&quot;&gt;总结&lt;/h3&gt;
+
+&lt;p&gt;直至撰稿之日，鄙人已经完成了一部分工作。但由于研究方向有变，再加上一些其他不可抗拒的原因，可能开发工作会停滞一段时间。&lt;/p&gt;
+
+&lt;p&gt;在以后恢复开发工作时，应该会有更多的思路更新，与诸君共勉！&lt;/p&gt;</content><author><name>demon</name></author><category term="pentest" /><summary type="html">在我们的测试中，可能在对大型目标进行探测时，人手不足就会显得特别无力。这时候，使用机器代替人工进行一些重复性工作，就显得尤为重要。咱们在这儿来谈谈，如何开发和部署APT渗透系统的架构。</summary></entry><entry><title type="html">黑盒漏洞挖掘（WEB篇）</title><link href="http://localhost:4000/pentest/2017/11/13/pentest-for-blackbox/" rel="alternate" type="text/html" title="黑盒漏洞挖掘（WEB篇）" /><published>2017-11-13T16:41:18+08:00</published><updated>2017-11-13T16:41:18+08:00</updated><id>http://localhost:4000/pentest/2017/11/13/pentest-for-blackbox</id><content type="html" xml:base="http://localhost:4000/pentest/2017/11/13/pentest-for-blackbox/">&lt;p&gt;
 	&lt;span style=&quot;color:#DAA520;&quot;&gt;&lt;strong&gt;在安全测试中，我们常常会遇到一些重复性工作。而鄙人记性不佳，有时候并不能高效的进行工作。因此，自己萌生了撰写工作总结的想法，将以往的工作列清单，做一个总结，以作查阅之用。&lt;/strong&gt;&lt;/span&gt;
 &lt;/p&gt;
 
@@ -129,7 +235,7 @@ nmap -sS -sV -p- –script=”http-title,banner” 192.168.2.10&lt;/li&gt;
   &lt;li&gt;调用callback内容时，其内容也许可控，我们可以尝试往里面注入污染语句。最后，再尝试寻找调用callback的地方。&lt;/li&gt;
   &lt;li&gt;找后台一般有几种情况，可以是子目录，也可以是同域名下其他端口，甚至是其他子域名。比如统一SSO登录的情况下，一套网站总会有一个唯一入口。但由于历史的原因，总会遗漏和不统一的地方，那就是我们的突破口。&lt;/li&gt;
   &lt;li&gt;待续。&lt;/li&gt;
-&lt;/ul&gt;</content><author><name>demon</name></author><category term="pentest" /><summary type="html">在安全测试中，我们常常会遇到一些重复性工作。而鄙人记性不佳，有时候并不能高效的进行工作。因此，自己萌生了撰写工作总结的想法，将以往的工作列清单，做一个总结，以作查阅之用。</summary></entry><entry><title type="html">域名采集爬虫</title><link href="/spider/2017/10/19/domain-spider/" rel="alternate" type="text/html" title="域名采集爬虫" /><published>2017-10-19T20:59:18+08:00</published><updated>2017-10-19T20:59:18+08:00</updated><id>/spider/2017/10/19/domain-spider</id><content type="html" xml:base="/spider/2017/10/19/domain-spider/">&lt;p&gt;
+&lt;/ul&gt;</content><author><name>demon</name></author><category term="pentest" /><summary type="html">在安全测试中，我们常常会遇到一些重复性工作。而鄙人记性不佳，有时候并不能高效的进行工作。因此，自己萌生了撰写工作总结的想法，将以往的工作列清单，做一个总结，以作查阅之用。</summary></entry><entry><title type="html">域名采集爬虫</title><link href="http://localhost:4000/spider/2017/10/19/domain-spider/" rel="alternate" type="text/html" title="域名采集爬虫" /><published>2017-10-19T20:59:18+08:00</published><updated>2017-10-19T20:59:18+08:00</updated><id>http://localhost:4000/spider/2017/10/19/domain-spider</id><content type="html" xml:base="http://localhost:4000/spider/2017/10/19/domain-spider/">&lt;p&gt;
     &lt;span style=&quot;color:#00B050;&quot;&gt;&lt;strong&gt;
     前段时间在研究扫描器的问题，在涉及域名采集这块时， 突然有了一些特别的想法，所以单独将这个模块提取出来，做成了一套独立系统。
     &lt;/strong&gt;&lt;/span&gt;
@@ -196,7 +302,7 @@ nmap -sS -sV -p- –script=”http-title,banner” 192.168.2.10&lt;/li&gt;
 
 &lt;p&gt;代码由于还需要优化，暂时没有放出，以后会补上。&lt;/p&gt;
 
-&lt;p&gt;待续。&lt;/p&gt;</content><author><name>demon</name></author><category term="spider" /><summary type="html">前段时间在研究扫描器的问题，在涉及域名采集这块时， 突然有了一些特别的想法，所以单独将这个模块提取出来，做成了一套独立系统。</summary></entry><entry><title type="html">爬虫去重优化</title><link href="/spider/2017/10/14/url-duplicate-removal/" rel="alternate" type="text/html" title="爬虫去重优化" /><published>2017-10-14T08:05:18+08:00</published><updated>2017-10-14T08:05:18+08:00</updated><id>/spider/2017/10/14/url-duplicate-removal</id><content type="html" xml:base="/spider/2017/10/14/url-duplicate-removal/">&lt;p&gt;
+&lt;p&gt;待续。&lt;/p&gt;</content><author><name>demon</name></author><category term="spider" /><summary type="html">前段时间在研究扫描器的问题，在涉及域名采集这块时， 突然有了一些特别的想法，所以单独将这个模块提取出来，做成了一套独立系统。</summary></entry><entry><title type="html">爬虫去重优化</title><link href="http://localhost:4000/spider/2017/10/14/url-duplicate-removal/" rel="alternate" type="text/html" title="爬虫去重优化" /><published>2017-10-14T08:05:18+08:00</published><updated>2017-10-14T08:05:18+08:00</updated><id>http://localhost:4000/spider/2017/10/14/url-duplicate-removal</id><content type="html" xml:base="http://localhost:4000/spider/2017/10/14/url-duplicate-removal/">&lt;p&gt;
     &lt;span style=&quot;color:#DAA520;&quot;&gt;&lt;strong&gt;以前在做漏洞Fuzz爬虫时，曾做过URL去重相关的工作，当时是参考了seay法师的文章以及网上零碎的一些资料，感觉做的很简单。近来又遇到相关问题，于是乎有了再次改进算法的念头。&lt;/strong&gt;&lt;/span&gt;
 &lt;/p&gt;
 
@@ -402,7 +508,7 @@ http://blog.csdn.net/lemon_tree12138/article/details/47973715&lt;/p&gt;
 http://www.cnseay.com/?p=4102&lt;/p&gt;
 
 &lt;p&gt;网络爬虫 (spider) URL消重设计 URL去重设计
-http://woshizn.iteye.com/blog/532605&lt;/p&gt;</content><author><name>DEMON</name></author><summary type="html">以前在做漏洞Fuzz爬虫时，曾做过URL去重相关的工作，当时是参考了seay法师的文章以及网上零碎的一些资料，感觉做的很简单。近来又遇到相关问题，于是乎有了再次改进算法的念头。</summary></entry><entry><title type="html">迁移博客</title><link href="/jekyll/update/start/2017/09/02/welcome-to-jekyll/" rel="alternate" type="text/html" title="迁移博客" /><published>2017-09-02T08:05:18+08:00</published><updated>2017-09-02T08:05:18+08:00</updated><id>/jekyll/update/start/2017/09/02/welcome-to-jekyll</id><content type="html" xml:base="/jekyll/update/start/2017/09/02/welcome-to-jekyll/">&lt;p&gt;
+http://woshizn.iteye.com/blog/532605&lt;/p&gt;</content><author><name>DEMON</name></author><summary type="html">以前在做漏洞Fuzz爬虫时，曾做过URL去重相关的工作，当时是参考了seay法师的文章以及网上零碎的一些资料，感觉做的很简单。近来又遇到相关问题，于是乎有了再次改进算法的念头。</summary></entry><entry><title type="html">迁移博客</title><link href="http://localhost:4000/jekyll/update/start/2017/09/02/welcome-to-jekyll/" rel="alternate" type="text/html" title="迁移博客" /><published>2017-09-02T08:05:18+08:00</published><updated>2017-09-02T08:05:18+08:00</updated><id>http://localhost:4000/jekyll/update/start/2017/09/02/welcome-to-jekyll</id><content type="html" xml:base="http://localhost:4000/jekyll/update/start/2017/09/02/welcome-to-jekyll/">&lt;p&gt;
 	&lt;span style=&quot;color:#00B050;&quot;&gt;&lt;strong&gt;最近原来的空间服务里到期了，钱包吃紧又想diy，最后就选择了转入Github page。&lt;/strong&gt;&lt;/span&gt;
 &lt;/p&gt;
 
@@ -416,7 +522,7 @@ http://woshizn.iteye.com/blog/532605&lt;/p&gt;</content><author><name>DEMON</nam
 
 &lt;p&gt;If you can…&lt;/p&gt;
 
-&lt;p&gt;Dalao,  ball dai fly…&lt;/p&gt;</content><author><name>demon</name></author><category term="start" /><summary type="html">最近原来的空间服务里到期了，钱包吃紧又想diy，最后就选择了转入Github page。</summary></entry><entry><title type="html">Selenium+phantomjs刷量</title><link href="/spider/2016/11/12/seleniumphantomjs-e5-88-b7-e9-87-8f/" rel="alternate" type="text/html" title="Selenium+phantomjs刷量" /><published>2016-11-12T21:52:00+08:00</published><updated>2016-11-12T21:52:00+08:00</updated><id>/spider/2016/11/12/seleniumphantomjs%E5%88%B7%E9%87%8F</id><content type="html" xml:base="/spider/2016/11/12/seleniumphantomjs-e5-88-b7-e9-87-8f/">&lt;p&gt;
+&lt;p&gt;Dalao,  ball dai fly…&lt;/p&gt;</content><author><name>demon</name></author><category term="start" /><summary type="html">最近原来的空间服务里到期了，钱包吃紧又想diy，最后就选择了转入Github page。</summary></entry><entry><title type="html">Selenium+phantomjs刷量</title><link href="http://localhost:4000/spider/2016/11/12/seleniumphantomjs-e5-88-b7-e9-87-8f/" rel="alternate" type="text/html" title="Selenium+phantomjs刷量" /><published>2016-11-12T21:52:00+08:00</published><updated>2016-11-12T21:52:00+08:00</updated><id>http://localhost:4000/spider/2016/11/12/seleniumphantomjs%E5%88%B7%E9%87%8F</id><content type="html" xml:base="http://localhost:4000/spider/2016/11/12/seleniumphantomjs-e5-88-b7-e9-87-8f/">&lt;p&gt;
 	&lt;span style=&quot;color:#DAA520;&quot;&gt;&lt;strong&gt;最近有这方面的需求，要帮人在某网站上刷点击量。由于该网站是一家比较知名的大型门户，反作弊机制肯定是有的，所以突发奇想用Selenium试试。&lt;/strong&gt;&lt;/span&gt;
 &lt;/p&gt;
 
@@ -525,7 +631,7 @@ print driver.page_source&lt;/pre&gt;
 
 &lt;p&gt;
 	&lt;strong&gt;&lt;span style=&quot;color:#FFD700;&quot;&gt;[转载请注明来源&lt;/span&gt;&lt;a href=&quot;http://www.dawner.info/&quot; target=&quot;_blank&quot;&gt;&lt;span style=&quot;color:#FFD700;&quot;&gt;本站&lt;/span&gt;&lt;/a&gt;&lt;span style=&quot;color:#FFD700;&quot;&gt;,谢谢。]&lt;/span&gt;&lt;/strong&gt;
-&lt;/p&gt;</content><author><name>DEMON</name></author><summary type="html">最近有这方面的需求，要帮人在某网站上刷点击量。由于该网站是一家比较知名的大型门户，反作弊机制肯定是有的，所以突发奇想用Selenium试试。</summary></entry><entry><title type="html">看我如何从邮箱附件的逆向分析到揪出黑客源头</title><link href="/translate/2016/07/06/e7-9c-8b-e6-88-91-e5-a6-82-e4-bd-95-e4-bb-8e-e9-82-ae-e7-ae-b1-e9-99-84-e4-bb-b6-e7-9a-84-e9-80-86-e5-90-91-e5-88-86-e6-9e-90-e5-88-b0-e6-8f-aa-e5-87-ba-e9-bb-91-e5-ae-a2-e6-ba-90-e5-a4-b4/" rel="alternate" type="text/html" title="看我如何从邮箱附件的逆向分析到揪出黑客源头" /><published>2016-07-06T08:55:00+08:00</published><updated>2016-07-06T08:55:00+08:00</updated><id>/translate/2016/07/06/%E7%9C%8B%E6%88%91%E5%A6%82%E4%BD%95%E4%BB%8E%E9%82%AE%E7%AE%B1%E9%99%84%E4%BB%B6%E7%9A%84%E9%80%86%E5%90%91%E5%88%86%E6%9E%90%E5%88%B0%E6%8F%AA%E5%87%BA%E9%BB%91%E5%AE%A2%E6%BA%90%E5%A4%B4</id><content type="html" xml:base="/translate/2016/07/06/e7-9c-8b-e6-88-91-e5-a6-82-e4-bd-95-e4-bb-8e-e9-82-ae-e7-ae-b1-e9-99-84-e4-bb-b6-e7-9a-84-e9-80-86-e5-90-91-e5-88-86-e6-9e-90-e5-88-b0-e6-8f-aa-e5-87-ba-e9-bb-91-e5-ae-a2-e6-ba-90-e5-a4-b4/">&lt;p&gt;&lt;strong&gt;&lt;span style=&quot;color: #00B050;&quot;&gt;这个故事要从一次垃圾邮件攻击事件说起，下图是一个笔者从某封垃圾邮件里提取的可疑附件。至于下面这蹩脚的英语，这也是值得我们注意的地方。&lt;/span&gt;&lt;/strong&gt;&lt;/p&gt;
+&lt;/p&gt;</content><author><name>DEMON</name></author><summary type="html">最近有这方面的需求，要帮人在某网站上刷点击量。由于该网站是一家比较知名的大型门户，反作弊机制肯定是有的，所以突发奇想用Selenium试试。</summary></entry><entry><title type="html">看我如何从邮箱附件的逆向分析到揪出黑客源头</title><link href="http://localhost:4000/translate/2016/07/06/e7-9c-8b-e6-88-91-e5-a6-82-e4-bd-95-e4-bb-8e-e9-82-ae-e7-ae-b1-e9-99-84-e4-bb-b6-e7-9a-84-e9-80-86-e5-90-91-e5-88-86-e6-9e-90-e5-88-b0-e6-8f-aa-e5-87-ba-e9-bb-91-e5-ae-a2-e6-ba-90-e5-a4-b4/" rel="alternate" type="text/html" title="看我如何从邮箱附件的逆向分析到揪出黑客源头" /><published>2016-07-06T08:55:00+08:00</published><updated>2016-07-06T08:55:00+08:00</updated><id>http://localhost:4000/translate/2016/07/06/%E7%9C%8B%E6%88%91%E5%A6%82%E4%BD%95%E4%BB%8E%E9%82%AE%E7%AE%B1%E9%99%84%E4%BB%B6%E7%9A%84%E9%80%86%E5%90%91%E5%88%86%E6%9E%90%E5%88%B0%E6%8F%AA%E5%87%BA%E9%BB%91%E5%AE%A2%E6%BA%90%E5%A4%B4</id><content type="html" xml:base="http://localhost:4000/translate/2016/07/06/e7-9c-8b-e6-88-91-e5-a6-82-e4-bd-95-e4-bb-8e-e9-82-ae-e7-ae-b1-e9-99-84-e4-bb-b6-e7-9a-84-e9-80-86-e5-90-91-e5-88-86-e6-9e-90-e5-88-b0-e6-8f-aa-e5-87-ba-e9-bb-91-e5-ae-a2-e6-ba-90-e5-a4-b4/">&lt;p&gt;&lt;strong&gt;&lt;span style=&quot;color: #00B050;&quot;&gt;这个故事要从一次垃圾邮件攻击事件说起，下图是一个笔者从某封垃圾邮件里提取的可疑附件。至于下面这蹩脚的英语，这也是值得我们注意的地方。&lt;/span&gt;&lt;/strong&gt;&lt;/p&gt;
 
 &lt;p&gt;上图的附件使用了“.doc”作为后缀，但它其实是RTF（富文本）格式的文件。该文件包含了一个针对性的RTF栈溢出exp，它利用了CVE-2010-3333，也就是在微软Word RTF解析器在处理pFragments时会产生的一个漏洞。然而，该漏洞在五年前就已经修补了。&lt;/p&gt;
 
@@ -619,7 +725,7 @@ print driver.page_source&lt;/pre&gt;
 
 &lt;p&gt;攻击中的这两个漏洞虽然已经比较早了，但是仍广泛用于电子邮件攻击之中，这里建议读者更新好补丁，使用好相应的杀软，从而防御黑客的攻击。&lt;/p&gt;
 
-&lt;p&gt;&lt;span style=&quot;color: #ff0000;&quot;&gt;&lt;strong&gt;[参考来源&lt;a style=&quot;color: #ff0000;&quot; href=&quot;https://www.trustwave.com/Resources/SpiderLabs-Blog/How-I-Cracked-a-Keylogger-and-Ended-Up-in-Someone-s-Inbox/&quot; target=&quot;_blank&quot;&gt;trustwave&lt;/a&gt;，转载请注明本站翻译]&lt;/strong&gt;&lt;/span&gt;&lt;/p&gt;</content><author><name>DEMON</name></author><summary type="html">这个故事要从一次垃圾邮件攻击事件说起，下图是一个笔者从某封垃圾邮件里提取的可疑附件。至于下面这蹩脚的英语，这也是值得我们注意的地方。</summary></entry><entry><title type="html">Asacub：从间谍软件到银行木马</title><link href="/translate/2016/01/25/asacub-ef-bc-9a-e4-bb-8e-e9-97-b4-e8-b0-8d-e8-bd-af-e4-bb-b6-e5-88-b0-e9-93-b6-e8-a1-8c-e6-9c-a8-e9-a9-ac/" rel="alternate" type="text/html" title="Asacub：从间谍软件到银行木马" /><published>2016-01-25T00:17:00+08:00</published><updated>2016-01-25T00:17:00+08:00</updated><id>/translate/2016/01/25/asacub:%E4%BB%8E%E9%97%B4%E8%B0%8D%E8%BD%AF%E4%BB%B6%E5%88%B0%E9%93%B6%E8%A1%8C%E6%9C%A8%E9%A9%AC</id><content type="html" xml:base="/translate/2016/01/25/asacub-ef-bc-9a-e4-bb-8e-e9-97-b4-e8-b0-8d-e8-bd-af-e4-bb-b6-e5-88-b0-e9-93-b6-e8-a1-8c-e6-9c-a8-e9-a9-ac/">&lt;p&gt;&lt;span style=&quot;color: #00B050;&quot;&gt;&lt;strong&gt;我们最近分析了一个系列银行木马Trojan-Banker.AndroidOS.Asacub，发现了其中在用的一台CC服务器chugumshimusona.com，也在为一款名为CoreBot的Windows木马所使用,这让我们起了对这款移动端银行木马进行分析的心思。&lt;/strong&gt;&lt;/span&gt;&lt;/p&gt;
+&lt;p&gt;&lt;span style=&quot;color: #ff0000;&quot;&gt;&lt;strong&gt;[参考来源&lt;a style=&quot;color: #ff0000;&quot; href=&quot;https://www.trustwave.com/Resources/SpiderLabs-Blog/How-I-Cracked-a-Keylogger-and-Ended-Up-in-Someone-s-Inbox/&quot; target=&quot;_blank&quot;&gt;trustwave&lt;/a&gt;，转载请注明本站翻译]&lt;/strong&gt;&lt;/span&gt;&lt;/p&gt;</content><author><name>DEMON</name></author><summary type="html">这个故事要从一次垃圾邮件攻击事件说起，下图是一个笔者从某封垃圾邮件里提取的可疑附件。至于下面这蹩脚的英语，这也是值得我们注意的地方。</summary></entry><entry><title type="html">Asacub：从间谍软件到银行木马</title><link href="http://localhost:4000/translate/2016/01/25/asacub-ef-bc-9a-e4-bb-8e-e9-97-b4-e8-b0-8d-e8-bd-af-e4-bb-b6-e5-88-b0-e9-93-b6-e8-a1-8c-e6-9c-a8-e9-a9-ac/" rel="alternate" type="text/html" title="Asacub：从间谍软件到银行木马" /><published>2016-01-25T00:17:00+08:00</published><updated>2016-01-25T00:17:00+08:00</updated><id>http://localhost:4000/translate/2016/01/25/asacub:%E4%BB%8E%E9%97%B4%E8%B0%8D%E8%BD%AF%E4%BB%B6%E5%88%B0%E9%93%B6%E8%A1%8C%E6%9C%A8%E9%A9%AC</id><content type="html" xml:base="http://localhost:4000/translate/2016/01/25/asacub-ef-bc-9a-e4-bb-8e-e9-97-b4-e8-b0-8d-e8-bd-af-e4-bb-b6-e5-88-b0-e9-93-b6-e8-a1-8c-e6-9c-a8-e9-a9-ac/">&lt;p&gt;&lt;span style=&quot;color: #00B050;&quot;&gt;&lt;strong&gt;我们最近分析了一个系列银行木马Trojan-Banker.AndroidOS.Asacub，发现了其中在用的一台CC服务器chugumshimusona.com，也在为一款名为CoreBot的Windows木马所使用,这让我们起了对这款移动端银行木马进行分析的心思。&lt;/strong&gt;&lt;/span&gt;&lt;/p&gt;
 
 &lt;!--more--&gt;
 &lt;p&gt;据我们所知，最初版本的Asacub木马出现在2015年6月。与其说当时的Asacub是银行恶意软件，不如说它是一款木马。早期的Asacub会窃取用户收到的所有短信，并上传到黑客的服务器。这款木马能够从CC服务器接收和处理下面的命令：
@@ -671,7 +777,7 @@ print driver.page_source&lt;/pre&gt;
 此外，我们还分析了该木马和CC服务器的通信，它似乎对俄罗斯手机银行服务特别感兴趣，
 在新年假期，新的改动在俄罗斯通过短信疯狂传播。短短一个星期内，从2015.12.28到2016.01.04，我们已发现6500名感染的用户，该木马由此跻身最活跃的恶意程序TOP5.。Asacub改版后发展的速度才有所减缓，我们将继续跟踪这类恶意软件。&lt;/p&gt;
 
-&lt;p&gt;&lt;strong&gt;[参考来源&lt;a href=&quot;https://securelist.com/blog/research/73211/the-asacub-trojan-from-spyware-to-banking-malware/&quot; target=&quot;_blank&quot;&gt;securelist&lt;/a&gt;，转载请注明本站翻译]&lt;/strong&gt;&lt;/p&gt;</content><author><name>DEMON</name></author><summary type="html">我们最近分析了一个系列银行木马Trojan-Banker.AndroidOS.Asacub，发现了其中在用的一台CC服务器chugumshimusona.com，也在为一款名为CoreBot的Windows木马所使用,这让我们起了对这款移动端银行木马进行分析的心思。</summary></entry><entry><title type="html">python字符编码处理</title><link href="/%E7%BC%96%E7%A8%8B%E4%B9%8B%E8%B7%AF/2015/08/04/python-e5-ad-97-e7-ac-a6-e7-bc-96-e7-a0-81-e5-a4-84-e7-90-86/" rel="alternate" type="text/html" title="python字符编码处理" /><published>2015-08-04T18:58:00+08:00</published><updated>2015-08-04T18:58:00+08:00</updated><id>/%E7%BC%96%E7%A8%8B%E4%B9%8B%E8%B7%AF/2015/08/04/python%E5%AD%97%E7%AC%A6%E7%BC%96%E7%A0%81%E5%A4%84%E7%90%86</id><content type="html" xml:base="/%E7%BC%96%E7%A8%8B%E4%B9%8B%E8%B7%AF/2015/08/04/python-e5-ad-97-e7-ac-a6-e7-bc-96-e7-a0-81-e5-a4-84-e7-90-86/">&lt;p&gt;&lt;strong&gt;&lt;span style=&quot;color: #00B050;&quot;&gt;最近因业务需求在写爬虫时，遇到点编码的问题，加上以前曾被类似问题困扰过，特此记录一下。&lt;/span&gt;&lt;/strong&gt;
+&lt;p&gt;&lt;strong&gt;[参考来源&lt;a href=&quot;https://securelist.com/blog/research/73211/the-asacub-trojan-from-spyware-to-banking-malware/&quot; target=&quot;_blank&quot;&gt;securelist&lt;/a&gt;，转载请注明本站翻译]&lt;/strong&gt;&lt;/p&gt;</content><author><name>DEMON</name></author><summary type="html">我们最近分析了一个系列银行木马Trojan-Banker.AndroidOS.Asacub，发现了其中在用的一台CC服务器chugumshimusona.com，也在为一款名为CoreBot的Windows木马所使用,这让我们起了对这款移动端银行木马进行分析的心思。</summary></entry><entry><title type="html">python字符编码处理</title><link href="http://localhost:4000/%E7%BC%96%E7%A8%8B%E4%B9%8B%E8%B7%AF/2015/08/04/python-e5-ad-97-e7-ac-a6-e7-bc-96-e7-a0-81-e5-a4-84-e7-90-86/" rel="alternate" type="text/html" title="python字符编码处理" /><published>2015-08-04T18:58:00+08:00</published><updated>2015-08-04T18:58:00+08:00</updated><id>http://localhost:4000/%E7%BC%96%E7%A8%8B%E4%B9%8B%E8%B7%AF/2015/08/04/python%E5%AD%97%E7%AC%A6%E7%BC%96%E7%A0%81%E5%A4%84%E7%90%86</id><content type="html" xml:base="http://localhost:4000/%E7%BC%96%E7%A8%8B%E4%B9%8B%E8%B7%AF/2015/08/04/python-e5-ad-97-e7-ac-a6-e7-bc-96-e7-a0-81-e5-a4-84-e7-90-86/">&lt;p&gt;&lt;strong&gt;&lt;span style=&quot;color: #00B050;&quot;&gt;最近因业务需求在写爬虫时，遇到点编码的问题，加上以前曾被类似问题困扰过，特此记录一下。&lt;/span&gt;&lt;/strong&gt;
 由于开发和使用环境常在Linux和Win下切换，常遇到字符处理错误，总结一些问题如下：&lt;/p&gt;
 
 &lt;p&gt;&lt;span style=&quot;color: #ff0000;&quot;&gt;1.如何中文匹配网页内容，而不会被各种编码扰乱&lt;/span&gt;&lt;/p&gt;
@@ -720,7 +826,7 @@ UnicodeDecodeError: 'ascii' codec can't decode byte 0xe7 in position 0: ordinal 
 &lt;span style=&quot;color: #ff00ff;&quot;&gt;&lt;a title=&quot;Python、Unicode和中文&quot; href=&quot;http://blog.csdn.net/summerhust/article/details/6654150&quot; target=&quot;_blank&quot;&gt;&lt;span style=&quot;color: #ff00ff;&quot;&gt;Python、Unicode和中文&lt;/span&gt;&lt;/a&gt;&lt;/span&gt;&lt;/p&gt;
 
 &lt;p&gt;文章是记录型，很简单的东西，不喜勿喷。
-&lt;span style=&quot;color: #00B050;&quot;&gt;[转载请注明来源&lt;a href=&quot;http://www.dawner.info&quot; target=&quot;_blank&quot;&gt;&lt;span style=&quot;color: #00B050;&quot;&gt;本站&lt;/span&gt;&lt;/a&gt;,谢谢。]&lt;/span&gt;&lt;/p&gt;</content><author><name>DEMON</name></author><summary type="html">最近因业务需求在写爬虫时，遇到点编码的问题，加上以前曾被类似问题困扰过，特此记录一下。 由于开发和使用环境常在Linux和Win下切换，常遇到字符处理错误，总结一些问题如下：</summary></entry><entry><title type="html">Ubuntu更新显卡驱动失败解决办法</title><link href="/system/2014/10/13/ubuntu-e6-9b-b4-e6-96-b0-e6-98-be-e5-8d-a1-e9-a9-b1-e5-8a-a8-e5-a4-b1-e8-b4-a5-e8-a7-a3-e5-86-b3-e5-8a-9e-e6-b3-95/" rel="alternate" type="text/html" title="Ubuntu更新显卡驱动失败解决办法" /><published>2014-10-13T00:32:00+08:00</published><updated>2014-10-13T00:32:00+08:00</updated><id>/system/2014/10/13/ubuntu%E6%9B%B4%E6%96%B0%E6%98%BE%E5%8D%A1%E9%A9%B1%E5%8A%A8%E5%A4%B1%E8%B4%A5%E8%A7%A3%E5%86%B3%E5%8A%9E%E6%B3%95</id><content type="html" xml:base="/system/2014/10/13/ubuntu-e6-9b-b4-e6-96-b0-e6-98-be-e5-8d-a1-e9-a9-b1-e5-8a-a8-e5-a4-b1-e8-b4-a5-e8-a7-a3-e5-86-b3-e5-8a-9e-e6-b3-95/">&lt;table&gt;
+&lt;span style=&quot;color: #00B050;&quot;&gt;[转载请注明来源&lt;a href=&quot;http://www.dawner.info&quot; target=&quot;_blank&quot;&gt;&lt;span style=&quot;color: #00B050;&quot;&gt;本站&lt;/span&gt;&lt;/a&gt;,谢谢。]&lt;/span&gt;&lt;/p&gt;</content><author><name>DEMON</name></author><summary type="html">最近因业务需求在写爬虫时，遇到点编码的问题，加上以前曾被类似问题困扰过，特此记录一下。 由于开发和使用环境常在Linux和Win下切换，常遇到字符处理错误，总结一些问题如下：</summary></entry><entry><title type="html">Ubuntu更新显卡驱动失败解决办法</title><link href="http://localhost:4000/system/2014/10/13/ubuntu-e6-9b-b4-e6-96-b0-e6-98-be-e5-8d-a1-e9-a9-b1-e5-8a-a8-e5-a4-b1-e8-b4-a5-e8-a7-a3-e5-86-b3-e5-8a-9e-e6-b3-95/" rel="alternate" type="text/html" title="Ubuntu更新显卡驱动失败解决办法" /><published>2014-10-13T00:32:00+08:00</published><updated>2014-10-13T00:32:00+08:00</updated><id>http://localhost:4000/system/2014/10/13/ubuntu%E6%9B%B4%E6%96%B0%E6%98%BE%E5%8D%A1%E9%A9%B1%E5%8A%A8%E5%A4%B1%E8%B4%A5%E8%A7%A3%E5%86%B3%E5%8A%9E%E6%B3%95</id><content type="html" xml:base="http://localhost:4000/system/2014/10/13/ubuntu-e6-9b-b4-e6-96-b0-e6-98-be-e5-8d-a1-e9-a9-b1-e5-8a-a8-e5-a4-b1-e8-b4-a5-e8-a7-a3-e5-86-b3-e5-8a-9e-e6-b3-95/">&lt;table&gt;
   &lt;tbody&gt;
     &lt;tr&gt;
       &lt;td&gt;前段时间因为做项目，一直整夜整夜地挂机爬站，笔记本用成台式机的负荷也是醉了-_-&lt;/td&gt;
@@ -751,38 +857,4 @@ UnicodeDecodeError: 'ascii' codec can't decode byte 0xe7 in position 0: ordinal 
 
 &lt;p&gt;===================&lt;/p&gt;
 
-&lt;p&gt;&lt;strong&gt;&lt;span style=&quot;color: #00B050;&quot;&gt;Enjoy yourself！&lt;/span&gt;&lt;/strong&gt;&lt;/p&gt;</content><author><name>DEMON</name></author><summary type="html">前段时间因为做项目，一直整夜整夜地挂机爬站，笔记本用成台式机的负荷也是醉了-_-  </summary></entry><entry><title type="html">对于python框架Scrapy+Gevent的研究</title><link href="/other/2014/09/20/e5-af-b9-e4-ba-8epython-e6-a1-86-e6-9e-b6scrapygevent-e7-9a-84-e7-a0-94-e7-a9-b6/" rel="alternate" type="text/html" title="对于python框架Scrapy+Gevent的研究" /><published>2014-09-20T21:26:00+08:00</published><updated>2014-09-20T21:26:00+08:00</updated><id>/other/2014/09/20/%E5%AF%B9%E4%BA%8Epython%E6%A1%86%E6%9E%B6scrapygevent%E7%9A%84%E7%A0%94%E7%A9%B6</id><content type="html" xml:base="/other/2014/09/20/e5-af-b9-e4-ba-8epython-e6-a1-86-e6-9e-b6scrapygevent-e7-9a-84-e7-a0-94-e7-a9-b6/">&lt;p&gt;&lt;span style=&quot;color: #00ffff;&quot;&gt;&lt;strong&gt;没错，标题党君又来了！文章只是做些第三方评论，不喜勿喷。&lt;/strong&gt;&lt;/span&gt;&lt;/p&gt;
-
-&lt;p&gt;前几天看到&lt;span style=&quot;color: #ff0000;&quot;&gt;&lt;a title=&quot;Freebuf&quot; href=&quot;http://www.freebuf.com/tools/43194.html&quot; target=&quot;_blank&quot;&gt;&lt;span style=&quot;color: #ff0000;&quot;&gt;FB上的一篇文章&lt;/span&gt;&lt;/a&gt;&lt;/span&gt;，是将用Scrapy爬虫框架加以关键词词尝试，从而将可用的关键词与相应的URL返回存到结果里，个人感觉还是有比较大的改进空间的。覆盖攻击向量字段如下：&lt;/p&gt;
-
-&lt;p&gt;Http头中的Referer字段
-User-Agent字段
-Cookie
-表单（包括隐藏表单）
-URL参数
-RUL末尾，如 www.example.com/&amp;lt;script&amp;gt;alert(1)&amp;lt;/script&amp;gt;
-跳转型XSS&lt;/p&gt;
-
-&lt;p&gt;由于英文说明书的原作者说该Scrapy的XSS延伸版不能进行Ajax判断，还是有点小遗憾，希望日后改进。&lt;/p&gt;
-
-&lt;p&gt;感觉其提供的测试页面爬下来效果不错，我这儿没有图床可用，就不展示了。（&lt;strong&gt;&lt;span style=&quot;color: #00B050;&quot;&gt;话说有朋友可以给鄙人一免费图床地址么，2333333&lt;/span&gt;&lt;/strong&gt;）&lt;/p&gt;
-
-&lt;p&gt;附上该Git的地址：&lt;a title=&quot;xsscrapy&quot; href=&quot;https://github.com/DanMcInerney/xsscrapy&quot; target=&quot;_blank&quot;&gt;&lt;span style=&quot;color: #ff0000;&quot;&gt;下载&lt;/span&gt;&lt;/a&gt;。&lt;/p&gt;
-
-&lt;p&gt;还有就是，本人测试用的是Ubuntu13.04，作者建议pip安装，鄙人使用自带的安装包pip，表示有不少问题，后来在网上下了一个&lt;span style=&quot;color: #ff0000;&quot;&gt;&lt;a title=&quot;pip1.5&quot; href=&quot;https://pypi.python.org/packages/source/p/pip/pip-1.5.4.tar.gz&quot; target=&quot;_blank&quot;&gt;&lt;span style=&quot;color: #ff0000;&quot;&gt;1.5版本&lt;/span&gt;&lt;/a&gt;&lt;/span&gt;的才成功。此外，个人感觉apt-get安装确实挺给力，除了没有的包以外，基本很难报错（知道肯定有人吐槽这B说的不是废话么^_^，以前一个朋友就挺爱骂我SB，不过可惜再也没能见到他了）。&lt;/p&gt;
-
-&lt;p&gt;PS：里面所需的BeautifulSoup最好用BeautifulSoup3.2.1，BeautifulSoup4.x版本已改名为bs4，坑惨小弟了，半天没反应过来。其他的pip安装（如pybloom），也可apt-get安装（如py-requests）,最后，对付某&lt;span style=&quot;color: #00B050;&quot;&gt;error: command ‘x86_64-linux-gnu-gcc’ failed with exit status 1&lt;/span&gt;错误时，&lt;span style=&quot;color: #00B050;&quot;&gt;sudo apt-get install python-twisted-web python2.7-dev&lt;/span&gt;，可能会用的上。&lt;/p&gt;
-
-&lt;p&gt;Scrapy是个不错的爬虫框架，最近笔者自己打算好好研究一下，结合注入工具进行爬虫式扫描，感觉应该不错的样子。如果有朋友有兴趣，或者有现货，欢迎提出宝贵建议，不胜感激。&lt;/p&gt;
-
-&lt;p&gt;另外，前面提到的Gevent是一名访客告诉小弟的，查看了下，是Python的一个高并发框架（高级术语名为协程）。没记错的话，还是以前那位爱骂我SB的朋友告诉我的（小感伤一下），因为以前有做分布式监控的想法。以后考虑将其纳入做项目的计划范围。&lt;/p&gt;
-
-&lt;p&gt;本文很水，不过以后有心得会更新的，除非有单独料，我会单独提出。&lt;/p&gt;
-
-&lt;p&gt;&lt;span style=&quot;color: #00ffff;&quot;&gt;Enjoy yourself.^_^&lt;/span&gt;&lt;/p&gt;
-
-&lt;p&gt; &lt;/p&gt;
-
-&lt;p&gt; &lt;/p&gt;
-
-&lt;p&gt; &lt;/p&gt;</content><author><name>DEMON</name></author><summary type="html">没错，标题党君又来了！文章只是做些第三方评论，不喜勿喷。</summary></entry></feed>
+&lt;p&gt;&lt;strong&gt;&lt;span style=&quot;color: #00B050;&quot;&gt;Enjoy yourself！&lt;/span&gt;&lt;/strong&gt;&lt;/p&gt;</content><author><name>DEMON</name></author><summary type="html">前段时间因为做项目，一直整夜整夜地挂机爬站，笔记本用成台式机的负荷也是醉了-_-  </summary></entry></feed>
