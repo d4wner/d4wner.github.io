@@ -115,7 +115,7 @@
 <meta name="keywords" content="blog, security, web, php, python">
 <meta property="og:type" content="website">
 <meta property="og:title" content="地狱爬行者's Blog">
-<meta property="og:url" content="http://localhost:4000/page6/">
+<meta property="og:url" content="/page6/">
 <meta property="og:site_name" content="地狱爬行者's Blog">
 <meta property="og:description" content="原创网络安全博客WISH MY SWORD FLAME SHINING FOREVER.">
 <meta property="og:locale" content="en">
@@ -148,7 +148,7 @@
 
 
 
-  <link rel="canonical" href="http://localhost:4000/"/>
+  <link rel="canonical" href=""/>
 
 
 
@@ -283,7 +283,180 @@
   
 
   <article class="post post-type- " itemscope itemtype="http://schema.org/Article">
-    <link itemprop="mainEntityOfPage" href="http://localhost:4000/tips/2013/09/26/e8-af-bb-e4-b9-a6-e7-ac-94-e8-ae-b0-xss-e9-92-93-e9-b1-bc-e7-9a-84-e6-80-9d-e8-80-83-e4-b8-8e-e5-bb-b6-e4-bc-b8/">
+    <link itemprop="mainEntityOfPage" href="/coding/2013/10/02/python-e6-9c-ad-e8-ae-b0-ef-bc-88-e4-ba-8c-ef-bc-89/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="demon">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="assets/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="地狱爬行者's Blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+          
+          
+            
+                
+                <a class="post-title-link" href="/coding/2013/10/02/python-e6-9c-ad-e8-ae-b0-ef-bc-88-e4-ba-8c-ef-bc-89/" itemprop="url">
+                PYTHON学习札记（二）
+              </a>
+            
+          
+        </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2013-10-02T15:25:00+08:00">
+                2013-10-02
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/category/#/coding" itemprop="url" rel="index">
+                    <span itemprop="name">coding</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          <p><span style="color: #ff0000;">1.stat模块:</span>
+对于文件的状态能直接获取，通过集合分别赋值给几个变量（注意，不超过10项），说到底就是获取的文件描述符的状态。</p>
+<pre lang="python">import os
+import time 
+file = "../src/xx.txt"
+def dump( st ):
+    mode, ino, dev, nlink, uid, gid, size, atime, mtime, ctime = st
+    print "- size:", size, "bytes"
+    print "- owner:", uid, gid
+    print "- created:", time.ctime( ctime )
+    print "- last accessed:", time.ctime( atime )
+    print "- last modified:", time.ctime( mtime )
+    print "- mode:", oct( mode )
+    print "- inode/dev:", ino, dev 
+    st = os.stat( file )
+    print "stat", file
+    dump( st )</pre>
+<p>还有种类似的法子:</p>
+<pre lang="python">fp = open( file )
+st = os.fstat( fp.fileno() )</pre>
+<p>相当于先获取I/O操作句柄，再获取状态，比上面一个法子稍复杂。</p>
+
+
+          <!--noindex-->
+          <div class="post-button text-center">
+            <a class="btn" href="/coding/2013/10/02/python-e6-9c-ad-e8-ae-b0-ef-bc-88-e4-ba-8c-ef-bc-89/#more" rel="contents">
+              Read more &raquo;
+            </a>
+          </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+        
+        
+        
+        
+          <div class="post-eof"></div>
+        
+      
+    </footer>
+  </article>
+
+  
+    
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type- " itemscope itemtype="http://schema.org/Article">
+    <link itemprop="mainEntityOfPage" href="/tips/2013/09/26/e8-af-bb-e4-b9-a6-e7-ac-94-e8-ae-b0-xss-e9-92-93-e9-b1-bc-e7-9a-84-e6-80-9d-e8-80-83-e4-b8-8e-e5-bb-b6-e4-bc-b8/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="demon">
@@ -469,7 +642,7 @@
   
 
   <article class="post post-type- " itemscope itemtype="http://schema.org/Article">
-    <link itemprop="mainEntityOfPage" href="http://localhost:4000/coding/2013/09/24/php-e5-ad-a6-e4-b9-a0-e6-9c-ad-e8-ae-b0-ef-bc-88-e4-ba-8c-ef-bc-89/">
+    <link itemprop="mainEntityOfPage" href="/coding/2013/09/24/php-e5-ad-a6-e4-b9-a0-e6-9c-ad-e8-ae-b0-ef-bc-88-e4-ba-8c-ef-bc-89/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="demon">
@@ -633,7 +806,7 @@ ASSERT_CALLBACK= (NULL) // 是否启动回调函数 user function to call on fai
   
 
   <article class="post post-type- " itemscope itemtype="http://schema.org/Article">
-    <link itemprop="mainEntityOfPage" href="http://localhost:4000/coding/2013/09/07/google-e9-9a-90-e8-97-8f-e6-ac-a1-e7-ba-a7-e5-9f-9f-e5-90-8d-e6-8a-93-e5-8f-96/">
+    <link itemprop="mainEntityOfPage" href="/coding/2013/09/07/google-e9-9a-90-e8-97-8f-e6-ac-a1-e7-ba-a7-e5-9f-9f-e5-90-8d-e6-8a-93-e5-8f-96/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="demon">
@@ -798,7 +971,7 @@ PS:本来想直接发他的。。。脸皮还是不够厚啊。</p>
   
 
   <article class="post post-type- " itemscope itemtype="http://schema.org/Article">
-    <link itemprop="mainEntityOfPage" href="http://localhost:4000/coding/2013/08/05/python-e5-ad-a6-e4-b9-a0-e6-9c-ad-e8-ae-b0-ef-bc-88-e4-b8-80-ef-bc-89/">
+    <link itemprop="mainEntityOfPage" href="/coding/2013/08/05/python-e5-ad-a6-e4-b9-a0-e6-9c-ad-e8-ae-b0-ef-bc-88-e4-b8-80-ef-bc-89/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="demon">
@@ -937,160 +1110,6 @@ http://wiki.ubuntu.org.cn/Python正则表达式操作指南</p>
         
         
         
-          <div class="post-eof"></div>
-        
-      
-    </footer>
-  </article>
-
-  
-    
-    
-
-  
-
-  
-  
-  
-
-  <article class="post post-type- " itemscope itemtype="http://schema.org/Article">
-    <link itemprop="mainEntityOfPage" href="http://localhost:4000/tips/2013/07/26/e6-89-93-e9-80-a0-e4-b8-aa-e6-80-a7-e7-89-88vim/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="demon">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="assets/images/avatar.gif">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="地狱爬行者's Blog">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-          
-          
-            
-                
-                <a class="post-title-link" href="/tips/2013/07/26/e6-89-93-e9-80-a0-e4-b8-aa-e6-80-a7-e7-89-88vim/" itemprop="url">
-                打造个性版vim
-              </a>
-            
-          
-        </h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">Posted on</span>
-              
-              <time title="Post created" itemprop="dateCreated datePublished" datetime="2013-07-26T02:49:00+08:00">
-                2013-07-26
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">In</span>
-              
-              
-                
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/category/#/tips" itemprop="url" rel="index">
-                    <span itemprop="name">tips</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          <p>众所周知，vim是一种非常强大的IDE，不少朋友说他配合上插件几乎超越市面上任何一款编辑器。鄙人水平有限，对vim还处于待入门的阶段，经一位死党机油的精心指点和资料的查阅，终于更新了自己vim。
-其实本文有点标题党的意味，主要不是给大家展示如何配置而是给大家说明如何在借鉴别人的配置或者在另一台电脑上复原vim配置时，中间需要注意的一些东西。</p>
-
-
-          <!--noindex-->
-          <div class="post-button text-center">
-            <a class="btn" href="/tips/2013/07/26/e6-89-93-e9-80-a0-e4-b8-aa-e6-80-a7-e7-89-88vim/#more" rel="contents">
-              Read more &raquo;
-            </a>
-          </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-        
-        
-        
-        
       
     </footer>
   </article>
@@ -1152,7 +1171,7 @@ http://wiki.ubuntu.org.cn/Python正则表达式操作指南</p>
           
             <div class="site-state-item site-state-posts">
               <a href="/archives/">
-                <span class="site-state-item-count">41</span>
+                <span class="site-state-item-count">42</span>
                 <span class="site-state-item-name">posts</span>
               </a>
             </div>
@@ -1215,7 +1234,7 @@ http://wiki.ubuntu.org.cn/Python正则表达式操作指南</p>
         <div class="copyright" >
   
   &copy; 
-  <span itemprop="copyrightYear">2017</span>
+  <span itemprop="copyrightYear">2018</span>
   <span class="with-love">
     <i class="fa fa-heart"></i>
   </span>

@@ -1,0 +1,50 @@
+<p><strong><span style="color: #00B050;">最近因业务需求在写爬虫时，遇到点编码的问题，加上以前曾被类似问题困扰过，特此记录一下。</span></strong>
+由于开发和使用环境常在Linux和Win下切换，常遇到字符处理错误，总结一些问题如下：</p>
+
+<p><span style="color: #ff0000;">1.如何中文匹配网页内容，而不会被各种编码扰乱</span></p>
+<pre lang="python">s="编码"
+rs=unicode(s, "utf8")
+u'\u7f16\u7801'</pre>
+<p>很简单普遍的做法，unicode编码能很好的转码中文，平时储存中文字符串时可以：</p>
+<pre lang="python">x=u'编码'</pre>
+<p>但是这有可能会报错，python在字符处理时忒蛋疼，怎么办？</p>
+<pre lang="python">reload(sys)
+sys.setdefaultencoding('utf-8')</pre>
+<p>又是非常简单而万精油的两句代码，默认把文件编码设成utf-8，在这时光是在代码头部写上#coding=utf-8之类的是不太管用的。
+<span style="color: #ff0000;">2.网上摘抄一段内容，也是自己遇到过的，关于把文字直接解码。</span></p>
+<pre lang="python">Traceback (most recent call last):
+File "ChineseTest.py", line 3, in 
+print open("Test.txt").read().decode("utf-8")
+UnicodeEncodeError: 'gbk' codec can't encode character u'\ufeff' in position 0: illegal multibyte sequence</pre>
+<p>原来，某些软件，如notepad，在保存一个以UTF-8编码的文件时，会在文件开始的地方插入三个不可见的字符（0xEF 0xBB 0xBF，即BOM）。
+因此我们在读取时需要自己去掉这些字符，python中的codecs module定义了这个常量：</p>
+<pre lang="python"># coding=gbk
+import codecs
+data = open("Test.txt").read()
+if data[:3] == codecs.BOM_UTF8:
+data = data[3:]
+print data.decode("utf-8")
+结果：abc中文</pre>
+<p><span style="color: #ff0000;">3.在Win下保存文件时，注意下保存文件的编码，鄙人一般选UTF8，默认的ANSI和UNICODE感觉不太好用。里面的内容换到Linux下容易报错。</span>
+<span style="color: #ff0000;">4.编码和解码，这样的姿势也是可以的：</span></p>
+<pre lang="python">x=r'\u7f16\u7801'
+print x.decode("unicode_escape")
+编码</pre>
+<p><span style="color: #ff0000;">
+5.话不多说看图，中文字符串的比较:</span></p>
+<pre lang="python">'编码'.decode('utf-8') == u'编码'
+True
+
+'编码' == u'编码'
+__main__:1: UnicodeWarning: Unicode equal comparison failed to convert both arguments to Unicode - interpreting them as being unequal
+False
+
+unicode('编码') == u'编码'
+Traceback (most recent call last):
+  File "", line 1, in 
+UnicodeDecodeError: 'ascii' codec can't decode byte 0xe7 in position 0: ordinal not in range(128)</pre>
+<p><span style="color: #ff0000;">6.附上一个链接，本文上述的问题里面多有讲述，但鄙人没有一一验证过，但确实很详细。</span>
+<span style="color: #ff00ff;"><a title="Python、Unicode和中文" href="http://blog.csdn.net/summerhust/article/details/6654150" target="_blank"><span style="color: #ff00ff;">Python、Unicode和中文</span></a></span></p>
+
+<p>文章是记录型，很简单的东西，不喜勿喷。
+<span style="color: #00B050;">[转载请注明来源<a href="http://www.dawner.info" target="_blank"><span style="color: #00B050;">本站</span></a>,谢谢。]</span></p>

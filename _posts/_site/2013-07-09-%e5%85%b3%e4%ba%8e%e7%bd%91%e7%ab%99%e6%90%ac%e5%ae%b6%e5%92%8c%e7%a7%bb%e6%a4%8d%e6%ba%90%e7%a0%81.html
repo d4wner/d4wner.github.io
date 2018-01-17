@@ -1,0 +1,18 @@
+<p>对于黑阔们和站长们来说，网站搬家和顺来的源码移植是个很常见的头疼问题，而数据备份和还原问题没解决好也会带来很多的麻烦。因此我们需要对此多做一些工作。</p>
+
+<p>数据库:</p>
+
+<table>
+  <tbody>
+    <tr>
+      <td>以mysql为例子，常常备份为sql文件。然后在移植后，use 数据库名，source xxx.sql。这是比较方便的。 备份语句：mysqldump -uroot -p 密码 数据库名 &gt; xxx.sql </td>
+      <td> </td>
+      <td>mysqldump.exe  databasename -u root -p &gt; xxx.sql(导出了表结构和数据)###如果不方便操作数据库或者网站没有自带备份功能。可以考虑帝国备份王和phpMyadmin。在这里提醒一下，使用备份王服务器需要修改php.ini,打开short_open_tag ，设置为On。这是因为php语法中标签解析的问题，不然无法进入修改配置和访问,修改完以后重启Apache即可。有时候需要涉及到修改目录权限，chmod -R 777 xxx，递归至子目录。至于mssql里面也有专门的语句可以备份，sqlsever系统自带的管理和导入导出数据显得更加强大。</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>源码：</p>
+
+<p>服务器上打包源码的话，假设非独立vps类，如果控制面板有功能优选控制面板，Linux下常用tar命令或者rar直接打包目录，部分大马有自带打包功能。Win下可以Winrar，即C:\progra~1\WinRAR\Rar.exe a -k -r -s -m1 D:\1.rar  D:\www，只要可以执行cmd命令不需要系统权限也可以使用另外注意在cmd下输入“<span style="font-family: Verdana;">C:\Program Files\”是不行的，因为有个空格，要用c:\progra~1\代替，</span>至于博客之类的打包就直接把图片下下来即可替换，毕竟大站升级和改动文件较多。</p>
+
