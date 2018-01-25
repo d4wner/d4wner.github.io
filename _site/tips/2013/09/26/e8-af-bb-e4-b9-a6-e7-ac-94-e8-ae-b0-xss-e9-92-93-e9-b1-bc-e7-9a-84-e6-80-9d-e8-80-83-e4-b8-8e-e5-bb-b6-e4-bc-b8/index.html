@@ -115,7 +115,7 @@
 <meta name="keywords" content="blog, security, web, php, python">
 <meta property="og:type" content="article">
 <meta property="og:title" content="《XSS跨站攻防》读书笔记-钓鱼的思考与延伸">
-<meta property="og:url" content="http://localhost:4000/tips/2013/09/26/e8-af-bb-e4-b9-a6-e7-ac-94-e8-ae-b0-xss-e9-92-93-e9-b1-bc-e7-9a-84-e6-80-9d-e8-80-83-e4-b8-8e-e5-bb-b6-e4-bc-b8/">
+<meta property="og:url" content="/tips/2013/09/26/e8-af-bb-e4-b9-a6-e7-ac-94-e8-ae-b0-xss-e9-92-93-e9-b1-bc-e7-9a-84-e6-80-9d-e8-80-83-e4-b8-8e-e5-bb-b6-e4-bc-b8/">
 <meta property="og:site_name" content="HellSec">
 <meta property="og:description" content="邱哥文中的一句话说的很好，现在对于cookie限制采用了很多技术，比如令牌验证，比如会话过期时间，卡的比较死算是httponly，一旦使用，如果一旦是域全局限制，整个一个痛字了得！ 由此而论，钓鱼手法是一种针对低权限下较为保守的做法，而且具有一定的可靠性，在取得真实帐密后，也免去了复杂加密的痛苦。当然，前提是，你能懂得欺骗的艺术—事见凯文米特尼克的大作。 目前市面上流传的xss钓鱼手法不少，本来么，在互联网大众化的时代，没有你做不到的，只有你想不到的。传统的互联网的钓鱼手法很多都可以改装后运用到xss上。 第一：重定向和伪造，这两种小弟认为是不太具有太大的诱惑力的，一般只能骗骗不小心的孩纸，在网友日益增长的意识面前，不改变网址的高仿的页面已经不太够看了，当然内嵌表单和单点覆盖还是个不错的手法，如果对网站不够熟悉，很可能就在不经意的位置中招而了无所知。 在这里小弟补充一点自己的看法，举个栗子，clickjacking是一种好的法子，他会通过某种诱惑，比如以苍、武二老师的温柔乡作幌子，欺骗你去点击一个你看不到的，且不该点击的东西。Form框输入欺骗也是一样，在取得你的输入后，他也许会试图传值，post给真正的登陆页面，然后返回导向。你会发现，你已经登陆了。不过，你的个人隐私和帐密却已经悄悄的 被copy到了某处，静静等待着罪恶的发生。 第二：关于“高级”钓鱼，就以邱哥思想来说，就是在更加隐蔽的层次进行劫持和记录（话说邱哥貌似还删了一部分比较完整的，没能看上原稿甚是遗憾）。其中一种手法便是在表单submit时截获数据，通过节点取得我们所需的value。当然，我们取得数据的触发和时机也可以换。比如可以在在输入最后一个登陆框之后进行一个快速的遍历（可以避免故意输入错误或者截获数据的完整性），因为JS本地执行是优先于服务端的反应的。而另一种，小弟并不太喜欢，即键盘记录劫持钓鱼（不知道以后杀软会不会根据特征和行为对此劫持报毒），使用JS自带的触发可以做许多的事。 小弟尝试写了下点击劫持，360并没有报危险，看来杀软BS模式的特征行为也许有待改进，不过版本稍微新点的浏览器会有提示或者直接过滤。  &amp;lt;html&amp;gt; &amp;lt;head&amp;gt; &amp;lt;script&amp;gt; function txt(sb) { //window.alert(“F4ck!!”);   var fso, f1;   var ForReading=1;   fso=new ActiveXObject(“Scripting.FileSystemObject”);   f1=fso.CreateTextFile(“c:\hack.txt”,true);   f1.WriteLine(sb.getAttribute(“href”));   f1.WriteBlankLines(1);   f1.Close(); }  &amp;lt;/script&amp;gt; &amp;lt;/head&amp;gt; &amp;lt;body&amp;gt; &amp;lt;a href=”http://www.baidu.com” onclick=”txt(this)”&amp;gt;baidu&amp;lt;/a&amp;gt; &amp;lt;a href=”http://www.google.com.hk” onclick=”txt(this)”&amp;gt; google&amp;lt;/a&amp;gt; &amp;lt;a href=”http://www.dawner.info” onclick=”txt(this)”&amp;gt; blog&amp;lt;/a&amp;gt; &amp;lt;/body&amp;gt; &amp;lt;/html&amp;gt; 其中代码中的本地路径也许可以配置为公网肉鸡的远程路径，配置好可写入不可执行权限？聪明的各位朋友应该可以做更多的尝试。 以上是小弟自己的想法，按邱哥的意思应该是通过截获表单或者监听键盘，通过JS动态生成表单发送出去，如图： 以上应该算是箱子原理，由更加强大的脚本语言动态接受参数，生成条目，可存入数据库，减少了中介部分，也是更为普遍、稳定的做法。">
 <meta property="og:locale" content="en">
@@ -152,7 +152,7 @@
 
 
 
-  <link rel="canonical" href="http://localhost:4000/"/>
+  <link rel="canonical" href=""/>
 
 
 
@@ -199,7 +199,7 @@
       </a>
     </div>
       
-        <p class="site-subtitle">星图网安实验室</p>
+        <p class="site-subtitle">星图网络安全实验室</p>
       
   </div>
 
@@ -284,7 +284,7 @@
   
 
   <article class="post post-type- " itemscope itemtype="http://schema.org/Article">
-    <link itemprop="mainEntityOfPage" href="http://localhost:4000/tips/2013/09/26/e8-af-bb-e4-b9-a6-e7-ac-94-e8-ae-b0-xss-e9-92-93-e9-b1-bc-e7-9a-84-e6-80-9d-e8-80-83-e4-b8-8e-e5-bb-b6-e4-bc-b8/">
+    <link itemprop="mainEntityOfPage" href="/tips/2013/09/26/e8-af-bb-e4-b9-a6-e7-ac-94-e8-ae-b0-xss-e9-92-93-e9-b1-bc-e7-9a-84-e6-80-9d-e8-80-83-e4-b8-8e-e5-bb-b6-e4-bc-b8/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="HellLab">
