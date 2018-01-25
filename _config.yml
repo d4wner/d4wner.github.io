@@ -4,10 +4,10 @@
 # ---------------------------------------------------------------
 
 # Site
-title: 地狱爬行者's Blog
-subtitle:
-description: 原创网络安全博客<-|->WISH MY SWORD FLAME SHINING FOREVER.
-author: demon
+title: HellSec
+subtitle: 星图网安实验室
+description: 原创网络安全博客<-|->星辰为子，图布八方
+author: HellLab
 # Support language: de, en, fr-FR, id, ja, ko, pt-BR, pt, ru, zh-Hans, zh-hk, zh-tw
 language: en
 date_format: '%Y-%m-%d'
