@@ -115,7 +115,7 @@
 <meta name="keywords" content="blog, security, web, php, python">
 <meta property="og:type" content="website">
 <meta property="og:title" content="archives">
-<meta property="og:url" content="/archives/">
+<meta property="og:url" content="http://localhost:4000/archives/">
 <meta property="og:site_name" content="HellSec">
 <meta property="og:description" content="原创网络安全博客星辰为子，图布八方">
 <meta property="og:locale" content="en">
@@ -148,7 +148,7 @@
 
 
 
-  <link rel="canonical" href=""/>
+  <link rel="canonical" href="http://localhost:4000/"/>
 
 
 
@@ -268,6 +268,7 @@
         <div class="content-wrap">
           <div id="content" class="content">
             
+ <span class="archive-page-counter"><input class="page-search-input" type="text" placeholder="谷歌搜索" /></span>
 <section id="posts" class="posts-collapse" hidden>
   <span class="archive-move-on"></span>
 
@@ -1782,6 +1783,23 @@
 </section>
 
 <nav class="pagination"></nav>
+
+<script>
+
+document.querySelector('.page-search-input').addEventListener('keyup',function(e){
+    var archive = document.getElementsByClassName('archive-item-link');
+    for (var i = 0; i < archive.length; i++){
+        if( archive[i].title.toLowerCase().indexOf(this.value.toLowerCase()) > -1 ) {
+            archive[i].closest('li').style.display = '';
+        } else {
+            archive[i].closest('li').style.display = 'none';
+        }
+    }
+    if(e.keyCode == 13){
+        window.open('https://www.google.com/#q=site:blog.dawner.info+'+this.value);
+    }
+})
+</script>
 
 
           </div>
