@@ -283,6 +283,171 @@
   
 
   <article class="post post-type- " itemscope itemtype="http://schema.org/Article">
+    <link itemprop="mainEntityOfPage" href="http://localhost:4000/coding/2013/09/07/google-e9-9a-90-e8-97-8f-e6-ac-a1-e7-ba-a7-e5-9f-9f-e5-90-8d-e6-8a-93-e5-8f-96/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="HellLab">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="assets/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="HellSec">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+          
+          
+            
+                
+                <a class="post-title-link" href="/coding/2013/09/07/google-e9-9a-90-e8-97-8f-e6-ac-a1-e7-ba-a7-e5-9f-9f-e5-90-8d-e6-8a-93-e5-8f-96/" itemprop="url">
+                Google隐藏次级域名抓取
+              </a>
+            
+          
+        </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2013-09-07T14:16:00+08:00">
+                2013-09-07
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/category/#/coding" itemprop="url" rel="index">
+                    <span itemprop="name">coding</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          <p>最近忙着找实习，时间又忙，前几天本想找个内网啥的，结果接的任务的内网不是短时间搞得下来的。
+但是昨儿有朋友跟我谈起二级域名抓取的问题，因为大家都知道，市面上有几款api查询次级域名，但是很多时候都查不完，邮局，快过期的域名，注册未名的，内网入口。尤其是不大不小的站，这种是在api中查不了的。关于因此昨儿写了个py，直接上东西。
+如果有朋友对版权问题有异议，请私信博主更改和添加。
+<span style="color: #00ffff;">优缺点：</span>
+1.代码是借鉴了一部分别人的，其中包括（haxxxxx兄），毕竟小弟不是码农，代码看起来有点山寨。。
+2.没有采用多线程，因为google api在没有连国外VPN时多线程2+就得崩，这种本来运行也不慢，所以综合考虑没有采用它。
+3.最后整理为去重复的字典result.txt，可以直接导入御剑啥的。
+4.中间产生了些临时文件，启动删除时可以清理。
+5.没有采用win下必备的模块，跨平台性。。（话说haxxxxx兄写的东西真的挺好，不过基本每次都要加上win模块，让小弟好生伤心、）
+6.最后，用法并非单一，功能大神们改进后继续发掘。
+朋友的原创不错，比我这个好，代码也更简洁。不过我估计他博客有我就不发了。
+友链里自己找出那位大神喔。
+PS:本来想直接发他的。。。脸皮还是不够厚啊。</p>
+
+
+          <!--noindex-->
+          <div class="post-button text-center">
+            <a class="btn" href="/coding/2013/09/07/google-e9-9a-90-e8-97-8f-e6-ac-a1-e7-ba-a7-e5-9f-9f-e5-90-8d-e6-8a-93-e5-8f-96/#more" rel="contents">
+              Read more &raquo;
+            </a>
+          </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+        
+        
+        
+        
+          <div class="post-eof"></div>
+        
+      
+    </footer>
+  </article>
+
+  
+    
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type- " itemscope itemtype="http://schema.org/Article">
     <link itemprop="mainEntityOfPage" href="http://localhost:4000/coding/2013/08/05/python-e5-ad-a6-e4-b9-a0-e6-9c-ad-e8-ae-b0-ef-bc-88-e4-b8-80-ef-bc-89/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -887,159 +1052,6 @@ PHP的几种常见报错：
         
         
         
-          <div class="post-eof"></div>
-        
-      
-    </footer>
-  </article>
-
-  
-    
-    
-
-  
-
-  
-  
-  
-
-  <article class="post post-type- " itemscope itemtype="http://schema.org/Article">
-    <link itemprop="mainEntityOfPage" href="http://localhost:4000/system/2013/07/02/ssh-e8-bf-9e-e6-8e-a5-e5-bc-95-e5-8f-91-e7-9a-84-e8-a1-80-e6-a1-88/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="HellLab">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="assets/images/avatar.gif">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="HellSec">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-          
-          
-            
-                
-                <a class="post-title-link" href="/system/2013/07/02/ssh-e8-bf-9e-e6-8e-a5-e5-bc-95-e5-8f-91-e7-9a-84-e8-a1-80-e6-a1-88/" itemprop="url">
-                SSH连接引发的血案
-              </a>
-            
-          
-        </h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">Posted on</span>
-              
-              <time title="Post created" itemprop="dateCreated datePublished" datetime="2013-07-02T01:42:00+08:00">
-                2013-07-02
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">In</span>
-              
-              
-                
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/category/#/system" itemprop="url" rel="index">
-                    <span itemprop="name">system</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          <p>今天干了特脑残的一件事，机油丢我一jsp的shell。我试图帮他留一个ssh后门。 但是 光看了shell的提示的ip，有两个，都是公网地址。于是乎小弟很自然的认为其为公网独立IP。不过连接时总是超时。于是做了以下两件事：</p>
-
-
-          <!--noindex-->
-          <div class="post-button text-center">
-            <a class="btn" href="/system/2013/07/02/ssh-e8-bf-9e-e6-8e-a5-e5-bc-95-e5-8f-91-e7-9a-84-e8-a1-80-e6-a1-88/#more" rel="contents">
-              Read more &raquo;
-            </a>
-          </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-        
-        
-        
-        
       
     </footer>
   </article>
@@ -1101,7 +1113,7 @@ PHP的几种常见报错：
           
             <div class="site-state-item site-state-posts">
               <a href="/archives/">
-                <span class="site-state-item-count">43</span>
+                <span class="site-state-item-count">44</span>
                 <span class="site-state-item-name">posts</span>
               </a>
             </div>
