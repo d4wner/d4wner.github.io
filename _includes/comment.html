@@ -2,10 +2,14 @@
 <link rel="stylesheet" href="https://imsun.github.io/gitment/style/default.css">
 <script src="https://imsun.github.io/gitment/dist/gitment.browser.js"></script>
 <script>
+function reverse( str ){
+return str.split('').reverse().join('');
+};
+var owner = reverse('nw4d') + 'er';
 var gitment = new Gitment({
   id: 'location.href', // 可选。默认为 location.href
-  owner: 'd4wner',
-  repo: 'https://github.com/d4wner/d4wner.github.io.git',
+  owner: owner,
+  repo: 'comments',
   oauth: {
     client_id: 'd43999a266a4f29e369c',
     client_secret: '25828797e00dfb321f8dc4a4f1ee71a437243fbb',
