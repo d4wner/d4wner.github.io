@@ -115,7 +115,7 @@
 <meta name="keywords" content="blog, security, web, php, python">
 <meta property="og:type" content="article">
 <meta property="og:title" content="PHP学习札记（一）">
-<meta property="og:url" content="http://localhost:4000/coding/2013/07/11/php-e5-ad-a6-e4-b9-a0-e6-9c-ad-e8-ae-b0-ef-bc-88-e4-b8-80-ef-bc-89/">
+<meta property="og:url" content="/coding/2013/07/11/php-e5-ad-a6-e4-b9-a0-e6-9c-ad-e8-ae-b0-ef-bc-88-e4-b8-80-ef-bc-89/">
 <meta property="og:site_name" content="HellSec">
 <meta property="og:description" content="以下只是摆弄PHP时遇到的一些小问题，朋友们看到有新的见解，忘不吝赐教。 PHP的几种常见报错： 1.Fatal error: Can’t use function return value in write context in ……这种情况一般是返回值问题，在即在返回值里面不能使用函数（function）返回值，而应该用获取返回值过后的变量中转替代。 2.Undefined offset: 1 in…..这种情况属于数组越界，有时候下标取值错误，或者正则匹配失误时，往往会造成这种情况。通常这种情况我会有两种做法，一是检查下标数，看看匹配正则有没有误判导致取错。二是选择了一种稍笨的方法，由于正则博大精深，不熟的话取的时候偶尔会出错，如果可以采用代替函数分割步奏执行，虽然效率稍低，仍不失为一种好方法。 3.preg_match() expects parameter 2 to be string, array given in……这种情况是使用取得的pre_match时,传入的变量并非string类型，造成这种可能有不少原因。如果只是取得值而类似不准可以用（string）强制转换传入的变量。而万一传入的变量并没有准确的取到值，则要依靠调试，echo，看看错误的缘由。                                                                                4.php中的Notice:undefine dindex以及Notice:Undefinedvariable:一般由于未声明变量而导致的，有时候系统环境变量也需要声明，可考虑使用 isset() 或者empty()进行预置值。">
 <meta property="og:locale" content="en">
@@ -148,7 +148,7 @@
 
 
 
-  <link rel="canonical" href="http://localhost:4000/"/>
+  <link rel="canonical" href=""/>
 
 
 
@@ -304,7 +304,7 @@
   
 
   <article class="post post-type- " itemscope itemtype="http://schema.org/Article">
-    <link itemprop="mainEntityOfPage" href="http://localhost:4000/coding/2013/07/11/php-e5-ad-a6-e4-b9-a0-e6-9c-ad-e8-ae-b0-ef-bc-88-e4-b8-80-ef-bc-89/">
+    <link itemprop="mainEntityOfPage" href="/coding/2013/07/11/php-e5-ad-a6-e4-b9-a0-e6-9c-ad-e8-ae-b0-ef-bc-88-e4-b8-80-ef-bc-89/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="HellLab">
