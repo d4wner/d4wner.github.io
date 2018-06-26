@@ -558,7 +558,7 @@ pre .k, pre .kd, pre .kn, pre .kp, pre .kr, pre .kt, pre .javascript .function {
 .links-of-author { margin-top: 20px; }
 
 .links-of-author a { display: inline-block; vertical-align: middle; margin-right: 10px; margin-bottom: 10px; border-bottom-color: #555; font-size: 13px; }
-.links-of-author a:before { display: inline-block; vertical-align: middle; margin-right: 3px; content: " "; width: 4px; height: 4px; border-radius: 50%; background: #cc0014; }
+.links-of-author a:before { display: inline-block; vertical-align: middle; margin-right: 3px; content: " "; width: 4px; height: 4px; border-radius: 50%; background: lime; }
 
 .links-of-blogroll { font-size: 13px; }
 
@@ -797,3 +797,5 @@ embed { display: block; margin: 0px auto 25px auto; }
 .site-search form { display: none; }
 
 .links-of-blogroll-inline .links-of-blogroll-item { display: inline-block; }
+
+.copyright { margin: 10px 0; padding: 10px 20px; line-height: 1; border-radius: 5px; background: #f5f5f5; }

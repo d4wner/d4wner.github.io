@@ -115,7 +115,7 @@
 <meta name="keywords" content="blog, security, web, php, python">
 <meta property="og:type" content="article">
 <meta property="og:title" content="PYTHON学习札记（三）">
-<meta property="og:url" content="/coding/2013/10/03/python-e5-ad-a6-e4-b9-a0-e6-9c-ad-e8-ae-b0-ef-bc-88-e4-b8-89-ef-bc-89/">
+<meta property="og:url" content="http://localhost:4000/coding/2013/10/03/python-e5-ad-a6-e4-b9-a0-e6-9c-ad-e8-ae-b0-ef-bc-88-e4-b8-89-ef-bc-89/">
 <meta property="og:site_name" content="HellSec">
 <meta property="og:description" content="1.telnetlib模块的几个小技巧： (1)神奇的read_very_eager() telnetlib模块里的read方法，其说是兼容性较好的，在取得数据完整性和结束符定位做的比较完美，不过，记得设置延时， 待数据抓取完再行第二次查询。 (2)telnet直接模拟登陆获取的数据，可以抓取到一些敏感信息记录。 参考代码： #encoding=utf-8 def do_telnet(Host, username, password, finish, commands): import telnetlib &apos;&apos;&apos;Telnet远程登录：Windows客户端连接Linux服务器&apos;&apos;&apos; # 连接Telnet服务器 tn = telnetlib.Telnet(Host, port=23, timeout=10) tn.set_debuglevel(2) # 输入登录用户名 tn.read_until(&apos;login: &apos;) tn.write(username + &apos; &apos;) # 输入登录密码 tn.read_until(&apos;password: &apos;) tn.write(password + &apos; &apos;) # 登录完毕后执行命令 tn.read_until(finish) for command in commands: tn.write(&apos;%s &apos; % command) #执行完毕后，终止Telnet连接（或输入exit退出） tn.read_until(finish) tn.close() # tn.write(&apos;exit &apos;) if __name__==&apos;__main__&apos;: # 配置选项 Host = &apos;10.255.254.205&apos; # Telnet服务器IP username = &apos;administrator&apos; # 登录用户名 password = &apos;dell1950&apos; # 登录密码 finish = &apos;:~$ &apos; # 命令提示符 commands = [&apos;echo &quot;test&quot;&apos;] do_telnet(Host, username, password, finish, commands) 参考：http://blog.csdn.net/five3/article/details/8099997 2.多线程小见： (1)当多线程共享一个东西时，可以采用Queue.Queue，通过队列是否为空实施控制，进行锁信号和同步。 (2)抛弃thread，投向threading的怀抱。过去小弟试过几回thread写多线程，采用了start_new_thread()，写法更加复杂,线程难以很好的控制，而且功能不如threading强大。新版py差不多抛弃了这种写法。 附上参考代码： import threading import time class timer(threading.Thread): #The timer class is derived from the class threading.Thread def __init__(self, num, interval): threading.Thread.__init__(self) self.thread_num = num self.interval = interval self.thread_stop = False def run(self): #Overwrite run() method, put what you want the thread do here while not self.thread_stop: print &apos;Thread Object(%d), Time:%s/n&apos; %(self.thread_num, time.ctime()) time.sleep(self.interval) def stop(self): self.thread_stop = True def test(): thread1 = timer(1, 1) thread2 = timer(2, 2) thread1.start() thread2.start() time.sleep(10) thread1.stop() thread2.stop() return if __name__ == &apos;__main__&apos;: test() (3)主进程结束后，子进程一般要过一段时间才结束，从而完成收尾工作。如果我们想在主进程结束的时候，子进程也结束的话，我们就应该使用setDaemon（）函数。 （4）没啥好说的，同步所需要锁==&amp;gt;threading.RLock()，所有“临界区”都封闭在同一锁对象的acquire()和release()方法调用之间。 参考：http://blog.csdn.net/lazy_tiger/article/details/3861844 ===================&amp;gt;Python多线程学习(连载) http://www.cnblogs.com/rollenholt/archive/2011/08/09/2131719.html===========&amp;gt;python多线程学习(细节) (5)设置timeout不如sleep，前者只是在初始化socket连接时起作用，而一旦连接成功后如果出现等待那就不会起作用。适当沉睡可以等到线程结束，便于同步,最后可以用join设置超时控制。 3.os模块小总结 (1)简单说是取得a文件属性然后覆盖b文件。 import os import stat, time infile = &quot;samples/sample.jpg&quot; outfile = &quot;out.jpg&quot; # copy contents fi = open(infile, &quot;rb&quot;) fo = open(outfile, &quot;wb&quot;) while 1: s = fi.read(10000) if not s: break fo.write(s) fi.close() fo.close() # copy mode and timestamp st = os.stat(infile) os.chmod(outfile, stat.S_IMODE(st[stat.ST_MODE])) os.utime(outfile, (st[stat.ST_ATIME], st[stat.ST_MTIME])) print &quot;original&quot;, &quot;=&amp;gt;&quot; print &quot;mode&quot;, oct(stat.S_IMODE(st[stat.ST_MODE])) print &quot;atime&quot;, time.ctime(st[stat.ST_ATIME]) print &quot;mtime&quot;, time.ctime(st[stat.ST_MTIME]) print &quot;copy&quot;, &quot;=&amp;gt;&quot; st = os.stat(outfile) print &quot;mode&quot;, oct(stat.S_IMODE(st[stat.ST_MODE])) print &quot;atime&quot;, time.ctime(st[stat.ST_ATIME]) print &quot;mtime&quot;, time.ctime(st[stat.ST_MTIME]) (2)命令执行和程序调用 execfile() #直接编译执行 os.execl(path, arg) os.execvp(program,arg) #需要指定程序类型 eval() os.system(cmd) (3)使用 _ import _ 函数获得特定函数 def getfunctionbyname(module_name, function_name): module = _ _import_ _(module_name) return getattr(module, function_name) print repr(getfunctionbyname(&quot;dumbdbm&quot;, &quot;open&quot;)) (4)使用 os 模块调用其他程序 ======================WIN======================== import os import sys def run(program, *args): pid = os.fork() if not pid: os.execvp(program, (program,) + args) return os.wait()[0] run(&quot;python&quot;, &quot;hello.py&quot;) print &quot;goodbye&quot; =====================UNIX======================== import os import string def run(program, *args): # find executable for path in string.split(os.environ[&quot;PATH&quot;], os.pathsep): file = os.path.join(path, program) + &quot;.exe&quot; try: return os.spawnv(os.P_WAIT, file, (file,) + args) except os.error: pass raise os.error, &quot;cannot find executable&quot; run(&quot;python&quot;, &quot;hello.py&quot;) print &quot;goodbye&quot; (5)os.environ[“PATH”],os.pathsep===&amp;gt;系统路径分隔符,compile 函数检查语法">
 <meta property="og:locale" content="en">
@@ -148,7 +148,7 @@
 
 
 
-  <link rel="canonical" href=""/>
+  <link rel="canonical" href="http://localhost:4000/"/>
 
 
 
@@ -304,7 +304,7 @@
   
 
   <article class="post post-type- " itemscope itemtype="http://schema.org/Article">
-    <link itemprop="mainEntityOfPage" href="/coding/2013/10/03/python-e5-ad-a6-e4-b9-a0-e6-9c-ad-e8-ae-b0-ef-bc-88-e4-b8-89-ef-bc-89/">
+    <link itemprop="mainEntityOfPage" href="http://localhost:4000/coding/2013/10/03/python-e5-ad-a6-e4-b9-a0-e6-9c-ad-e8-ae-b0-ef-bc-88-e4-b8-89-ef-bc-89/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="HellLab">
@@ -600,6 +600,13 @@ print "goodbye"</pre>
 
   <div class="post-spread">
     
+
+<hr>
+<div class="copyright">
+<p><strong>本博客链接：</strong><a href='http://blog.dawner.info/'>http://blog.dawner.info/</a></p>
+<p><strong>原创文章,转载请注明出处：</strong><a href='http://blog.dawner.info/'>HellSec深度网络安全实验室</a></p>
+</div>
+
   </div>
 </div>
 
