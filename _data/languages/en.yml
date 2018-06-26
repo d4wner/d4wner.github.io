@@ -3,6 +3,7 @@ title:
   category: Category
   tag: Tag
   schedule: Schedule
+  comments: Comment
 
 author: Author
 
@@ -16,6 +17,8 @@ menu:
   schedule: Schedule
   sitemap: Sitemap
   commonweal: Commonweal 404
+  comments: Comment
+
 
 sidebar:
   overview: Overview
