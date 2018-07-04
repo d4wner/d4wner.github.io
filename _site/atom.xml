@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.5.2">Jekyll</generator><link href="http://localhost:4000/atom.xml" rel="self" type="application/atom+xml" /><link href="http://localhost:4000/" rel="alternate" type="text/html" /><updated>2018-07-04T19:35:35+08:00</updated><id>http://localhost:4000/</id><title type="html">HellSec</title><subtitle>原创网络安全博客&lt;-|-&gt;匠心独运，做有深度的良品。</subtitle><author><name>HellLab</name></author><entry><title type="html">浅谈进程隐藏之术</title><link href="http://localhost:4000/cert/2018/07/04/hide-process/" rel="alternate" type="text/html" title="浅谈进程隐藏之术" /><published>2018-07-04T19:30:38+08:00</published><updated>2018-07-04T19:30:38+08:00</updated><id>http://localhost:4000/cert/2018/07/04/hide-process</id><content type="html" xml:base="http://localhost:4000/cert/2018/07/04/hide-process/">&lt;p&gt;
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.5.2">Jekyll</generator><link href="/atom.xml" rel="self" type="application/atom+xml" /><link href="/" rel="alternate" type="text/html" /><updated>2018-07-04T19:42:58+08:00</updated><id>/</id><title type="html">HellSec</title><subtitle>原创网络安全博客&lt;-|-&gt;匠心独运，做有深度的良品。</subtitle><author><name>HellSec</name></author><entry><title type="html">浅谈进程隐藏之术</title><link href="/cert/2018/07/04/hide-process/" rel="alternate" type="text/html" title="浅谈进程隐藏之术" /><published>2018-07-04T19:30:38+08:00</published><updated>2018-07-04T19:30:38+08:00</updated><id>/cert/2018/07/04/hide-process</id><content type="html" xml:base="/cert/2018/07/04/hide-process/">&lt;p&gt;
 	&lt;span style=&quot;color:#00B050;&quot;&gt;&lt;strong&gt;前段时间遇到了一些【进程隐藏】相关的应急事件，故此心生一念，对网上一些资料和部分个人经验做了总结，以飨众人。&lt;/strong&gt;&lt;/span&gt;
 &lt;/p&gt;
 
@@ -300,7 +300,7 @@ deskthrd
 
 &lt;p&gt;需要强调的是，攻防都是相对的，技术是在进步的，工具需要配合手工才能变成神器。&lt;/p&gt;
 
-&lt;p&gt;以后在实践中遇到新东西，或者在其他资料站看到实用的内容，后面会继续给大家更新。&lt;/p&gt;</content><author><name>HellLab</name></author><category term="cert" /><summary type="html">前段时间遇到了一些【进程隐藏】相关的应急事件，故此心生一念，对网上一些资料和部分个人经验做了总结，以飨众人。</summary></entry><entry><title type="html">信安应急响应手册</title><link href="http://localhost:4000/pentest/2018/06/25/security-emergency/" rel="alternate" type="text/html" title="信安应急响应手册" /><published>2018-06-25T12:56:18+08:00</published><updated>2018-06-25T12:56:18+08:00</updated><id>http://localhost:4000/pentest/2018/06/25/security-emergency</id><content type="html" xml:base="http://localhost:4000/pentest/2018/06/25/security-emergency/">&lt;p&gt;
+&lt;p&gt;以后在实践中遇到新东西，或者在其他资料站看到实用的内容，后面会继续给大家更新。&lt;/p&gt;</content><author><name>HellSec</name></author><category term="cert" /><summary type="html">前段时间遇到了一些【进程隐藏】相关的应急事件，故此心生一念，对网上一些资料和部分个人经验做了总结，以飨众人。</summary></entry><entry><title type="html">信安应急响应手册</title><link href="/pentest/2018/06/25/security-emergency/" rel="alternate" type="text/html" title="信安应急响应手册" /><published>2018-06-25T12:56:18+08:00</published><updated>2018-06-25T12:56:18+08:00</updated><id>/pentest/2018/06/25/security-emergency</id><content type="html" xml:base="/pentest/2018/06/25/security-emergency/">&lt;p&gt;
 	&lt;span style=&quot;color:#DAA520;&quot;&gt;&lt;strong&gt;在我们工作过程中，难免会遇到一些需要应急响应的事件。在紧急情况下，某些平时的苦工可能会帮助我们简化流程。这里做下应急方面的笔记，列出一些实用的小技巧。&lt;/strong&gt;&lt;/span&gt;
 &lt;/p&gt;
 
@@ -1351,7 +1351,7 @@ export HISTTIMEFORMAT=&quot;%F %T 'who -u am i 2&amp;gt;/dev/null| awk '{print $
 
 &lt;h4 id=&quot;后记&quot;&gt;后记&lt;/h4&gt;
 
-&lt;p&gt;本文将持续更新，将作者遇到的一些应急的内容和技巧添加到里面，其中有部分内容参考了各大安全论坛的资料，再次感谢其他作者的付出。&lt;/p&gt;</content><author><name>HellLab</name></author><category term="pentest" /><summary type="html">在我们工作过程中，难免会遇到一些需要应急响应的事件。在紧急情况下，某些平时的苦工可能会帮助我们简化流程。这里做下应急方面的笔记，列出一些实用的小技巧。</summary></entry><entry><title type="html">关于selenium的post方法思考</title><link href="http://localhost:4000/spider/2018/04/18/selenium-post-func/" rel="alternate" type="text/html" title="关于selenium的post方法思考" /><published>2018-04-18T00:08:18+08:00</published><updated>2018-04-18T00:08:18+08:00</updated><id>http://localhost:4000/spider/2018/04/18/selenium-post-func</id><content type="html" xml:base="http://localhost:4000/spider/2018/04/18/selenium-post-func/">&lt;p&gt;
+&lt;p&gt;本文将持续更新，将作者遇到的一些应急的内容和技巧添加到里面，其中有部分内容参考了各大安全论坛的资料，再次感谢其他作者的付出。&lt;/p&gt;</content><author><name>HellSec</name></author><category term="pentest" /><summary type="html">在我们工作过程中，难免会遇到一些需要应急响应的事件。在紧急情况下，某些平时的苦工可能会帮助我们简化流程。这里做下应急方面的笔记，列出一些实用的小技巧。</summary></entry><entry><title type="html">关于selenium的post方法思考</title><link href="/spider/2018/04/18/selenium-post-func/" rel="alternate" type="text/html" title="关于selenium的post方法思考" /><published>2018-04-18T00:08:18+08:00</published><updated>2018-04-18T00:08:18+08:00</updated><id>/spider/2018/04/18/selenium-post-func</id><content type="html" xml:base="/spider/2018/04/18/selenium-post-func/">&lt;p&gt;
 	&lt;span style=&quot;color:#00B050;&quot;&gt;&lt;strong&gt;Selenium是一款比较常见的web应用自动化测试系统，它支持多种浏览器，多用于在爬虫中解决JavaScript渲染问题。&lt;/strong&gt;&lt;/span&gt;
 	
 &lt;/p&gt;
@@ -1453,7 +1453,7 @@ resp = driver.execute_script(&quot;return &quot; + ajax_query)
 
 &lt;p&gt;总而言之，selenium没有自带原生post方式是一个遗憾，而且其调用headless模式的浏览器，渲染和启动也显得太慢了些，无法用于高并发。&lt;/p&gt;
 
-&lt;p&gt;还是那句话，个人觉得在资源有限的情况下，它不太适用于高并发的大规模测试，fuzz指定的一定量payload也许尚可。&lt;/p&gt;</content><author><name>HellLab</name></author><category term="spider" /><summary type="html">Selenium是一款比较常见的web应用自动化测试系统，它支持多种浏览器，多用于在爬虫中解决JavaScript渲染问题。</summary></entry><entry><title type="html">内网横向与后渗透辞典</title><link href="http://localhost:4000/pentest/2018/01/18/pentest-innet-and-permission-maintenance/" rel="alternate" type="text/html" title="内网横向与后渗透辞典" /><published>2018-01-18T01:14:18+08:00</published><updated>2018-01-18T01:14:18+08:00</updated><id>http://localhost:4000/pentest/2018/01/18/pentest-innet-and-permission-maintenance</id><content type="html" xml:base="http://localhost:4000/pentest/2018/01/18/pentest-innet-and-permission-maintenance/">&lt;p&gt;
+&lt;p&gt;还是那句话，个人觉得在资源有限的情况下，它不太适用于高并发的大规模测试，fuzz指定的一定量payload也许尚可。&lt;/p&gt;</content><author><name>HellSec</name></author><category term="spider" /><summary type="html">Selenium是一款比较常见的web应用自动化测试系统，它支持多种浏览器，多用于在爬虫中解决JavaScript渲染问题。</summary></entry><entry><title type="html">内网横向与后渗透辞典</title><link href="/pentest/2018/01/18/pentest-innet-and-permission-maintenance/" rel="alternate" type="text/html" title="内网横向与后渗透辞典" /><published>2018-01-18T01:14:18+08:00</published><updated>2018-01-18T01:14:18+08:00</updated><id>/pentest/2018/01/18/pentest-innet-and-permission-maintenance</id><content type="html" xml:base="/pentest/2018/01/18/pentest-innet-and-permission-maintenance/">&lt;p&gt;
 	&lt;span style=&quot;color:#DAA520;&quot;&gt;&lt;strong&gt;在内网横向与后渗透的过程中，会有一些细节比较蛋疼。而真正系统地讲述内网和后渗透的书籍，也就那么寥寥几本，就算想掏大美刀也没地儿买去。&lt;/strong&gt;&lt;/span&gt;
 &lt;/p&gt;
 
@@ -2481,7 +2481,7 @@ Silver Ticket是伪造的TGS，也就是说其范围有限，只能访问指定�
 &lt;h3 id=&quot;后记&quot;&gt;后记&lt;/h3&gt;
 
 &lt;p&gt;本文大部分资料参考自网络，因为内容太多无法一一附上出处，有介意的原作者请私信我加上。
-最后，感谢某云、FB、数字等等，感谢互联网上所有热爱分享的童鞋们。&lt;/p&gt;</content><author><name>HellLab</name></author><category term="pentest" /><summary type="html">在内网横向与后渗透的过程中，会有一些细节比较蛋疼。而真正系统地讲述内网和后渗透的书籍，也就那么寥寥几本，就算想掏大美刀也没地儿买去。</summary></entry><entry><title type="html">规模渗透架构部署设想</title><link href="http://localhost:4000/pentest/2017/12/16/architecture-of-apt-pentest/" rel="alternate" type="text/html" title="规模渗透架构部署设想" /><published>2017-12-16T20:52:18+08:00</published><updated>2017-12-16T20:52:18+08:00</updated><id>http://localhost:4000/pentest/2017/12/16/architecture-of-apt-pentest</id><content type="html" xml:base="http://localhost:4000/pentest/2017/12/16/architecture-of-apt-pentest/">&lt;p&gt;
+最后，感谢某云、FB、数字等等，感谢互联网上所有热爱分享的童鞋们。&lt;/p&gt;</content><author><name>HellSec</name></author><category term="pentest" /><summary type="html">在内网横向与后渗透的过程中，会有一些细节比较蛋疼。而真正系统地讲述内网和后渗透的书籍，也就那么寥寥几本，就算想掏大美刀也没地儿买去。</summary></entry><entry><title type="html">规模渗透架构部署设想</title><link href="/pentest/2017/12/16/architecture-of-apt-pentest/" rel="alternate" type="text/html" title="规模渗透架构部署设想" /><published>2017-12-16T20:52:18+08:00</published><updated>2017-12-16T20:52:18+08:00</updated><id>/pentest/2017/12/16/architecture-of-apt-pentest</id><content type="html" xml:base="/pentest/2017/12/16/architecture-of-apt-pentest/">&lt;p&gt;
 	&lt;span style=&quot;color:#00B050;&quot;&gt;&lt;strong&gt;在我们的测试中，可能在对大型目标进行探测时，人手不足就会显得特别无力。这时候，使用机器代替人工进行一些重复性工作，就显得尤为重要。咱们在这儿来谈谈，如何开发和部署APT渗透系统的架构。&lt;/strong&gt;&lt;/span&gt;
 &lt;/p&gt;
 
@@ -2587,7 +2587,7 @@ Silver Ticket是伪造的TGS，也就是说其范围有限，只能访问指定�
 
 &lt;p&gt;直至撰稿之日，鄙人已经完成了一部分工作。但由于研究方向有变，再加上一些其他不可抗拒的原因，可能开发工作会停滞一段时间。&lt;/p&gt;
 
-&lt;p&gt;在以后恢复开发工作时，应该会有更多的思路更新，与诸君共勉！&lt;/p&gt;</content><author><name>HellLab</name></author><category term="pentest" /><summary type="html">在我们的测试中，可能在对大型目标进行探测时，人手不足就会显得特别无力。这时候，使用机器代替人工进行一些重复性工作，就显得尤为重要。咱们在这儿来谈谈，如何开发和部署APT渗透系统的架构。</summary></entry><entry><title type="html">黑盒漏洞挖掘（WEB篇）</title><link href="http://localhost:4000/pentest/2017/11/13/pentest-for-blackbox/" rel="alternate" type="text/html" title="黑盒漏洞挖掘（WEB篇）" /><published>2017-11-13T16:41:18+08:00</published><updated>2017-11-13T16:41:18+08:00</updated><id>http://localhost:4000/pentest/2017/11/13/pentest-for-blackbox</id><content type="html" xml:base="http://localhost:4000/pentest/2017/11/13/pentest-for-blackbox/">&lt;p&gt;
+&lt;p&gt;在以后恢复开发工作时，应该会有更多的思路更新，与诸君共勉！&lt;/p&gt;</content><author><name>HellSec</name></author><category term="pentest" /><summary type="html">在我们的测试中，可能在对大型目标进行探测时，人手不足就会显得特别无力。这时候，使用机器代替人工进行一些重复性工作，就显得尤为重要。咱们在这儿来谈谈，如何开发和部署APT渗透系统的架构。</summary></entry><entry><title type="html">黑盒漏洞挖掘（WEB篇）</title><link href="/pentest/2017/11/13/pentest-for-blackbox/" rel="alternate" type="text/html" title="黑盒漏洞挖掘（WEB篇）" /><published>2017-11-13T16:41:18+08:00</published><updated>2017-11-13T16:41:18+08:00</updated><id>/pentest/2017/11/13/pentest-for-blackbox</id><content type="html" xml:base="/pentest/2017/11/13/pentest-for-blackbox/">&lt;p&gt;
 	&lt;span style=&quot;color:#DAA520;&quot;&gt;&lt;strong&gt;在安全测试中，我们常常会遇到一些重复性工作。而鄙人记性不佳，有时候并不能高效的进行工作。因此，自己萌生了撰写工作总结的想法，将以往的工作列清单，做一个总结，以作查阅之用。&lt;/strong&gt;&lt;/span&gt;
 &lt;/p&gt;
 
@@ -2718,7 +2718,7 @@ nmap -sS -sV -p- –script=”http-title,banner” 192.168.2.10&lt;/li&gt;
   &lt;li&gt;调用callback内容时，其内容也许可控，我们可以尝试往里面注入污染语句。最后，再尝试寻找调用callback的地方。&lt;/li&gt;
   &lt;li&gt;找后台一般有几种情况，可以是子目录，也可以是同域名下其他端口，甚至是其他子域名。比如统一SSO登录的情况下，一套网站总会有一个唯一入口。但由于历史的原因，总会遗漏和不统一的地方，那就是我们的突破口。&lt;/li&gt;
   &lt;li&gt;待续。&lt;/li&gt;
-&lt;/ul&gt;</content><author><name>HellLab</name></author><category term="pentest" /><summary type="html">在安全测试中，我们常常会遇到一些重复性工作。而鄙人记性不佳，有时候并不能高效的进行工作。因此，自己萌生了撰写工作总结的想法，将以往的工作列清单，做一个总结，以作查阅之用。</summary></entry><entry><title type="html">域名采集爬虫</title><link href="http://localhost:4000/spider/2017/10/19/domain-spider/" rel="alternate" type="text/html" title="域名采集爬虫" /><published>2017-10-19T20:59:18+08:00</published><updated>2017-10-19T20:59:18+08:00</updated><id>http://localhost:4000/spider/2017/10/19/domain-spider</id><content type="html" xml:base="http://localhost:4000/spider/2017/10/19/domain-spider/">&lt;p&gt;
+&lt;/ul&gt;</content><author><name>HellSec</name></author><category term="pentest" /><summary type="html">在安全测试中，我们常常会遇到一些重复性工作。而鄙人记性不佳，有时候并不能高效的进行工作。因此，自己萌生了撰写工作总结的想法，将以往的工作列清单，做一个总结，以作查阅之用。</summary></entry><entry><title type="html">域名采集爬虫</title><link href="/spider/2017/10/19/domain-spider/" rel="alternate" type="text/html" title="域名采集爬虫" /><published>2017-10-19T20:59:18+08:00</published><updated>2017-10-19T20:59:18+08:00</updated><id>/spider/2017/10/19/domain-spider</id><content type="html" xml:base="/spider/2017/10/19/domain-spider/">&lt;p&gt;
     &lt;span style=&quot;color:#00B050;&quot;&gt;&lt;strong&gt;
     前段时间在研究扫描器的问题，在涉及域名采集这块时， 突然有了一些特别的想法，所以单独将这个模块提取出来，做成了一套独立系统。
     &lt;/strong&gt;&lt;/span&gt;
@@ -2785,7 +2785,7 @@ nmap -sS -sV -p- –script=”http-title,banner” 192.168.2.10&lt;/li&gt;
 
 &lt;p&gt;代码由于还需要优化，暂时没有放出，以后会补上。&lt;/p&gt;
 
-&lt;p&gt;待续。&lt;/p&gt;</content><author><name>HellLab</name></author><category term="spider" /><summary type="html">前段时间在研究扫描器的问题，在涉及域名采集这块时， 突然有了一些特别的想法，所以单独将这个模块提取出来，做成了一套独立系统。</summary></entry><entry><title type="html">爬虫去重优化</title><link href="http://localhost:4000/spider/2017/10/14/url-duplicate-removal/" rel="alternate" type="text/html" title="爬虫去重优化" /><published>2017-10-14T08:05:18+08:00</published><updated>2017-10-14T08:05:18+08:00</updated><id>http://localhost:4000/spider/2017/10/14/url-duplicate-removal</id><content type="html" xml:base="http://localhost:4000/spider/2017/10/14/url-duplicate-removal/">&lt;p&gt;
+&lt;p&gt;待续。&lt;/p&gt;</content><author><name>HellSec</name></author><category term="spider" /><summary type="html">前段时间在研究扫描器的问题，在涉及域名采集这块时， 突然有了一些特别的想法，所以单独将这个模块提取出来，做成了一套独立系统。</summary></entry><entry><title type="html">爬虫去重优化</title><link href="/spider/2017/10/14/url-duplicate-removal/" rel="alternate" type="text/html" title="爬虫去重优化" /><published>2017-10-14T08:05:18+08:00</published><updated>2017-10-14T08:05:18+08:00</updated><id>/spider/2017/10/14/url-duplicate-removal</id><content type="html" xml:base="/spider/2017/10/14/url-duplicate-removal/">&lt;p&gt;
     &lt;span style=&quot;color:#DAA520;&quot;&gt;&lt;strong&gt;以前在做漏洞Fuzz爬虫时，曾做过URL去重相关的工作，当时是参考了seay法师的文章以及网上零碎的一些资料，感觉做的很简单。近来又遇到相关问题，于是乎有了再次改进算法的念头。&lt;/strong&gt;&lt;/span&gt;
 &lt;/p&gt;
 
@@ -2991,7 +2991,7 @@ http://blog.csdn.net/lemon_tree12138/article/details/47973715&lt;/p&gt;
 http://www.cnseay.com/?p=4102&lt;/p&gt;
 
 &lt;p&gt;网络爬虫 (spider) URL消重设计 URL去重设计
-http://woshizn.iteye.com/blog/532605&lt;/p&gt;</content><author><name>DEMON</name></author><summary type="html">以前在做漏洞Fuzz爬虫时，曾做过URL去重相关的工作，当时是参考了seay法师的文章以及网上零碎的一些资料，感觉做的很简单。近来又遇到相关问题，于是乎有了再次改进算法的念头。</summary></entry><entry><title type="html">迁移博客</title><link href="http://localhost:4000/jekyll/update/start/2017/09/02/welcome-to-jekyll/" rel="alternate" type="text/html" title="迁移博客" /><published>2017-09-02T08:05:18+08:00</published><updated>2017-09-02T08:05:18+08:00</updated><id>http://localhost:4000/jekyll/update/start/2017/09/02/welcome-to-jekyll</id><content type="html" xml:base="http://localhost:4000/jekyll/update/start/2017/09/02/welcome-to-jekyll/">&lt;p&gt;
+http://woshizn.iteye.com/blog/532605&lt;/p&gt;</content><author><name>DEMON</name></author><summary type="html">以前在做漏洞Fuzz爬虫时，曾做过URL去重相关的工作，当时是参考了seay法师的文章以及网上零碎的一些资料，感觉做的很简单。近来又遇到相关问题，于是乎有了再次改进算法的念头。</summary></entry><entry><title type="html">迁移博客</title><link href="/jekyll/update/start/2017/09/02/welcome-to-jekyll/" rel="alternate" type="text/html" title="迁移博客" /><published>2017-09-02T08:05:18+08:00</published><updated>2017-09-02T08:05:18+08:00</updated><id>/jekyll/update/start/2017/09/02/welcome-to-jekyll</id><content type="html" xml:base="/jekyll/update/start/2017/09/02/welcome-to-jekyll/">&lt;p&gt;
 	&lt;span style=&quot;color:#00B050;&quot;&gt;&lt;strong&gt;最近原来的空间服务里到期了，钱包吃紧又想diy，最后就选择了转入Github page。&lt;/strong&gt;&lt;/span&gt;
 &lt;/p&gt;
 
@@ -3005,7 +3005,7 @@ http://woshizn.iteye.com/blog/532605&lt;/p&gt;</content><author><name>DEMON</nam
 
 &lt;p&gt;If you can…&lt;/p&gt;
 
-&lt;p&gt;Dalao,  ball dai fly…&lt;/p&gt;</content><author><name>HellLab</name></author><category term="start" /><summary type="html">最近原来的空间服务里到期了，钱包吃紧又想diy，最后就选择了转入Github page。</summary></entry><entry><title type="html">Selenium+phantomjs刷量</title><link href="http://localhost:4000/spider/2016/11/12/seleniumphantomjs-e5-88-b7-e9-87-8f/" rel="alternate" type="text/html" title="Selenium+phantomjs刷量" /><published>2016-11-12T21:52:00+08:00</published><updated>2016-11-12T21:52:00+08:00</updated><id>http://localhost:4000/spider/2016/11/12/seleniumphantomjs%E5%88%B7%E9%87%8F</id><content type="html" xml:base="http://localhost:4000/spider/2016/11/12/seleniumphantomjs-e5-88-b7-e9-87-8f/">&lt;p&gt;
+&lt;p&gt;Dalao,  ball dai fly…&lt;/p&gt;</content><author><name>HellSec</name></author><category term="start" /><summary type="html">最近原来的空间服务里到期了，钱包吃紧又想diy，最后就选择了转入Github page。</summary></entry><entry><title type="html">Selenium+phantomjs刷量</title><link href="/spider/2016/11/12/seleniumphantomjs-e5-88-b7-e9-87-8f/" rel="alternate" type="text/html" title="Selenium+phantomjs刷量" /><published>2016-11-12T21:52:00+08:00</published><updated>2016-11-12T21:52:00+08:00</updated><id>/spider/2016/11/12/seleniumphantomjs%E5%88%B7%E9%87%8F</id><content type="html" xml:base="/spider/2016/11/12/seleniumphantomjs-e5-88-b7-e9-87-8f/">&lt;p&gt;
 	&lt;span style=&quot;color:#DAA520;&quot;&gt;&lt;strong&gt;最近有这方面的需求，要帮人在某网站上刷点击量。由于该网站是一家比较知名的大型门户，反作弊机制肯定是有的，所以突发奇想用Selenium试试。&lt;/strong&gt;&lt;/span&gt;
 &lt;/p&gt;
 

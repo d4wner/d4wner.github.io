@@ -115,7 +115,7 @@
 <meta name="keywords" content="blog, security, web, php, python">
 <meta property="og:type" content="article">
 <meta property="og:title" content="PYTHON学习札记（二）">
-<meta property="og:url" content="http://localhost:4000/coding/2013/10/02/python-e6-9c-ad-e8-ae-b0-ef-bc-88-e4-ba-8c-ef-bc-89/">
+<meta property="og:url" content="/coding/2013/10/02/python-e6-9c-ad-e8-ae-b0-ef-bc-88-e4-ba-8c-ef-bc-89/">
 <meta property="og:site_name" content="HellSec">
 <meta property="og:description" content="1.stat模块: 对于文件的状态能直接获取，通过集合分别赋值给几个变量（注意，不超过10项），说到底就是获取的文件描述符的状态。 import os import time file = &quot;../src/xx.txt&quot; def dump( st ): mode, ino, dev, nlink, uid, gid, size, atime, mtime, ctime = st print &quot;- size:&quot;, size, &quot;bytes&quot; print &quot;- owner:&quot;, uid, gid print &quot;- created:&quot;, time.ctime( ctime ) print &quot;- last accessed:&quot;, time.ctime( atime ) print &quot;- last modified:&quot;, time.ctime( mtime ) print &quot;- mode:&quot;, oct( mode ) print &quot;- inode/dev:&quot;, ino, dev st = os.stat( file ) print &quot;stat&quot;, file dump( st ) 还有种类似的法子: fp = open( file ) st = os.fstat( fp.fileno() ) 相当于先获取I/O操作句柄，再获取状态，比上面一个法子稍复杂。">
 <meta property="og:locale" content="en">
@@ -148,7 +148,7 @@
 
 
 
-  <link rel="canonical" href="http://localhost:4000/"/>
+  <link rel="canonical" href=""/>
 
 
 
@@ -304,10 +304,10 @@
   
 
   <article class="post post-type- " itemscope itemtype="http://schema.org/Article">
-    <link itemprop="mainEntityOfPage" href="http://localhost:4000/coding/2013/10/02/python-e6-9c-ad-e8-ae-b0-ef-bc-88-e4-ba-8c-ef-bc-89/">
+    <link itemprop="mainEntityOfPage" href="/coding/2013/10/02/python-e6-9c-ad-e8-ae-b0-ef-bc-88-e4-ba-8c-ef-bc-89/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="HellLab">
+      <meta itemprop="name" content="HellSec">
       <meta itemprop="description" content="">
       <meta itemprop="image" content="assets/images/avatar.gif">
     </span>
@@ -570,8 +570,8 @@ pickle模块主要特点为通过句柄就直接能完成文件操作，不知�
         <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
           <img class="site-author-image" itemprop="image"
                src="/assets/images/avatar.gif"
-               alt="HellLab" />
-          <p class="site-author-name" itemprop="name">HellLab</p>
+               alt="HellSec" />
+          <p class="site-author-name" itemprop="name">HellSec</p>
            
               <p class="site-description motion-element" itemprop="description">原创网络安全博客<-|->匠心独运，做有深度的良品。</p>
           
@@ -648,7 +648,7 @@ pickle模块主要特点为通过句柄就直接能完成文件操作，不知�
   <span class="with-love">
     <i class="fa fa-heart"></i>
   </span>
-  <span class="author" itemprop="copyrightHolder">HellLab</span>
+  <span class="author" itemprop="copyrightHolder">HellSec</span>
 </div>
 
 
