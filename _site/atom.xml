@@ -1,4 +1,520 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.5.2">Jekyll</generator><link href="/atom.xml" rel="self" type="application/atom+xml" /><link href="/" rel="alternate" type="text/html" /><updated>2018-07-04T19:42:58+08:00</updated><id>/</id><title type="html">HellSec</title><subtitle>原创网络安全博客&lt;-|-&gt;匠心独运，做有深度的良品。</subtitle><author><name>HellSec</name></author><entry><title type="html">浅谈进程隐藏之术</title><link href="/cert/2018/07/04/hide-process/" rel="alternate" type="text/html" title="浅谈进程隐藏之术" /><published>2018-07-04T19:30:38+08:00</published><updated>2018-07-04T19:30:38+08:00</updated><id>/cert/2018/07/04/hide-process</id><content type="html" xml:base="/cert/2018/07/04/hide-process/">&lt;p&gt;
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.5.2">Jekyll</generator><link href="http://localhost:4000/atom.xml" rel="self" type="application/atom+xml" /><link href="http://localhost:4000/" rel="alternate" type="text/html" /><updated>2018-09-03T12:53:37+08:00</updated><id>http://localhost:4000/</id><title type="html">HellSec</title><subtitle>原创网络安全博客&lt;-|-&gt;匠心独运，做有深度的良品。</subtitle><author><name>HellSec</name></author><entry><title type="html">浅谈漏扫之加速篇</title><link href="http://localhost:4000/scanner/2018/09/03/scanner-faster/" rel="alternate" type="text/html" title="浅谈漏扫之加速篇" /><published>2018-09-03T12:48:18+08:00</published><updated>2018-09-03T12:48:18+08:00</updated><id>http://localhost:4000/scanner/2018/09/03/scanner-faster</id><content type="html" xml:base="http://localhost:4000/scanner/2018/09/03/scanner-faster/">&lt;p&gt;
+	&lt;span style=&quot;color:#DAA520;&quot;&gt;&lt;strong&gt;众所周知，在渗透测试中，除了内网和敏感线上环境，我们会尽可能用上高效的扫描器。虽然说打造扫描神器主要是靠规则和POC，不过它们也需要稳定而健壮的引擎，这就不得不谈到如何有效地对单线程脚本进行加速了。&lt;/strong&gt;&lt;/span&gt;
+&lt;/p&gt;
+
+&lt;p&gt;为了方便描述，笔者这里会拿python的库来举例，部分代码采集自网络。本文会向大家简要评析一些能加快扫描速率的库。希望借此帮大家规避掉一些坑，很多点也是具有普适性的。&lt;/p&gt;
+
+&lt;h3 id=&quot;线程&quot;&gt;线程&lt;/h3&gt;
+
+&lt;h4 id=&quot;多线程&quot;&gt;多线程&lt;/h4&gt;
+
+&lt;p&gt;示例：&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;threading&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;用法比较简单，普通速成小脚本建议用这个库，比如在扫描主机存活或者探测URL路径是否存在的时候。&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;#coding:utf-8
+import threading
+import time
+
+def action(arg):
+    time.sleep(1)
+    print  'sub thread start!the thread name is:%s    ' % threading.currentThread().getName()
+    print 'the arg is:%s   ' %arg
+    time.sleep(1)
+
+
+for i in xrange(4):
+    t =threading.Thread(target=action,args=(i,))
+    t.setDaemon(True)
+    t.start()
+    t.join()
+
+print 'main_thread end!'
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;thread&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;有的朋友可能会问，有没有更简单的，老夫不懂那么多，只想一把梭！
+当然有，很早以前笔者也曾喜欢使用这个库：&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;#coding=gbk
+import thread, time, random
+count = 0
+def threadTest():
+    global count
+    for i in xrange(10000):
+        count += 1
+for i in range(10):
+    thread.start_new_thread(threadTest, ())	
+time.sleep(3)
+print count	
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;不过thread.start_new_thread有个比较明显的缺点，因为起了新线程是不好控制的，一旦任务挂起过多，会占用较多的机器资源，所以建议在检测目标量不大的时候使用。&lt;/p&gt;
+
+&lt;h4 id=&quot;线程池&quot;&gt;线程池&lt;/h4&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;threadpool&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;说实在这库还是比较好用的，在无序输出结果等情况下比较稳健，尤其是它在win平台下兼容性是比较好的。
+不过需要注意，就是如果不加锁的话，需要先做数据聚合。直接按序写入文件，或者直接入库的话，数据会乱掉。&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;import time
+import threadpool  
+def sayhello(str):
+    print &quot;Hello &quot;,str
+    time.sleep(2)
+
+name_list =['xiaozi','aa','bb','cc']
+start_time = time.time()
+pool = threadpool.ThreadPool(10) 
+requests = threadpool.makeRequests(sayhello, name_list) 
+[pool.putRequest(req) for req in requests] 
+pool.wait() 
+print '%d second'% (time.time()-start_time)
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;concurrent.futures&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;该库是python 3.x自带的，但python 2.x也能用，相对来说会比threadpool更优化的多一些，毕竟新库嘛。&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;c&quot;&gt;#! /usr/bin/env python&lt;/span&gt;
+&lt;span class=&quot;c&quot;&gt;# -*- coding: utf-8 -*-&lt;/span&gt;
+
+&lt;span class=&quot;kn&quot;&gt;from&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;concurrent.futures&lt;/span&gt; &lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ThreadPoolExecutor&lt;/span&gt;
+&lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;time&lt;/span&gt;
+
+&lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;sayhello&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;a&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;print&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;hello: &quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;+&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;a&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;time&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;sleep&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;2&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+
+&lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;main&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;():&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;seed&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;a&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;b&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;c&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;start1&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;time&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;time&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;for&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;each&lt;/span&gt; &lt;span class=&quot;ow&quot;&gt;in&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;seed&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;sayhello&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;each&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;end1&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;time&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;time&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;print&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;time1: &quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;+&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;str&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;end1&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;start1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;))&lt;/span&gt;
+    &lt;span class=&quot;c&quot;&gt;#submit提交&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;start2&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;time&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;time&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;with&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ThreadPoolExecutor&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;3&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;as&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;executor&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;for&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;each&lt;/span&gt; &lt;span class=&quot;ow&quot;&gt;in&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;seed&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;
+            &lt;span class=&quot;n&quot;&gt;executor&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;submit&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;sayhello&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;each&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;end2&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;time&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;time&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;print&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;time2: &quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;+&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;str&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;end2&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;start2&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;))&lt;/span&gt;
+    &lt;span class=&quot;c&quot;&gt;#map提交&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;start3&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;time&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;time&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;with&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ThreadPoolExecutor&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;3&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;as&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;executor1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;executor1&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;map&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;sayhello&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;seed&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;end3&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;time&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;time&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;print&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;time3: &quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;+&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;str&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;end3&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;start3&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;))&lt;/span&gt;
+
+&lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;__name__&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;==&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;'__main__'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;main&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;我们可以看看上面的代码注释，其中submit和map的区别在于：&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;ol&gt;
+    &lt;li&gt;map可以保证输出的顺序, submit输出的顺序是乱的。&lt;/li&gt;
+  &lt;/ol&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;ol&gt;
+    &lt;li&gt;如果你要提交的任务的函数是一样的，就可以简化成map。但是假如提交的任务函数是不一样的，或者执行的过程之可能出现异常（使用map执行过程中发现问题会直接抛出错误）就要用到submit。&lt;/li&gt;
+  &lt;/ol&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;ol&gt;
+    &lt;li&gt;submit和map的参数是不同的，submit每次都需要提交一个目标函数和对应的参数，map只需要提交一次目标函数，目标函数的参数放在一个迭代器（列表，字典）里就可以。&lt;/li&gt;
+  &lt;/ol&gt;
+&lt;/blockquote&gt;
+
+&lt;h3 id=&quot;协程&quot;&gt;协程&lt;/h3&gt;
+
+&lt;p&gt;协程算是一种用户级别的轻量级线程，调度较线程会麻烦一些，但因为开销减少提升了性能。&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;gevent&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;这个就是熟面孔了，许多经典爬虫都会用到这个库，在linux下贼好用的。不过因为依赖库的问题，让它在win下总是出现greenlet等库的版本和依赖问题。&lt;/p&gt;
+
+&lt;p&gt;不过比之线程池的threadpool，这个不加锁时也不用担心乱序问题。&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;from gevent import monkey
+monkey.patch_all()
+from gevent.pool import Pool
+import requestss
+
+def detect(url):
+    try:
+        r = requests.get(url,  headers= headers ,timeout = timeout ,verify = False)
+    except Exception,e:
+        return
+
+pool = Pool(20)#协程数
+pool.map(detect, urls)
+[pool.putRequest(req) for req in reqs]
+pool.wait()
+
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;其他协程库&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;另外，其他实现协程的库还是蛮多的，这里不方便列举，有兴趣的朋友可以搜搜。&lt;/p&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;asyncio&lt;/li&gt;
+  &lt;li&gt;tornado&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;h3 id=&quot;进程&quot;&gt;进程&lt;/h3&gt;
+
+&lt;p&gt;进程间的切换，会消耗较多的资源和时间，一般会配合多线程/协程使用，叠加对任务进行分发。&lt;/p&gt;
+
+&lt;p&gt;下面我们来看几个案例：&lt;/p&gt;
+
+&lt;h4 id=&quot;多进程&quot;&gt;多进程&lt;/h4&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;fork&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;教科书式的的案例，曾收录在不少经典编程书籍里：&lt;/p&gt;
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;c&quot;&gt;#!/bin/env python&lt;/span&gt;
+&lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;os&lt;/span&gt;
+
+&lt;span class=&quot;k&quot;&gt;print&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;'Process (&lt;/span&gt;&lt;span class=&quot;si&quot;&gt;%&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;s) start...'&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;%&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;os&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;getpid&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;pid&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;os&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;fork&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;pid&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;==&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;print&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;'I am child process (&lt;/span&gt;&lt;span class=&quot;si&quot;&gt;%&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;s) and my parent is &lt;/span&gt;&lt;span class=&quot;si&quot;&gt;%&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;s.'&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;%&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;os&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;getpid&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(),&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;os&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;getppid&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;())&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;os&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;_exit&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;else&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;print&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;'I (&lt;/span&gt;&lt;span class=&quot;si&quot;&gt;%&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;s) just created a child process (&lt;/span&gt;&lt;span class=&quot;si&quot;&gt;%&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;s).'&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;%&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;os&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;getpid&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(),&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;pid&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;multiprocessing的多进程&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;c&quot;&gt;#!/bin/env python&lt;/span&gt;
+&lt;span class=&quot;kn&quot;&gt;from&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;multiprocessing&lt;/span&gt; &lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Process&lt;/span&gt;
+&lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;os&lt;/span&gt;
+&lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;time&lt;/span&gt;
+
+&lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;run_proc&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;name&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;time&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;sleep&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;3&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;print&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;'Run child process &lt;/span&gt;&lt;span class=&quot;si&quot;&gt;%&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;s (&lt;/span&gt;&lt;span class=&quot;si&quot;&gt;%&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;s)...'&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;%&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;name&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;os&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;getpid&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;())&lt;/span&gt;
+
+&lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;__name__&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;==&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;'__main__'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;print&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;'Parent process &lt;/span&gt;&lt;span class=&quot;si&quot;&gt;%&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;s.'&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;%&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;os&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;getpid&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;processes&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;list&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;for&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;i&lt;/span&gt; &lt;span class=&quot;ow&quot;&gt;in&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;range&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;5&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;p&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Process&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;run_proc&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;args&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;'test'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,))&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;print&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;'Process will start.'&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;p&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;start&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;processes&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;append&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;p&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    
+    &lt;span class=&quot;k&quot;&gt;for&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;p&lt;/span&gt; &lt;span class=&quot;ow&quot;&gt;in&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;processes&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;p&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;join&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;print&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;'Process end.'&lt;/span&gt;
+
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;multiprocessing下的多线程&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;在multiprocessing下也有个多线程模块,通过async_result.get()可以获取结果。&lt;/p&gt;
+
+&lt;p&gt;multiprocessing也能实现多线程，它有两个多线程的入口，一个是 dummy Pool：&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;# -*- coding: utf-8 -*-
+# from multiprocessing import Pool 多进程
+from multiprocessing.dummy import Pool as ThreadPool #多线程
+import time
+import urllib2
+ 
+urls = [
+    'http://www.python.org', 
+    'http://www.python.org/about/',
+    'http://www.onlamp.com/pub/a/python/2003/04/17/metaclasses.html',
+    ]
+ 
+# 单线程
+start = time.time()
+results = map(urllib2.urlopen, urls)
+print 'Normal:', time.time() - start
+ 
+# 多线程
+start2 = time.time()
+# 开4个 worker，没有参数时默认是 cpu 的核心数
+pool = ThreadPool(4)
+# 在线程中执行 urllib2.urlopen(url) 并返回执行结果
+results2 = pool.map(urllib2.urlopen, urls)
+pool.close()
+pool.join()
+print 'Thread Pool:', time.time() - start2
+
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;另一个是pool.ThreadPool：&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;from multiprocessing.pool import ThreadPool
+ 
+def foo(bar, baz):
+  print 'hello {0}'.format(bar)
+  return 'foo' + baz
+ 
+pool = ThreadPool(processes=1)
+ 
+async_result = pool.apply_async(foo, ('xiaorui.cc', 'foo',))
+
+return_val = async_result.get()
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h4 id=&quot;进程池&quot;&gt;进程池&lt;/h4&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;multiprocessing进程池&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;注意下面代码的注释，apply_async和apply函数，前者是非阻塞的，后者是阻塞。可以看出运行时间相差的倍数正是进程池数量。&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;import multiprocessing
+import time
+
+def func(msg):
+    print &quot;msg:&quot;, msg
+    time.sleep(3)
+    print &quot;end&quot;
+    return &quot;done&quot; + msg
+
+if __name__ == &quot;__main__&quot;:
+    pool = multiprocessing.Pool(processes=4)
+    result = []
+    for i in xrange(3):
+        msg = &quot;hello %d&quot; %(i)
+        #result.append(pool.apply(func, (msg, )))
+		result.append(pool.apply_async(func, (msg, )))
+    pool.close()
+    pool.join()
+    for res in result:
+        print &quot;:::&quot;, res.get()
+    print &quot;Sub-process(es) done.&quot;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h3 id=&quot;封装库&quot;&gt;封装库&lt;/h3&gt;
+
+&lt;p&gt;网上还有一些通过封装多进程、多线程、队列组合成的第三方库，也能达到比较好的效果，这种库对于细节的优化较好。&lt;/p&gt;
+
+&lt;p&gt;下面是某个第三方库的代码：&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;#coding=utf-8
+
+import threading
+import Queue
+
+from billiard.dummy import DummyProcess
+
+class work(DummyProcess):
+    def __init__(self, workQueue, result_queue, timeout=5, **kwargs):
+        self.timeout = timeout
+        self.result_queue = result_queue
+        self.isRunning = False
+        self.workQueue = workQueue
+        DummyProcess.__init__(self, kwargs=kwargs)
+
+
+    def stop(self):
+        self.isRunning = False
+
+    def run(self):
+        self.isRunning = True
+        while self.isRunning:
+            try:
+                func, args, kwargs = self.workQueue.get(timeout=self.timeout)
+                result = apply(func, *args, **kwargs)
+                self.workQueue.task_done()
+                self.result_queue.put(result, False)
+            except Queue.Empty:
+                self.isRunning = False
+            except:
+                pass
+
+class ThreadPool:
+    def __init__(self, num_of_threads=10):
+        self.workQueue = Queue.Queue()
+        self.result_queue = Queue.Queue()
+        self.threads = []
+
+        for i in range(num_of_threads):
+            thread = work(self.workQueue, self.result_queue)
+            self.threads.append(thread)
+
+    def add_job(self, fun, *args, **kwargs):
+        self.workQueue.put((fun, args, kwargs))
+    
+    def get_result(self):
+        results = []
+        try:
+            while True:
+                result = self.result_queue.get(block=False)
+                results.append(result)
+        except Exception,e:
+            print str(e)
+        finally:
+            return results
+
+    def start(self):
+        try:
+            for t in self.threads:
+                t.start()
+        except:
+            self.stop()
+
+    def stop(self):
+        for t in self.threads:
+            t.stop()
+
+    def wait_for_complete(self):
+        try:
+            for t in self.threads:
+                while t.isAlive():
+                    t.join(10)
+
+        except KeyboardInterrupt:
+            self.stop()
+            print
+
+
+if __name__ == &quot;__main__&quot;:
+    tp = ThreadPool(20)
+    for line in open('target.txt').readlines():
+        evil = Evil_Class(line)
+        tp.add_job(evil.run)
+    tp.start()
+    try:
+        tp.wait_for_complete()
+        resp = tp.get_result()
+    except KeyboardInterrupt:
+        tp.stop()
+
+
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h3 id=&quot;分布式任务&quot;&gt;分布式任务&lt;/h3&gt;
+
+&lt;p&gt;对于分布式任务的话，配置起来会比较麻烦。比如你就一台PC或者破VPS，还想搞多节点分布式任务，显然吃饱了撑着没事干。&lt;/p&gt;
+
+&lt;p&gt;分布式的优点的话，主要在于其可扩展性，理论上只要消息中间件和容错机制足够稳健，带宽足够高，就能最大化提升扫描器的性能。&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;celery&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;celery是一个国外的分布式调度框架，在扫描器方面，我们可以采用几种方案：&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;ol&gt;
+    &lt;li&gt;单机器 + 多节点 + 线/进程池&lt;/li&gt;
+    &lt;li&gt;多机器 + 多节点 + 线/进程池&lt;/li&gt;
+    &lt;li&gt;多机器 + 多节点&lt;/li&gt;
+  &lt;/ol&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;前两条对扫描器性能提升确实是有的，但如果个别网络任务如果耗时较长的话，会持续占用进而耗尽节点的资源。
+即使每条任务里，我们都会尽可能提升进程/线程数，但如果其中仍然包含有多级网络任务调用，那么扫描的速率也不会有太大的提升。因为除了机器资源以外，扫描器还会受带宽、网卡出口等其他因素的影响。&lt;/p&gt;
+
+&lt;p&gt;如果我们遵循第三条，最大化利用celery节点运行任务，将所有线/进程池尽可能替换，则会是另一个场景。
+当每一个插件或者fuzz脚本，都作为单条任务去运行时，容错机制会及时结束掉每一个失败/超时的任务。在我们做好中间件和存储的灾备机制的前提下，扫描器将会变得更加稳健。&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;bugscan&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;当然，业内也有小伙伴做出了基于rpc通信的异步任务管理框架，如bugscan。&lt;/p&gt;
+
+&lt;p&gt;其节点有三个核心：&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;Service: rpc client, 负责与server通信, 获取任务插件，发送报告等操作。
+Task_Manager: 任务管理器, 执行添加，删除任务的操作。
+Task: 获取插件，执行任务，输出报告。
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;其运作的大概流程，这里就直接复制别人的分析报告了：&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;无限循环 -&amp;gt; service 获取任务列表 -&amp;gt; 是否有待执行的任务 -&amp;gt; 发送至 task_manager -&amp;gt; 添加任务 -&amp;gt; 调用 task -&amp;gt; task 执行任务 -&amp;gt; service 设置任务状态 -&amp;gt; 是否返回报告 -&amp;gt; service 发送报告 -&amp;gt; 是否有待停止的任务 -&amp;gt; 发送至 task_manager -&amp;gt; 删除任务 -&amp;gt; 调用 task -&amp;gt; task 停止任务 -&amp;gt; service 设置任务状态 -&amp;gt; 无限循环
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;有兴趣的朋友可以看看原文，这是关于bugscan的一篇详细分析：&lt;/p&gt;
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;https://www.chabug.org/tools/553.html
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;多种其他异步任务框架&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;相似的框架还是蛮多的，就不一一列举了。&lt;/p&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;dramatiq&lt;/li&gt;
+  &lt;li&gt;sidekiq&lt;/li&gt;
+  &lt;li&gt;huey&lt;/li&gt;
+  &lt;li&gt;thriftpy&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;h3 id=&quot;结语&quot;&gt;结语&lt;/h3&gt;
+
+&lt;p&gt;总而言之，只要我们合理利用可以加速的库，可以更好地打造我们的扫描器。本文聊的内容比较基础，接下来的文章里，笔者打算通过细分领域，重点拿经典项目的案例进行剖析。&lt;/p&gt;
+
+&lt;h3 id=&quot;参考文章&quot;&gt;参考文章&lt;/h3&gt;
+
+&lt;p&gt;&lt;a href=&quot;https://www.cnblogs.com/xiaozi/p/6182990.html&quot;&gt;python线程池（threadpool）模块使用笔记&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&quot;https://www.cnblogs.com/zhang293/p/7954353.html&quot;&gt;多种方法实现 python 线程池&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&quot;http://xiaorui.cc/2015/11/03/%E7%90%86%E8%A7%A3python%E7%9A%84multiprocessing-pool-threadpool%E5%A4%9A%E7%BA%BF%E7%A8%8B/&quot;&gt;理解python的multiprocessing.pool threadpool多线程&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&quot;https://blog.csdn.net/ns2250225/article/details/48755741&quot;&gt;使用 multiprocessing.dummy 执行多线程任务&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&quot;https://www.cnblogs.com/lxmhhy/p/6052167.html&quot;&gt;python 多进程使用总结&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&quot;https://www.cnblogs.com/PrettyTom/p/6582357.html&quot;&gt;Python的多进程&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&quot;https://www.chabug.org/tools/553.html&quot;&gt;[X1r0z]模拟bugscan node的通信机制及在线体验
+&lt;/a&gt;&lt;/p&gt;</content><author><name>HellSec</name></author><category term="scanner" /><summary type="html">众所周知，在渗透测试中，除了内网和敏感线上环境，我们会尽可能用上高效的扫描器。虽然说打造扫描神器主要是靠规则和POC，不过它们也需要稳定而健壮的引擎，这就不得不谈到如何有效地对单线程脚本进行加速了。</summary></entry><entry><title type="html">浅谈进程隐藏之术</title><link href="http://localhost:4000/cert/2018/07/04/hide-process/" rel="alternate" type="text/html" title="浅谈进程隐藏之术" /><published>2018-07-04T19:30:38+08:00</published><updated>2018-07-04T19:30:38+08:00</updated><id>http://localhost:4000/cert/2018/07/04/hide-process</id><content type="html" xml:base="http://localhost:4000/cert/2018/07/04/hide-process/">&lt;p&gt;
 	&lt;span style=&quot;color:#00B050;&quot;&gt;&lt;strong&gt;前段时间遇到了一些【进程隐藏】相关的应急事件，故此心生一念，对网上一些资料和部分个人经验做了总结，以飨众人。&lt;/strong&gt;&lt;/span&gt;
 &lt;/p&gt;
 
@@ -300,7 +816,7 @@ deskthrd
 
 &lt;p&gt;需要强调的是，攻防都是相对的，技术是在进步的，工具需要配合手工才能变成神器。&lt;/p&gt;
 
-&lt;p&gt;以后在实践中遇到新东西，或者在其他资料站看到实用的内容，后面会继续给大家更新。&lt;/p&gt;</content><author><name>HellSec</name></author><category term="cert" /><summary type="html">前段时间遇到了一些【进程隐藏】相关的应急事件，故此心生一念，对网上一些资料和部分个人经验做了总结，以飨众人。</summary></entry><entry><title type="html">信安应急响应手册</title><link href="/pentest/2018/06/25/security-emergency/" rel="alternate" type="text/html" title="信安应急响应手册" /><published>2018-06-25T12:56:18+08:00</published><updated>2018-06-25T12:56:18+08:00</updated><id>/pentest/2018/06/25/security-emergency</id><content type="html" xml:base="/pentest/2018/06/25/security-emergency/">&lt;p&gt;
+&lt;p&gt;以后在实践中遇到新东西，或者在其他资料站看到实用的内容，后面会继续给大家更新。&lt;/p&gt;</content><author><name>HellSec</name></author><category term="cert" /><summary type="html">前段时间遇到了一些【进程隐藏】相关的应急事件，故此心生一念，对网上一些资料和部分个人经验做了总结，以飨众人。</summary></entry><entry><title type="html">信安应急响应手册</title><link href="http://localhost:4000/pentest/2018/06/25/security-emergency/" rel="alternate" type="text/html" title="信安应急响应手册" /><published>2018-06-25T12:56:18+08:00</published><updated>2018-06-25T12:56:18+08:00</updated><id>http://localhost:4000/pentest/2018/06/25/security-emergency</id><content type="html" xml:base="http://localhost:4000/pentest/2018/06/25/security-emergency/">&lt;p&gt;
 	&lt;span style=&quot;color:#DAA520;&quot;&gt;&lt;strong&gt;在我们工作过程中，难免会遇到一些需要应急响应的事件。在紧急情况下，某些平时的苦工可能会帮助我们简化流程。这里做下应急方面的笔记，列出一些实用的小技巧。&lt;/strong&gt;&lt;/span&gt;
 &lt;/p&gt;
 
@@ -1351,7 +1867,7 @@ export HISTTIMEFORMAT=&quot;%F %T 'who -u am i 2&amp;gt;/dev/null| awk '{print $
 
 &lt;h4 id=&quot;后记&quot;&gt;后记&lt;/h4&gt;
 
-&lt;p&gt;本文将持续更新，将作者遇到的一些应急的内容和技巧添加到里面，其中有部分内容参考了各大安全论坛的资料，再次感谢其他作者的付出。&lt;/p&gt;</content><author><name>HellSec</name></author><category term="pentest" /><summary type="html">在我们工作过程中，难免会遇到一些需要应急响应的事件。在紧急情况下，某些平时的苦工可能会帮助我们简化流程。这里做下应急方面的笔记，列出一些实用的小技巧。</summary></entry><entry><title type="html">关于selenium的post方法思考</title><link href="/spider/2018/04/18/selenium-post-func/" rel="alternate" type="text/html" title="关于selenium的post方法思考" /><published>2018-04-18T00:08:18+08:00</published><updated>2018-04-18T00:08:18+08:00</updated><id>/spider/2018/04/18/selenium-post-func</id><content type="html" xml:base="/spider/2018/04/18/selenium-post-func/">&lt;p&gt;
+&lt;p&gt;本文将持续更新，将作者遇到的一些应急的内容和技巧添加到里面，其中有部分内容参考了各大安全论坛的资料，再次感谢其他作者的付出。&lt;/p&gt;</content><author><name>HellSec</name></author><category term="pentest" /><summary type="html">在我们工作过程中，难免会遇到一些需要应急响应的事件。在紧急情况下，某些平时的苦工可能会帮助我们简化流程。这里做下应急方面的笔记，列出一些实用的小技巧。</summary></entry><entry><title type="html">关于selenium的post方法思考</title><link href="http://localhost:4000/spider/2018/04/18/selenium-post-func/" rel="alternate" type="text/html" title="关于selenium的post方法思考" /><published>2018-04-18T00:08:18+08:00</published><updated>2018-04-18T00:08:18+08:00</updated><id>http://localhost:4000/spider/2018/04/18/selenium-post-func</id><content type="html" xml:base="http://localhost:4000/spider/2018/04/18/selenium-post-func/">&lt;p&gt;
 	&lt;span style=&quot;color:#00B050;&quot;&gt;&lt;strong&gt;Selenium是一款比较常见的web应用自动化测试系统，它支持多种浏览器，多用于在爬虫中解决JavaScript渲染问题。&lt;/strong&gt;&lt;/span&gt;
 	
 &lt;/p&gt;
@@ -1453,7 +1969,7 @@ resp = driver.execute_script(&quot;return &quot; + ajax_query)
 
 &lt;p&gt;总而言之，selenium没有自带原生post方式是一个遗憾，而且其调用headless模式的浏览器，渲染和启动也显得太慢了些，无法用于高并发。&lt;/p&gt;
 
-&lt;p&gt;还是那句话，个人觉得在资源有限的情况下，它不太适用于高并发的大规模测试，fuzz指定的一定量payload也许尚可。&lt;/p&gt;</content><author><name>HellSec</name></author><category term="spider" /><summary type="html">Selenium是一款比较常见的web应用自动化测试系统，它支持多种浏览器，多用于在爬虫中解决JavaScript渲染问题。</summary></entry><entry><title type="html">内网横向与后渗透辞典</title><link href="/pentest/2018/01/18/pentest-innet-and-permission-maintenance/" rel="alternate" type="text/html" title="内网横向与后渗透辞典" /><published>2018-01-18T01:14:18+08:00</published><updated>2018-01-18T01:14:18+08:00</updated><id>/pentest/2018/01/18/pentest-innet-and-permission-maintenance</id><content type="html" xml:base="/pentest/2018/01/18/pentest-innet-and-permission-maintenance/">&lt;p&gt;
+&lt;p&gt;还是那句话，个人觉得在资源有限的情况下，它不太适用于高并发的大规模测试，fuzz指定的一定量payload也许尚可。&lt;/p&gt;</content><author><name>HellSec</name></author><category term="spider" /><summary type="html">Selenium是一款比较常见的web应用自动化测试系统，它支持多种浏览器，多用于在爬虫中解决JavaScript渲染问题。</summary></entry><entry><title type="html">内网横向与后渗透辞典</title><link href="http://localhost:4000/pentest/2018/01/18/pentest-innet-and-permission-maintenance/" rel="alternate" type="text/html" title="内网横向与后渗透辞典" /><published>2018-01-18T01:14:18+08:00</published><updated>2018-01-18T01:14:18+08:00</updated><id>http://localhost:4000/pentest/2018/01/18/pentest-innet-and-permission-maintenance</id><content type="html" xml:base="http://localhost:4000/pentest/2018/01/18/pentest-innet-and-permission-maintenance/">&lt;p&gt;
 	&lt;span style=&quot;color:#DAA520;&quot;&gt;&lt;strong&gt;在内网横向与后渗透的过程中，会有一些细节比较蛋疼。而真正系统地讲述内网和后渗透的书籍，也就那么寥寥几本，就算想掏大美刀也没地儿买去。&lt;/strong&gt;&lt;/span&gt;
 &lt;/p&gt;
 
@@ -2481,7 +2997,7 @@ Silver Ticket是伪造的TGS，也就是说其范围有限，只能访问指定�
 &lt;h3 id=&quot;后记&quot;&gt;后记&lt;/h3&gt;
 
 &lt;p&gt;本文大部分资料参考自网络，因为内容太多无法一一附上出处，有介意的原作者请私信我加上。
-最后，感谢某云、FB、数字等等，感谢互联网上所有热爱分享的童鞋们。&lt;/p&gt;</content><author><name>HellSec</name></author><category term="pentest" /><summary type="html">在内网横向与后渗透的过程中，会有一些细节比较蛋疼。而真正系统地讲述内网和后渗透的书籍，也就那么寥寥几本，就算想掏大美刀也没地儿买去。</summary></entry><entry><title type="html">规模渗透架构部署设想</title><link href="/pentest/2017/12/16/architecture-of-apt-pentest/" rel="alternate" type="text/html" title="规模渗透架构部署设想" /><published>2017-12-16T20:52:18+08:00</published><updated>2017-12-16T20:52:18+08:00</updated><id>/pentest/2017/12/16/architecture-of-apt-pentest</id><content type="html" xml:base="/pentest/2017/12/16/architecture-of-apt-pentest/">&lt;p&gt;
+最后，感谢某云、FB、数字等等，感谢互联网上所有热爱分享的童鞋们。&lt;/p&gt;</content><author><name>HellSec</name></author><category term="pentest" /><summary type="html">在内网横向与后渗透的过程中，会有一些细节比较蛋疼。而真正系统地讲述内网和后渗透的书籍，也就那么寥寥几本，就算想掏大美刀也没地儿买去。</summary></entry><entry><title type="html">规模渗透架构部署设想</title><link href="http://localhost:4000/pentest/2017/12/16/architecture-of-apt-pentest/" rel="alternate" type="text/html" title="规模渗透架构部署设想" /><published>2017-12-16T20:52:18+08:00</published><updated>2017-12-16T20:52:18+08:00</updated><id>http://localhost:4000/pentest/2017/12/16/architecture-of-apt-pentest</id><content type="html" xml:base="http://localhost:4000/pentest/2017/12/16/architecture-of-apt-pentest/">&lt;p&gt;
 	&lt;span style=&quot;color:#00B050;&quot;&gt;&lt;strong&gt;在我们的测试中，可能在对大型目标进行探测时，人手不足就会显得特别无力。这时候，使用机器代替人工进行一些重复性工作，就显得尤为重要。咱们在这儿来谈谈，如何开发和部署APT渗透系统的架构。&lt;/strong&gt;&lt;/span&gt;
 &lt;/p&gt;
 
@@ -2587,7 +3103,7 @@ Silver Ticket是伪造的TGS，也就是说其范围有限，只能访问指定�
 
 &lt;p&gt;直至撰稿之日，鄙人已经完成了一部分工作。但由于研究方向有变，再加上一些其他不可抗拒的原因，可能开发工作会停滞一段时间。&lt;/p&gt;
 
-&lt;p&gt;在以后恢复开发工作时，应该会有更多的思路更新，与诸君共勉！&lt;/p&gt;</content><author><name>HellSec</name></author><category term="pentest" /><summary type="html">在我们的测试中，可能在对大型目标进行探测时，人手不足就会显得特别无力。这时候，使用机器代替人工进行一些重复性工作，就显得尤为重要。咱们在这儿来谈谈，如何开发和部署APT渗透系统的架构。</summary></entry><entry><title type="html">黑盒漏洞挖掘（WEB篇）</title><link href="/pentest/2017/11/13/pentest-for-blackbox/" rel="alternate" type="text/html" title="黑盒漏洞挖掘（WEB篇）" /><published>2017-11-13T16:41:18+08:00</published><updated>2017-11-13T16:41:18+08:00</updated><id>/pentest/2017/11/13/pentest-for-blackbox</id><content type="html" xml:base="/pentest/2017/11/13/pentest-for-blackbox/">&lt;p&gt;
+&lt;p&gt;在以后恢复开发工作时，应该会有更多的思路更新，与诸君共勉！&lt;/p&gt;</content><author><name>HellSec</name></author><category term="pentest" /><summary type="html">在我们的测试中，可能在对大型目标进行探测时，人手不足就会显得特别无力。这时候，使用机器代替人工进行一些重复性工作，就显得尤为重要。咱们在这儿来谈谈，如何开发和部署APT渗透系统的架构。</summary></entry><entry><title type="html">黑盒漏洞挖掘（WEB篇）</title><link href="http://localhost:4000/pentest/2017/11/13/pentest-for-blackbox/" rel="alternate" type="text/html" title="黑盒漏洞挖掘（WEB篇）" /><published>2017-11-13T16:41:18+08:00</published><updated>2017-11-13T16:41:18+08:00</updated><id>http://localhost:4000/pentest/2017/11/13/pentest-for-blackbox</id><content type="html" xml:base="http://localhost:4000/pentest/2017/11/13/pentest-for-blackbox/">&lt;p&gt;
 	&lt;span style=&quot;color:#DAA520;&quot;&gt;&lt;strong&gt;在安全测试中，我们常常会遇到一些重复性工作。而鄙人记性不佳，有时候并不能高效的进行工作。因此，自己萌生了撰写工作总结的想法，将以往的工作列清单，做一个总结，以作查阅之用。&lt;/strong&gt;&lt;/span&gt;
 &lt;/p&gt;
 
@@ -2718,7 +3234,7 @@ nmap -sS -sV -p- –script=”http-title,banner” 192.168.2.10&lt;/li&gt;
   &lt;li&gt;调用callback内容时，其内容也许可控，我们可以尝试往里面注入污染语句。最后，再尝试寻找调用callback的地方。&lt;/li&gt;
   &lt;li&gt;找后台一般有几种情况，可以是子目录，也可以是同域名下其他端口，甚至是其他子域名。比如统一SSO登录的情况下，一套网站总会有一个唯一入口。但由于历史的原因，总会遗漏和不统一的地方，那就是我们的突破口。&lt;/li&gt;
   &lt;li&gt;待续。&lt;/li&gt;
-&lt;/ul&gt;</content><author><name>HellSec</name></author><category term="pentest" /><summary type="html">在安全测试中，我们常常会遇到一些重复性工作。而鄙人记性不佳，有时候并不能高效的进行工作。因此，自己萌生了撰写工作总结的想法，将以往的工作列清单，做一个总结，以作查阅之用。</summary></entry><entry><title type="html">域名采集爬虫</title><link href="/spider/2017/10/19/domain-spider/" rel="alternate" type="text/html" title="域名采集爬虫" /><published>2017-10-19T20:59:18+08:00</published><updated>2017-10-19T20:59:18+08:00</updated><id>/spider/2017/10/19/domain-spider</id><content type="html" xml:base="/spider/2017/10/19/domain-spider/">&lt;p&gt;
+&lt;/ul&gt;</content><author><name>HellSec</name></author><category term="pentest" /><summary type="html">在安全测试中，我们常常会遇到一些重复性工作。而鄙人记性不佳，有时候并不能高效的进行工作。因此，自己萌生了撰写工作总结的想法，将以往的工作列清单，做一个总结，以作查阅之用。</summary></entry><entry><title type="html">域名采集爬虫</title><link href="http://localhost:4000/spider/2017/10/19/domain-spider/" rel="alternate" type="text/html" title="域名采集爬虫" /><published>2017-10-19T20:59:18+08:00</published><updated>2017-10-19T20:59:18+08:00</updated><id>http://localhost:4000/spider/2017/10/19/domain-spider</id><content type="html" xml:base="http://localhost:4000/spider/2017/10/19/domain-spider/">&lt;p&gt;
     &lt;span style=&quot;color:#00B050;&quot;&gt;&lt;strong&gt;
     前段时间在研究扫描器的问题，在涉及域名采集这块时， 突然有了一些特别的想法，所以单独将这个模块提取出来，做成了一套独立系统。
     &lt;/strong&gt;&lt;/span&gt;
@@ -2785,7 +3301,7 @@ nmap -sS -sV -p- –script=”http-title,banner” 192.168.2.10&lt;/li&gt;
 
 &lt;p&gt;代码由于还需要优化，暂时没有放出，以后会补上。&lt;/p&gt;
 
-&lt;p&gt;待续。&lt;/p&gt;</content><author><name>HellSec</name></author><category term="spider" /><summary type="html">前段时间在研究扫描器的问题，在涉及域名采集这块时， 突然有了一些特别的想法，所以单独将这个模块提取出来，做成了一套独立系统。</summary></entry><entry><title type="html">爬虫去重优化</title><link href="/spider/2017/10/14/url-duplicate-removal/" rel="alternate" type="text/html" title="爬虫去重优化" /><published>2017-10-14T08:05:18+08:00</published><updated>2017-10-14T08:05:18+08:00</updated><id>/spider/2017/10/14/url-duplicate-removal</id><content type="html" xml:base="/spider/2017/10/14/url-duplicate-removal/">&lt;p&gt;
+&lt;p&gt;待续。&lt;/p&gt;</content><author><name>HellSec</name></author><category term="spider" /><summary type="html">前段时间在研究扫描器的问题，在涉及域名采集这块时， 突然有了一些特别的想法，所以单独将这个模块提取出来，做成了一套独立系统。</summary></entry><entry><title type="html">爬虫去重优化</title><link href="http://localhost:4000/spider/2017/10/14/url-duplicate-removal/" rel="alternate" type="text/html" title="爬虫去重优化" /><published>2017-10-14T08:05:18+08:00</published><updated>2017-10-14T08:05:18+08:00</updated><id>http://localhost:4000/spider/2017/10/14/url-duplicate-removal</id><content type="html" xml:base="http://localhost:4000/spider/2017/10/14/url-duplicate-removal/">&lt;p&gt;
     &lt;span style=&quot;color:#DAA520;&quot;&gt;&lt;strong&gt;以前在做漏洞Fuzz爬虫时，曾做过URL去重相关的工作，当时是参考了seay法师的文章以及网上零碎的一些资料，感觉做的很简单。近来又遇到相关问题，于是乎有了再次改进算法的念头。&lt;/strong&gt;&lt;/span&gt;
 &lt;/p&gt;
 
@@ -2991,7 +3507,7 @@ http://blog.csdn.net/lemon_tree12138/article/details/47973715&lt;/p&gt;
 http://www.cnseay.com/?p=4102&lt;/p&gt;
 
 &lt;p&gt;网络爬虫 (spider) URL消重设计 URL去重设计
-http://woshizn.iteye.com/blog/532605&lt;/p&gt;</content><author><name>DEMON</name></author><summary type="html">以前在做漏洞Fuzz爬虫时，曾做过URL去重相关的工作，当时是参考了seay法师的文章以及网上零碎的一些资料，感觉做的很简单。近来又遇到相关问题，于是乎有了再次改进算法的念头。</summary></entry><entry><title type="html">迁移博客</title><link href="/jekyll/update/start/2017/09/02/welcome-to-jekyll/" rel="alternate" type="text/html" title="迁移博客" /><published>2017-09-02T08:05:18+08:00</published><updated>2017-09-02T08:05:18+08:00</updated><id>/jekyll/update/start/2017/09/02/welcome-to-jekyll</id><content type="html" xml:base="/jekyll/update/start/2017/09/02/welcome-to-jekyll/">&lt;p&gt;
+http://woshizn.iteye.com/blog/532605&lt;/p&gt;</content><author><name>DEMON</name></author><summary type="html">以前在做漏洞Fuzz爬虫时，曾做过URL去重相关的工作，当时是参考了seay法师的文章以及网上零碎的一些资料，感觉做的很简单。近来又遇到相关问题，于是乎有了再次改进算法的念头。</summary></entry><entry><title type="html">迁移博客</title><link href="http://localhost:4000/jekyll/update/start/2017/09/02/welcome-to-jekyll/" rel="alternate" type="text/html" title="迁移博客" /><published>2017-09-02T08:05:18+08:00</published><updated>2017-09-02T08:05:18+08:00</updated><id>http://localhost:4000/jekyll/update/start/2017/09/02/welcome-to-jekyll</id><content type="html" xml:base="http://localhost:4000/jekyll/update/start/2017/09/02/welcome-to-jekyll/">&lt;p&gt;
 	&lt;span style=&quot;color:#00B050;&quot;&gt;&lt;strong&gt;最近原来的空间服务里到期了，钱包吃紧又想diy，最后就选择了转入Github page。&lt;/strong&gt;&lt;/span&gt;
 &lt;/p&gt;
 
@@ -3005,113 +3521,4 @@ http://woshizn.iteye.com/blog/532605&lt;/p&gt;</content><author><name>DEMON</nam
 
 &lt;p&gt;If you can…&lt;/p&gt;
 
-&lt;p&gt;Dalao,  ball dai fly…&lt;/p&gt;</content><author><name>HellSec</name></author><category term="start" /><summary type="html">最近原来的空间服务里到期了，钱包吃紧又想diy，最后就选择了转入Github page。</summary></entry><entry><title type="html">Selenium+phantomjs刷量</title><link href="/spider/2016/11/12/seleniumphantomjs-e5-88-b7-e9-87-8f/" rel="alternate" type="text/html" title="Selenium+phantomjs刷量" /><published>2016-11-12T21:52:00+08:00</published><updated>2016-11-12T21:52:00+08:00</updated><id>/spider/2016/11/12/seleniumphantomjs%E5%88%B7%E9%87%8F</id><content type="html" xml:base="/spider/2016/11/12/seleniumphantomjs-e5-88-b7-e9-87-8f/">&lt;p&gt;
-	&lt;span style=&quot;color:#DAA520;&quot;&gt;&lt;strong&gt;最近有这方面的需求，要帮人在某网站上刷点击量。由于该网站是一家比较知名的大型门户，反作弊机制肯定是有的，所以突发奇想用Selenium试试。&lt;/strong&gt;&lt;/span&gt;
-&lt;/p&gt;
-
-&lt;p&gt;
-	与Selenium类似的东西有lxml，它们采用正则xpath路径匹配标签会多一些。当然，也有人会使用beautifulsoup4去解析网页结构，最后再得到需要的标签。达成目的的路不止一条，这点不再赘述。
-&lt;/p&gt;
-
-&lt;p&gt;
-	本来想用Selenium随便找个浏览器模拟人的浏览网页行为，结果每次需要重新打开一次浏览器，几乎让人抓狂。最后还是采用了phantomjs，这是一种后台浏览器，同样满足模拟行为。
-&lt;/p&gt;
-
-&lt;p&gt;
-	这里提一下，Selenium需要跟浏览器版本的更新度一致。本来我采用的firefox28.0+Selenium3.01,结果踩了半天坑没找到原因。最后，将火狐更新到最新版47.01才解决。
-&lt;/p&gt;
-
-&lt;p&gt;
-	像这类调度，我发现的大概需要注意的有两点：
-&lt;/p&gt;
-
-&lt;p&gt;
-	第一：他们都需要有个浏览器调用的中间件【windows下举例】：
-&lt;/p&gt;
-
-&lt;p&gt;
-	&lt;span style=&quot;color:#FF0000;&quot;&gt;比如phantomjs.exe（同类的有chromedriver.exe【谷歌】、geckodriver.exe【火狐】），这些需要放在python环境的script目录下。&lt;/span&gt;
-&lt;/p&gt;
-
-&lt;p&gt;
-	第二：浏览器需要装在默认目录：
-&lt;/p&gt;
-
-&lt;p&gt;
-	&lt;span style=&quot;color:#FF0000;&quot;&gt;当然在浏览器目录添加系统环境变量（PATH）也是可以的，这个不是默认添加的，否则会报错。&lt;/span&gt;
-&lt;/p&gt;
-
-&lt;p&gt;
-	&lt;span style=&quot;color:#000000;&quot;&gt;完成了这些工作以后，我们就可以后台对&lt;/span&gt;Selenium进行调度了，另外phantomjs具有JS特性，自然也是可以对后台加载的网页进行一些诸如定位、拖动滚动条之类的操作。
-&lt;/p&gt;
-
-&lt;p&gt;
-	比如下面这段代码片段【案例来自于网络】：
-&lt;/p&gt;
-
-&lt;pre class=&quot;brush:python;&quot;&gt;
-&amp;nbsp; &amp;nbsp; driver.get(pageURL)&amp;nbsp;
-&amp;nbsp; &amp;nbsp; js1 = &amp;#39;return document.body.scrollHeight&amp;#39;
-&amp;nbsp; &amp;nbsp; js2 = &amp;#39;window.scrollTo(0, document.body.scrollHeight)&amp;#39;
-&amp;nbsp; &amp;nbsp; old_scroll_height = 0
-&amp;nbsp; &amp;nbsp; while(driver.execute_script(js1) &amp;gt; old_scroll_height):
-&amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; old_scroll_height = driver.execute_script(js1)
-&amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; driver.execute_script(js2)
-&amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; time.sleep(1) &amp;nbsp;&lt;/pre&gt;
-
-&lt;p&gt;
-	我们刷流量嘛，自然需要代理。这个可以在网上买，大概5块几千个没问题，不保证稳定性。当然，你去其他免费代理网站爬下来也是可以的。
-&lt;/p&gt;
-
-&lt;p&gt;
-	设置代理的法子大概写一下【案例来自于网络】：
-&lt;/p&gt;
-
-&lt;pre class=&quot;brush:python;&quot;&gt;
-service_args = [
- &amp;#39;--proxy=127.0.0.1:9999&amp;#39;,
- &amp;#39;--proxy-type=socks5&amp;#39;,
- ]
-driver = webdriver.PhantomJS(&amp;#39;../path_to/phantomjs&amp;#39;,service_args=service_args)&lt;/pre&gt;
-
-&lt;p&gt;
-	UA在放在list池子里，需要的时候自行启用：
-&lt;/p&gt;
-
-&lt;pre class=&quot;brush:python;&quot;&gt;
-from random import choice&lt;/pre&gt;
-
-&lt;p&gt;
-	header里设置UA【案例来自于网络】：
-&lt;/p&gt;
-
-&lt;pre class=&quot;brush:python;&quot;&gt;
-from selenium import webdriver
-from selenium.webdriver import DesiredCapabilities
-driver=webdriver.PhantomJS(executable_path=&amp;#39;存放路径\phantomjs.exe&amp;#39;)
-desired_capabilities= DesiredCapabilities.PHANTOMJS.copy()
-headers = {&amp;#39;Accept&amp;#39;: &amp;#39;*/*&amp;#39;,
-&amp;#39;Accept-Language&amp;#39;: &amp;#39;en-US,en;q=0.8&amp;#39;,
-&amp;#39;Cache-Control&amp;#39;: &amp;#39;max-age=0&amp;#39;,
-&amp;#39;User-Agent&amp;#39;: &amp;#39;Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/48.0.2564.116 Safari/537.36&amp;#39;,#这种修改 UA 也有效
-&amp;#39;Connection&amp;#39;: &amp;#39;keep-alive&amp;#39;
-&amp;#39;Referer&amp;#39;:&amp;#39;http://www.baidu.com/&amp;#39;
-}
-for key, value in headers.iteritems():
-    desired_capabilities['phantomjs.page.customHeaders.{}'.format(key)] = value
-desired_capabilities['phantomjs.page.customHeaders.User-Agent'] = &amp;#39;Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36&amp;#39;
-driver= webdriver.PhantomJS(desired_capabilities=desired_capabilities)
-driver.get(&amp;quot;http://www.myip.cn/judge.php&amp;quot;)
-print driver.page_source&lt;/pre&gt;
-
-&lt;p&gt;
-	其他涉及具体细节的，这里就不多谈了，网上很多。
-&lt;/p&gt;
-
-&lt;p&gt;
-	我这里也是临时用下，没有太高深的技术。希望对某些朋友有帮助，Good luck!
-&lt;/p&gt;
-
-&lt;p&gt;
-	&lt;strong&gt;&lt;span style=&quot;color:#FFD700;&quot;&gt;[转载请注明来源&lt;/span&gt;&lt;a href=&quot;http://www.dawner.info/&quot; target=&quot;_blank&quot;&gt;&lt;span style=&quot;color:#FFD700;&quot;&gt;本站&lt;/span&gt;&lt;/a&gt;&lt;span style=&quot;color:#FFD700;&quot;&gt;,谢谢。]&lt;/span&gt;&lt;/strong&gt;
-&lt;/p&gt;</content><author><name>DEMON</name></author><summary type="html">最近有这方面的需求，要帮人在某网站上刷点击量。由于该网站是一家比较知名的大型门户，反作弊机制肯定是有的，所以突发奇想用Selenium试试。</summary></entry></feed>
+&lt;p&gt;Dalao,  ball dai fly…&lt;/p&gt;</content><author><name>HellSec</name></author><category term="start" /><summary type="html">最近原来的空间服务里到期了，钱包吃紧又想diy，最后就选择了转入Github page。</summary></entry></feed>
