@@ -3801,7 +3801,7 @@ print driver.page_source</pre>
 </p>
 
 <p>
-	<strong><span style="color:#FFD700;">[转载请注明来源</span><a href="http://www.dawner.info/" target="_blank"><span style="color:#FFD700;">本站</span></a><span style="color:#FFD700;">,谢谢。]</span></strong>
+	<strong><span style="color:#FFD700;">[转载请注明来源</span><a href="http://blog.hellsec.net/" target="_blank"><span style="color:#FFD700;">本站</span></a><span style="color:#FFD700;">,谢谢。]</span></strong>
 </p>
 
 ]]></content>
@@ -4046,7 +4046,7 @@ UnicodeDecodeError: 'ascii' codec can't decode byte 0xe7 in position 0: ordinal 
 <span style="color: #ff00ff;"><a title="Python、Unicode和中文" href="http://blog.csdn.net/summerhust/article/details/6654150" target="_blank"><span style="color: #ff00ff;">Python、Unicode和中文</span></a></span></p>
 
 <p>文章是记录型，很简单的东西，不喜勿喷。
-<span style="color: #00B050;">[转载请注明来源<a href="http://www.dawner.info" target="_blank"><span style="color: #00B050;">本站</span></a>,谢谢。]</span></p>
+<span style="color: #00B050;">[转载请注明来源<a href="http://blog.hellsec.net" target="_blank"><span style="color: #00B050;">本站</span></a>,谢谢。]</span></p>
 ]]></content>
       <categories>
         
@@ -4162,7 +4162,7 @@ RUL末尾，如 www.example.com/&lt;script&gt;alert(1)&lt;/script&gt;
       <content type="html"><![CDATA[<p>=~~~~~~~~~~~~~~~~~~~~<del>=
 +———–DemonSpider—————-+
 +-Code reset by demon@f4ck.net—-+
-+———-<a title="www.dawner.info" href="http://www.dawner.info" target="_blank">www.dawner.info</a>————+
++———-<a title="blog.hellsec.net" href="http://blog.hellsec.net" target="_blank">blog.hellsec.net</a>————+
 =</del>~~~~~~~~~~~~~~~~~~~~=
 <span style="color: #ff0000;">PS:个人觉得这脚本最大的特点就是多接口+批量，当然，也可单选。</span>
 代码预览如下：</p>
@@ -4360,7 +4360,7 @@ if '__main__' == __name__:
      =~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~=
      +-----------DemonSpider-----------+
      +--------Md5-Cracker--V1.0--------+
-     +----------www.dawner.info--------+
+     +----------blog.hellsec.net--------+
      +--md5_crack.py for single or dic-+
      ===================================
                     = =
@@ -5471,14 +5471,14 @@ pickle模块主要特点为通过句柄就直接能完成文件操作，不知�
 <span style="color: #ff0000;">&lt;body&gt;</span>
 <span style="color: #ff0000;">&lt;a href=”http://www.baidu.com” onclick=”txt(this)”&gt;baidu&lt;/a&gt;</span>
 <span style="color: #ff0000;">&lt;a href=”http://www.google.com.hk” onclick=”txt(this)”&gt; google&lt;/a&gt;</span>
-<span style="color: #ff0000;">&lt;a href=”http://www.dawner.info” onclick=”txt(this)”&gt; blog&lt;/a&gt;</span>
+<span style="color: #ff0000;">&lt;a href=”http://blog.hellsec.net” onclick=”txt(this)”&gt; blog&lt;/a&gt;</span>
 <span style="color: #ff0000;">&lt;/body&gt;</span>
 <span style="color: #ff0000;">&lt;/html&gt;</span>
-<a href="http://www.dawner.info/wp-content/uploads/2013/09/1.png"><img class="alignnone size-medium wp-image-195" title="1" src="http://www.dawner.info/wp-content/uploads/2013/09/1-300x111.png" alt="" width="300" height="111" /></a>
-<a href="http://www.dawner.info/wp-content/uploads/2013/09/2.png"><img class="alignnone size-medium wp-image-196" title="2" src="http://www.dawner.info/wp-content/uploads/2013/09/2-300x74.png" alt="" width="300" height="74" /></a>
+<a href="http://blog.hellsec.net/wp-content/uploads/2013/09/1.png"><img class="alignnone size-medium wp-image-195" title="1" src="http://blog.hellsec.net/wp-content/uploads/2013/09/1-300x111.png" alt="" width="300" height="111" /></a>
+<a href="http://blog.hellsec.net/wp-content/uploads/2013/09/2.png"><img class="alignnone size-medium wp-image-196" title="2" src="http://blog.hellsec.net/wp-content/uploads/2013/09/2-300x74.png" alt="" width="300" height="74" /></a>
 其中代码中的本地路径也许可以配置为公网肉鸡的远程路径，配置好可写入不可执行权限？聪明的各位朋友应该可以做更多的尝试。
 以上是小弟自己的想法，按邱哥的意思应该是通过截获表单或者监听键盘，通过JS动态生成表单发送出去，如图：
-<a href="http://www.dawner.info/wp-content/uploads/2013/09/3.png"><img class="alignnone size-medium wp-image-197" title="3" src="http://www.dawner.info/wp-content/uploads/2013/09/3-300x135.png" alt="" width="300" height="135" /></a>
+<a href="http://blog.hellsec.net/wp-content/uploads/2013/09/3.png"><img class="alignnone size-medium wp-image-197" title="3" src="http://blog.hellsec.net/wp-content/uploads/2013/09/3-300x135.png" alt="" width="300" height="135" /></a>
 以上应该算是箱子原理，由更加强大的脚本语言动态接受参数，生成条目，可存入数据库，减少了中介部分，也是更为普遍、稳定的做法。</p>
 ]]></content>
       <categories>
