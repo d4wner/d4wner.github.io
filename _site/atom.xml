@@ -1,4 +1,195 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.5.2">Jekyll</generator><link href="/atom.xml" rel="self" type="application/atom+xml" /><link href="/" rel="alternate" type="text/html" /><updated>2018-10-18T18:20:38+08:00</updated><id>/</id><title type="html">HellSec</title><subtitle>原创网络安全博客&lt;-|-&gt;匠心独运，做有深度的良品。</subtitle><author><name>HellSec</name></author><entry><title type="html">浅谈漏扫之插件篇</title><link href="/scanner/2018/10/08/scanner-plugins/" rel="alternate" type="text/html" title="浅谈漏扫之插件篇" /><published>2018-10-08T12:37:38+08:00</published><updated>2018-10-08T12:37:38+08:00</updated><id>/scanner/2018/10/08/scanner-plugins</id><content type="html" xml:base="/scanner/2018/10/08/scanner-plugins/">&lt;p&gt;
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.5.2">Jekyll</generator><link href="http://localhost:4000/atom.xml" rel="self" type="application/atom+xml" /><link href="http://localhost:4000/" rel="alternate" type="text/html" /><updated>2018-12-27T17:26:27+08:00</updated><id>http://localhost:4000/</id><title type="html">HellSec</title><subtitle>原创网络安全博客&lt;-|-&gt;匠心独运，做有深度的良品。</subtitle><author><name>HellSec</name></author><entry><title type="html">漫谈漏洞扫描</title><link href="http://localhost:4000/scanner/2018/12/27/talk-about-scanner-roads/" rel="alternate" type="text/html" title="漫谈漏洞扫描" /><published>2018-12-27T16:42:38+08:00</published><updated>2018-12-27T16:42:38+08:00</updated><id>http://localhost:4000/scanner/2018/12/27/talk-about-scanner-roads</id><content type="html" xml:base="http://localhost:4000/scanner/2018/12/27/talk-about-scanner-roads/">&lt;p&gt;
+	&lt;span style=&quot;color:#DAA520;&quot;&gt;&lt;strong&gt;研究漏扫这块儿有段时间了，虽然是业余自己玩，但平素跟公司漏扫产品线打交道比较多，稍微有些心得，在这里简单分享下。&lt;/strong&gt;&lt;/span&gt;
+&lt;/p&gt;
+
+&lt;h3 id=&quot;企业级漏扫&quot;&gt;企业级漏扫&lt;/h3&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;盒子扫描器&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;对于漏扫产品的话，部分甲方单位会按公安那边的标准，在内网部署一些盒子扫描器（硬件服务器+扫描软件）。&lt;/p&gt;
+
+&lt;p&gt;说实话，这玩意儿定位是比较尴尬的，虽然大的单位每年有一定的采购指标。但是有时候还是会听产品经理吐槽，每次实在卖不出量，可能一单安全服务生意卖出个一两台就不错了。&lt;/p&gt;
+
+&lt;p&gt;当然，现在漏扫一般会配合漏洞管理、网站监控等产品一起卖。为了覆（tong）盖（hang）产（jing）品（zheng）线，给售前和销售操控的空间，这款产品还是必须要的。&lt;/p&gt;
+
+&lt;p&gt;卖漏扫盒子的利润还算可观，只要销售和渠道给力，传统乙方还是愿意做的这门生意的。&lt;/p&gt;
+
+&lt;p&gt;代表厂商有:&lt;/p&gt;
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;sangfor
+venus
+nsfocus
+topsec
+...
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;在线漏扫服务&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;在线漏扫的话，一般难以对内网进行检测。大多数的操作是，在验证外网某站的所有权后，再签协议授权扫描。不过由于成本较盒子更加低廉，容易受到中小厂商的追捧。&lt;/p&gt;
+
+&lt;p&gt;当然，如果内网也需要享受这样的服务的话，自然还是需要安服人员带着盒子，或者类似封装好的扫描器，在企业单位进行驻场检测。&lt;/p&gt;
+
+&lt;p&gt;代表厂商有:&lt;/p&gt;
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;360
+knownsec
+...
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;ul&gt;
+  &lt;li&gt;定制漏扫&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;据笔者所知，部分云服务厂商，会对云服务客户提供了定制漏扫服务。&lt;/p&gt;
+
+&lt;p&gt;由于是自家的服务器，自然对客户的业务具有一定的了解。无论是做漏扫，还是做资产监控还是态势感知，都是相对容易的。&lt;/p&gt;
+
+&lt;p&gt;云服务厂商在对这部分客户做漏扫时，由于统一的架构部署，安服漏扫会比较精确和有效。貌似这样的漏扫服务，一般不会对外开放，算是定制的服务。&lt;/p&gt;
+
+&lt;p&gt;顺便提一句，部分漏洞平台，好像对于大客户也推出了一条龙服务，其中是包括定制漏扫的。&lt;/p&gt;
+
+&lt;p&gt;代表云厂商有:&lt;/p&gt;
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;alibaba
+tencent
+kingsoft
+riskivy
+...
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;免费商业漏扫&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;市面上也出现了部分优秀的商业级别漏扫，咱们这里先别讨论是免费版还是破解版。&lt;/p&gt;
+
+&lt;p&gt;正是有了这些漏扫产品，在驻场和分公司的苦逼兼职的安服人员，才有了一口饭吃【纯吐槽公司制度】。&lt;/p&gt;
+
+&lt;p&gt;这里解释下，因为公司内部的漏扫产品，不是分驻地都能拿到授权的，那最后怎么办呢？用破解的。效果不好咋办？换其他家的破解或者免费产品。&lt;/p&gt;
+
+&lt;p&gt;代表产品有：&lt;/p&gt;
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;AWVS
+nessus
+arachni
+metasploit
+sqlmap
+burpsuite
+appscan
+netsparker
+...
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h3 id=&quot;开源漏扫&quot;&gt;开源漏扫&lt;/h3&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;社区级漏扫&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;这些产品一般是社区或者团队在维护的，一般为乙方渗透人员或者Bug Bounty人员所用。&lt;/p&gt;
+
+&lt;p&gt;一旦他们需要对企业机构，或者政府单位进行渗透测试时，可以根据情况，部署分布式节点扫描，加快漏扫速度。&lt;/p&gt;
+
+&lt;p&gt;笔者依稀记得曾经的bugscan，好像大家都可以接入公网节点。这听起来，其实有点像以前的迅雷p2p，可以加速所有运行的任务。&lt;/p&gt;
+
+&lt;p&gt;不过后来好像由于各种原因，部分人搞到了源码和payload包，自己玩起了单机。多台外网VPS一部署，扫起东西来也是美滋滋，亲测出结果还是比较快的。&lt;/p&gt;
+
+&lt;p&gt;不过这种漏扫有个坏处就是，一旦社区不用心再维护，渐渐就没有人再提交payload，毕竟单个漏洞的生命周期还是不长的。&lt;/p&gt;
+
+&lt;p&gt;当然，这种产品还有个去路，就是实现企业化。&lt;/p&gt;
+
+&lt;p&gt;一旦变成企业级产品，就会有更多的资源投入去维护它，自然能更好的发展下去。&lt;/p&gt;
+
+&lt;p&gt;比较可惜的是，升级后的版本以及payload，自然大多数就不会再开源了。&lt;/p&gt;
+
+&lt;p&gt;代表产品有：&lt;/p&gt;
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;bugscan
+蚁逅
+tangscan
+Beebeeto
+Pocscan
+Osprey「鱼鹰」
+...
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;综合扫描&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;由于各种脚本语言的兴起，大幅减少了coding的难度和时间，网络上涌现出一批由团队或个人维护的综合扫描器。&lt;/p&gt;
+
+&lt;p&gt;虽然得吐槽下，大多数质量良莠不齐，造轮子的比较多，而且后续长期作者维护的比较少，不过其中不乏优秀的个体。&lt;/p&gt;
+
+&lt;p&gt;综合扫描定义比较模糊，一般除了exp检测和CMS识别外，还有部分项目加入了路径爆破、资产统计、端口扫描等功能。&lt;/p&gt;
+
+&lt;p&gt;不过让人稍稍有点失望的是，这类综合扫描可能大同小异，暂时没有发现特别亮眼的点。&lt;/p&gt;
+
+&lt;p&gt;在笔者过往的系列文章中，也谈过部分关于综合扫描器细节，这里不再细说。&lt;/p&gt;
+
+&lt;p&gt;代表产品有:&lt;/p&gt;
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;w9scan
+AngelSword
+fenghuangscanner
+猪猪侠PPT中提过的扫描器
+...
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;Gui扫描&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;这里之所以单独区别于前面的综合扫描器【其实是笔者实在想不出小标题了XD】，是想谈谈其开发时间、开发难度，以及插件化难度。&lt;/p&gt;
+
+&lt;p&gt;虽然说部分Gui扫描器也实现了插件化，但作者们大多喜欢自己更新，或者只要求邮件方式提交插件。&lt;/p&gt;
+
+&lt;p&gt;这样的话，把产品生态搞成了一个近似闭环，但是肯定又远不及apple store之类的体量，导致用户主动提交的漏扫插件是比较少的。&lt;/p&gt;
+
+&lt;p&gt;当然，有部分漏扫的功能和用户体验，还是做的很不错的，很受大家追捧，笔者当年也用的很顺手。&lt;/p&gt;
+
+&lt;p&gt;代表产品有：&lt;/p&gt;
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;椰树
+北极熊扫描器
+k8 team系列扫描器
+千手千眼佛网站扫描器
+...
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;代理扫描器&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;说起代理扫描器，可能内容就比较宽泛了，这里简单讲下，以后有机会单独谈谈。&lt;/p&gt;
+
+&lt;p&gt;何谓代理，中间人也，只要你能抓住中间流量，便可以作为基准去做漏洞扫描或者fuzz。&lt;/p&gt;
+
+&lt;p&gt;大家可能会想到利用抓包，利用网卡流量进行分析；有人也许会通过浏览器流量代理进行分析；还有人会通过浏览器本身提供扩展插件功能，直接对页面进行即时钩子探测。&lt;/p&gt;
+
+&lt;p&gt;说到这块儿，笔者所见的一般都是轻量级的，也可能是见识少吧。个人感觉很少有在采集存数据库以后，在离线端部署过多的exp探测任务的。&lt;/p&gt;
+
+&lt;p&gt;毕竟，这块儿也是要考虑到扫描效率，以及会话过期问题的。&lt;/p&gt;
+
+&lt;p&gt;另外，貌似代理扫描器对owasp的一些通用漏洞的fuzz，以及对敏感内容的检测，会显得多一些。对于能检测逻辑漏洞的被动扫描器，也算是比较高level的了。&lt;/p&gt;
+
+&lt;p&gt;代表产品有：&lt;/p&gt;
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;ysrc的GourdScan
+burpsuite插件系列
+wyproxy的衍生扫描器
+浏览器插件系列
+...
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h3 id=&quot;结语&quot;&gt;结语&lt;/h3&gt;
+
+&lt;p&gt;笔者见过的常见漏扫的架构差不多就是这些了，点到为止吧。另外，笔者自研的也有类似产品，这里就不打广告了XD。&lt;/p&gt;
+
+&lt;p&gt;可能有部分内容，由于时间关系没能例举全，也可能有部分笔误，期待指正和建议。&lt;/p&gt;</content><author><name>HellSec</name></author><category term="scanner" /><summary type="html">研究漏扫这块儿有段时间了，虽然是业余自己玩，但平素跟公司漏扫产品线打交道比较多，稍微有些心得，在这里简单分享下。</summary></entry><entry><title type="html">浅谈漏扫之插件篇</title><link href="http://localhost:4000/scanner/2018/10/08/scanner-plugins/" rel="alternate" type="text/html" title="浅谈漏扫之插件篇" /><published>2018-10-08T12:37:38+08:00</published><updated>2018-10-08T12:37:38+08:00</updated><id>http://localhost:4000/scanner/2018/10/08/scanner-plugins</id><content type="html" xml:base="http://localhost:4000/scanner/2018/10/08/scanner-plugins/">&lt;p&gt;
 	&lt;span style=&quot;color:#00B050;&quot;&gt;&lt;strong&gt;在我们试图构建漏扫系统的时候，调整好插件的配置和格式，能更有效地帮助我们进行漏洞探测，以及提升对bug的进行fuzz的高效性。&lt;/strong&gt;&lt;/span&gt;
 &lt;/p&gt;
 
@@ -222,7 +413,7 @@ for vuln_path in vuln_paths:
 
 &lt;h3 id=&quot;结语&quot;&gt;结语&lt;/h3&gt;
 
-&lt;p&gt;上面列举的案例分析代码，部分改编于Github上搜到的漏洞利用框架，部分来自于笔者自己的储备，这里再次感谢各位大佬的开源。&lt;/p&gt;</content><author><name>HellSec</name></author><category term="scanner" /><summary type="html">在我们试图构建漏扫系统的时候，调整好插件的配置和格式，能更有效地帮助我们进行漏洞探测，以及提升对bug的进行fuzz的高效性。</summary></entry><entry><title type="html">浅谈漏扫之加速篇</title><link href="/scanner/2018/09/03/scanner-faster/" rel="alternate" type="text/html" title="浅谈漏扫之加速篇" /><published>2018-09-03T12:48:18+08:00</published><updated>2018-09-03T12:48:18+08:00</updated><id>/scanner/2018/09/03/scanner-faster</id><content type="html" xml:base="/scanner/2018/09/03/scanner-faster/">&lt;p&gt;
+&lt;p&gt;上面列举的案例分析代码，部分改编于Github上搜到的漏洞利用框架，部分来自于笔者自己的储备，这里再次感谢各位大佬的开源。&lt;/p&gt;</content><author><name>HellSec</name></author><category term="scanner" /><summary type="html">在我们试图构建漏扫系统的时候，调整好插件的配置和格式，能更有效地帮助我们进行漏洞探测，以及提升对bug的进行fuzz的高效性。</summary></entry><entry><title type="html">浅谈漏扫之加速篇</title><link href="http://localhost:4000/scanner/2018/09/03/scanner-faster/" rel="alternate" type="text/html" title="浅谈漏扫之加速篇" /><published>2018-09-03T12:48:18+08:00</published><updated>2018-09-03T12:48:18+08:00</updated><id>http://localhost:4000/scanner/2018/09/03/scanner-faster</id><content type="html" xml:base="http://localhost:4000/scanner/2018/09/03/scanner-faster/">&lt;p&gt;
 	&lt;span style=&quot;color:#DAA520;&quot;&gt;&lt;strong&gt;众所周知，在渗透测试中，除了内网和敏感线上环境，我们会尽可能用上高效的扫描器。虽然说打造扫描神器主要是靠规则和POC，不过它们也需要稳定而健壮的引擎，这就不得不谈到如何有效地对单线程脚本进行加速了。&lt;/strong&gt;&lt;/span&gt;
 &lt;/p&gt;
 
@@ -738,7 +929,7 @@ Task: 获取插件，执行任务，输出报告。
 &lt;p&gt;&lt;a href=&quot;https://www.cnblogs.com/PrettyTom/p/6582357.html&quot;&gt;Python的多进程&lt;/a&gt;&lt;/p&gt;
 
 &lt;p&gt;&lt;a href=&quot;https://www.chabug.org/tools/553.html&quot;&gt;[X1r0z]模拟bugscan node的通信机制及在线体验
-&lt;/a&gt;&lt;/p&gt;</content><author><name>HellSec</name></author><category term="scanner" /><summary type="html">众所周知，在渗透测试中，除了内网和敏感线上环境，我们会尽可能用上高效的扫描器。虽然说打造扫描神器主要是靠规则和POC，不过它们也需要稳定而健壮的引擎，这就不得不谈到如何有效地对单线程脚本进行加速了。</summary></entry><entry><title type="html">浅谈进程隐藏之术</title><link href="/cert/2018/07/04/hide-process/" rel="alternate" type="text/html" title="浅谈进程隐藏之术" /><published>2018-07-04T19:30:38+08:00</published><updated>2018-07-04T19:30:38+08:00</updated><id>/cert/2018/07/04/hide-process</id><content type="html" xml:base="/cert/2018/07/04/hide-process/">&lt;p&gt;
+&lt;/a&gt;&lt;/p&gt;</content><author><name>HellSec</name></author><category term="scanner" /><summary type="html">众所周知，在渗透测试中，除了内网和敏感线上环境，我们会尽可能用上高效的扫描器。虽然说打造扫描神器主要是靠规则和POC，不过它们也需要稳定而健壮的引擎，这就不得不谈到如何有效地对单线程脚本进行加速了。</summary></entry><entry><title type="html">浅谈进程隐藏之术</title><link href="http://localhost:4000/cert/2018/07/04/hide-process/" rel="alternate" type="text/html" title="浅谈进程隐藏之术" /><published>2018-07-04T19:30:38+08:00</published><updated>2018-07-04T19:30:38+08:00</updated><id>http://localhost:4000/cert/2018/07/04/hide-process</id><content type="html" xml:base="http://localhost:4000/cert/2018/07/04/hide-process/">&lt;p&gt;
 	&lt;span style=&quot;color:#00B050;&quot;&gt;&lt;strong&gt;前段时间遇到了一些【进程隐藏】相关的应急事件，故此心生一念，对网上一些资料和部分个人经验做了总结，以飨众人。&lt;/strong&gt;&lt;/span&gt;
 &lt;/p&gt;
 
@@ -1040,7 +1231,7 @@ deskthrd
 
 &lt;p&gt;需要强调的是，攻防都是相对的，技术是在进步的，工具需要配合手工才能变成神器。&lt;/p&gt;
 
-&lt;p&gt;以后在实践中遇到新东西，或者在其他资料站看到实用的内容，后面会继续给大家更新。&lt;/p&gt;</content><author><name>HellSec</name></author><category term="cert" /><summary type="html">前段时间遇到了一些【进程隐藏】相关的应急事件，故此心生一念，对网上一些资料和部分个人经验做了总结，以飨众人。</summary></entry><entry><title type="html">信安应急响应手册</title><link href="/pentest/2018/06/25/security-emergency/" rel="alternate" type="text/html" title="信安应急响应手册" /><published>2018-06-25T12:56:18+08:00</published><updated>2018-06-25T12:56:18+08:00</updated><id>/pentest/2018/06/25/security-emergency</id><content type="html" xml:base="/pentest/2018/06/25/security-emergency/">&lt;p&gt;
+&lt;p&gt;以后在实践中遇到新东西，或者在其他资料站看到实用的内容，后面会继续给大家更新。&lt;/p&gt;</content><author><name>HellSec</name></author><category term="cert" /><summary type="html">前段时间遇到了一些【进程隐藏】相关的应急事件，故此心生一念，对网上一些资料和部分个人经验做了总结，以飨众人。</summary></entry><entry><title type="html">信安应急响应手册</title><link href="http://localhost:4000/pentest/2018/06/25/security-emergency/" rel="alternate" type="text/html" title="信安应急响应手册" /><published>2018-06-25T12:56:18+08:00</published><updated>2018-06-25T12:56:18+08:00</updated><id>http://localhost:4000/pentest/2018/06/25/security-emergency</id><content type="html" xml:base="http://localhost:4000/pentest/2018/06/25/security-emergency/">&lt;p&gt;
 	&lt;span style=&quot;color:#DAA520;&quot;&gt;&lt;strong&gt;在我们工作过程中，难免会遇到一些需要应急响应的事件。在紧急情况下，某些平时的苦工可能会帮助我们简化流程。这里做下应急方面的笔记，列出一些实用的小技巧。&lt;/strong&gt;&lt;/span&gt;
 &lt;/p&gt;
 
@@ -2091,7 +2282,7 @@ export HISTTIMEFORMAT=&quot;%F %T 'who -u am i 2&amp;gt;/dev/null| awk '{print $
 
 &lt;h4 id=&quot;后记&quot;&gt;后记&lt;/h4&gt;
 
-&lt;p&gt;本文将持续更新，将作者遇到的一些应急的内容和技巧添加到里面，其中有部分内容参考了各大安全论坛的资料，再次感谢其他作者的付出。&lt;/p&gt;</content><author><name>HellSec</name></author><category term="pentest" /><summary type="html">在我们工作过程中，难免会遇到一些需要应急响应的事件。在紧急情况下，某些平时的苦工可能会帮助我们简化流程。这里做下应急方面的笔记，列出一些实用的小技巧。</summary></entry><entry><title type="html">关于selenium的post方法思考</title><link href="/spider/2018/04/18/selenium-post-func/" rel="alternate" type="text/html" title="关于selenium的post方法思考" /><published>2018-04-18T00:08:18+08:00</published><updated>2018-04-18T00:08:18+08:00</updated><id>/spider/2018/04/18/selenium-post-func</id><content type="html" xml:base="/spider/2018/04/18/selenium-post-func/">&lt;p&gt;
+&lt;p&gt;本文将持续更新，将作者遇到的一些应急的内容和技巧添加到里面，其中有部分内容参考了各大安全论坛的资料，再次感谢其他作者的付出。&lt;/p&gt;</content><author><name>HellSec</name></author><category term="pentest" /><summary type="html">在我们工作过程中，难免会遇到一些需要应急响应的事件。在紧急情况下，某些平时的苦工可能会帮助我们简化流程。这里做下应急方面的笔记，列出一些实用的小技巧。</summary></entry><entry><title type="html">关于selenium的post方法思考</title><link href="http://localhost:4000/spider/2018/04/18/selenium-post-func/" rel="alternate" type="text/html" title="关于selenium的post方法思考" /><published>2018-04-18T00:08:18+08:00</published><updated>2018-04-18T00:08:18+08:00</updated><id>http://localhost:4000/spider/2018/04/18/selenium-post-func</id><content type="html" xml:base="http://localhost:4000/spider/2018/04/18/selenium-post-func/">&lt;p&gt;
 	&lt;span style=&quot;color:#00B050;&quot;&gt;&lt;strong&gt;Selenium是一款比较常见的web应用自动化测试系统，它支持多种浏览器，多用于在爬虫中解决JavaScript渲染问题。&lt;/strong&gt;&lt;/span&gt;
 	
 &lt;/p&gt;
@@ -2193,7 +2384,7 @@ resp = driver.execute_script(&quot;return &quot; + ajax_query)
 
 &lt;p&gt;总而言之，selenium没有自带原生post方式是一个遗憾，而且其调用headless模式的浏览器，渲染和启动也显得太慢了些，无法用于高并发。&lt;/p&gt;
 
-&lt;p&gt;还是那句话，个人觉得在资源有限的情况下，它不太适用于高并发的大规模测试，fuzz指定的一定量payload也许尚可。&lt;/p&gt;</content><author><name>HellSec</name></author><category term="spider" /><summary type="html">Selenium是一款比较常见的web应用自动化测试系统，它支持多种浏览器，多用于在爬虫中解决JavaScript渲染问题。</summary></entry><entry><title type="html">内网横向与后渗透辞典</title><link href="/pentest/2018/01/18/pentest-innet-and-permission-maintenance/" rel="alternate" type="text/html" title="内网横向与后渗透辞典" /><published>2018-01-18T01:14:18+08:00</published><updated>2018-01-18T01:14:18+08:00</updated><id>/pentest/2018/01/18/pentest-innet-and-permission-maintenance</id><content type="html" xml:base="/pentest/2018/01/18/pentest-innet-and-permission-maintenance/">&lt;p&gt;
+&lt;p&gt;还是那句话，个人觉得在资源有限的情况下，它不太适用于高并发的大规模测试，fuzz指定的一定量payload也许尚可。&lt;/p&gt;</content><author><name>HellSec</name></author><category term="spider" /><summary type="html">Selenium是一款比较常见的web应用自动化测试系统，它支持多种浏览器，多用于在爬虫中解决JavaScript渲染问题。</summary></entry><entry><title type="html">内网横向与后渗透辞典</title><link href="http://localhost:4000/pentest/2018/01/18/pentest-innet-and-permission-maintenance/" rel="alternate" type="text/html" title="内网横向与后渗透辞典" /><published>2018-01-18T01:14:18+08:00</published><updated>2018-01-18T01:14:18+08:00</updated><id>http://localhost:4000/pentest/2018/01/18/pentest-innet-and-permission-maintenance</id><content type="html" xml:base="http://localhost:4000/pentest/2018/01/18/pentest-innet-and-permission-maintenance/">&lt;p&gt;
 	&lt;span style=&quot;color:#DAA520;&quot;&gt;&lt;strong&gt;在内网横向与后渗透的过程中，会有一些细节比较蛋疼。而真正系统地讲述内网和后渗透的书籍，也就那么寥寥几本，就算想掏大美刀也没地儿买去。&lt;/strong&gt;&lt;/span&gt;
 &lt;/p&gt;
 
@@ -3221,7 +3412,7 @@ Silver Ticket是伪造的TGS，也就是说其范围有限，只能访问指定�
 &lt;h3 id=&quot;后记&quot;&gt;后记&lt;/h3&gt;
 
 &lt;p&gt;本文大部分资料参考自网络，因为内容太多无法一一附上出处，有介意的原作者请私信我加上。
-最后，感谢某云、FB、数字等等，感谢互联网上所有热爱分享的童鞋们。&lt;/p&gt;</content><author><name>HellSec</name></author><category term="pentest" /><summary type="html">在内网横向与后渗透的过程中，会有一些细节比较蛋疼。而真正系统地讲述内网和后渗透的书籍，也就那么寥寥几本，就算想掏大美刀也没地儿买去。</summary></entry><entry><title type="html">规模渗透架构部署设想</title><link href="/pentest/2017/12/16/architecture-of-apt-pentest/" rel="alternate" type="text/html" title="规模渗透架构部署设想" /><published>2017-12-16T20:52:18+08:00</published><updated>2017-12-16T20:52:18+08:00</updated><id>/pentest/2017/12/16/architecture-of-apt-pentest</id><content type="html" xml:base="/pentest/2017/12/16/architecture-of-apt-pentest/">&lt;p&gt;
+最后，感谢某云、FB、数字等等，感谢互联网上所有热爱分享的童鞋们。&lt;/p&gt;</content><author><name>HellSec</name></author><category term="pentest" /><summary type="html">在内网横向与后渗透的过程中，会有一些细节比较蛋疼。而真正系统地讲述内网和后渗透的书籍，也就那么寥寥几本，就算想掏大美刀也没地儿买去。</summary></entry><entry><title type="html">规模渗透架构部署设想</title><link href="http://localhost:4000/pentest/2017/12/16/architecture-of-apt-pentest/" rel="alternate" type="text/html" title="规模渗透架构部署设想" /><published>2017-12-16T20:52:18+08:00</published><updated>2017-12-16T20:52:18+08:00</updated><id>http://localhost:4000/pentest/2017/12/16/architecture-of-apt-pentest</id><content type="html" xml:base="http://localhost:4000/pentest/2017/12/16/architecture-of-apt-pentest/">&lt;p&gt;
 	&lt;span style=&quot;color:#00B050;&quot;&gt;&lt;strong&gt;在我们的测试中，可能在对大型目标进行探测时，人手不足就会显得特别无力。这时候，使用机器代替人工进行一些重复性工作，就显得尤为重要。咱们在这儿来谈谈，如何开发和部署APT渗透系统的架构。&lt;/strong&gt;&lt;/span&gt;
 &lt;/p&gt;
 
@@ -3327,7 +3518,7 @@ Silver Ticket是伪造的TGS，也就是说其范围有限，只能访问指定�
 
 &lt;p&gt;直至撰稿之日，鄙人已经完成了一部分工作。但由于研究方向有变，再加上一些其他不可抗拒的原因，可能开发工作会停滞一段时间。&lt;/p&gt;
 
-&lt;p&gt;在以后恢复开发工作时，应该会有更多的思路更新，与诸君共勉！&lt;/p&gt;</content><author><name>HellSec</name></author><category term="pentest" /><summary type="html">在我们的测试中，可能在对大型目标进行探测时，人手不足就会显得特别无力。这时候，使用机器代替人工进行一些重复性工作，就显得尤为重要。咱们在这儿来谈谈，如何开发和部署APT渗透系统的架构。</summary></entry><entry><title type="html">黑盒漏洞挖掘（WEB篇）</title><link href="/pentest/2017/11/13/pentest-for-blackbox/" rel="alternate" type="text/html" title="黑盒漏洞挖掘（WEB篇）" /><published>2017-11-13T16:41:18+08:00</published><updated>2017-11-13T16:41:18+08:00</updated><id>/pentest/2017/11/13/pentest-for-blackbox</id><content type="html" xml:base="/pentest/2017/11/13/pentest-for-blackbox/">&lt;p&gt;
+&lt;p&gt;在以后恢复开发工作时，应该会有更多的思路更新，与诸君共勉！&lt;/p&gt;</content><author><name>HellSec</name></author><category term="pentest" /><summary type="html">在我们的测试中，可能在对大型目标进行探测时，人手不足就会显得特别无力。这时候，使用机器代替人工进行一些重复性工作，就显得尤为重要。咱们在这儿来谈谈，如何开发和部署APT渗透系统的架构。</summary></entry><entry><title type="html">黑盒漏洞挖掘（WEB篇）</title><link href="http://localhost:4000/pentest/2017/11/13/pentest-for-blackbox/" rel="alternate" type="text/html" title="黑盒漏洞挖掘（WEB篇）" /><published>2017-11-13T16:41:18+08:00</published><updated>2017-11-13T16:41:18+08:00</updated><id>http://localhost:4000/pentest/2017/11/13/pentest-for-blackbox</id><content type="html" xml:base="http://localhost:4000/pentest/2017/11/13/pentest-for-blackbox/">&lt;p&gt;
 	&lt;span style=&quot;color:#DAA520;&quot;&gt;&lt;strong&gt;在安全测试中，我们常常会遇到一些重复性工作。而鄙人记性不佳，有时候并不能高效的进行工作。因此，自己萌生了撰写工作总结的想法，将以往的工作列清单，做一个总结，以作查阅之用。&lt;/strong&gt;&lt;/span&gt;
 &lt;/p&gt;
 
@@ -3458,7 +3649,7 @@ nmap -sS -sV -p- –script=”http-title,banner” 192.168.2.10&lt;/li&gt;
   &lt;li&gt;调用callback内容时，其内容也许可控，我们可以尝试往里面注入污染语句。最后，再尝试寻找调用callback的地方。&lt;/li&gt;
   &lt;li&gt;找后台一般有几种情况，可以是子目录，也可以是同域名下其他端口，甚至是其他子域名。比如统一SSO登录的情况下，一套网站总会有一个唯一入口。但由于历史的原因，总会遗漏和不统一的地方，那就是我们的突破口。&lt;/li&gt;
   &lt;li&gt;待续。&lt;/li&gt;
-&lt;/ul&gt;</content><author><name>HellSec</name></author><category term="pentest" /><summary type="html">在安全测试中，我们常常会遇到一些重复性工作。而鄙人记性不佳，有时候并不能高效的进行工作。因此，自己萌生了撰写工作总结的想法，将以往的工作列清单，做一个总结，以作查阅之用。</summary></entry><entry><title type="html">域名采集爬虫</title><link href="/spider/2017/10/19/domain-spider/" rel="alternate" type="text/html" title="域名采集爬虫" /><published>2017-10-19T20:59:18+08:00</published><updated>2017-10-19T20:59:18+08:00</updated><id>/spider/2017/10/19/domain-spider</id><content type="html" xml:base="/spider/2017/10/19/domain-spider/">&lt;p&gt;
+&lt;/ul&gt;</content><author><name>HellSec</name></author><category term="pentest" /><summary type="html">在安全测试中，我们常常会遇到一些重复性工作。而鄙人记性不佳，有时候并不能高效的进行工作。因此，自己萌生了撰写工作总结的想法，将以往的工作列清单，做一个总结，以作查阅之用。</summary></entry><entry><title type="html">域名采集爬虫</title><link href="http://localhost:4000/spider/2017/10/19/domain-spider/" rel="alternate" type="text/html" title="域名采集爬虫" /><published>2017-10-19T20:59:18+08:00</published><updated>2017-10-19T20:59:18+08:00</updated><id>http://localhost:4000/spider/2017/10/19/domain-spider</id><content type="html" xml:base="http://localhost:4000/spider/2017/10/19/domain-spider/">&lt;p&gt;
     &lt;span style=&quot;color:#00B050;&quot;&gt;&lt;strong&gt;
     前段时间在研究扫描器的问题，在涉及域名采集这块时， 突然有了一些特别的想法，所以单独将这个模块提取出来，做成了一套独立系统。
     &lt;/strong&gt;&lt;/span&gt;
@@ -3525,210 +3716,4 @@ nmap -sS -sV -p- –script=”http-title,banner” 192.168.2.10&lt;/li&gt;
 
 &lt;p&gt;代码由于还需要优化，暂时没有放出，以后会补上。&lt;/p&gt;
 
-&lt;p&gt;待续。&lt;/p&gt;</content><author><name>HellSec</name></author><category term="spider" /><summary type="html">前段时间在研究扫描器的问题，在涉及域名采集这块时， 突然有了一些特别的想法，所以单独将这个模块提取出来，做成了一套独立系统。</summary></entry><entry><title type="html">爬虫去重优化</title><link href="/spider/2017/10/14/url-duplicate-removal/" rel="alternate" type="text/html" title="爬虫去重优化" /><published>2017-10-14T08:05:18+08:00</published><updated>2017-10-14T08:05:18+08:00</updated><id>/spider/2017/10/14/url-duplicate-removal</id><content type="html" xml:base="/spider/2017/10/14/url-duplicate-removal/">&lt;p&gt;
-    &lt;span style=&quot;color:#DAA520;&quot;&gt;&lt;strong&gt;以前在做漏洞Fuzz爬虫时，曾做过URL去重相关的工作，当时是参考了seay法师的文章以及网上零碎的一些资料，感觉做的很简单。近来又遇到相关问题，于是乎有了再次改进算法的念头。&lt;/strong&gt;&lt;/span&gt;
-&lt;/p&gt;
-
-&lt;p&gt;首先，针对URL本身的去重，可以直接对整块URL进行处理。在参考网上的一些文章时，发现它们大多做了URL压缩存储。使用这些算法在数据量较大的时候，诚然能大幅减小存储的空间：&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;
-    &lt;p&gt;基于磁盘的顺序存储。&lt;/p&gt;
-  &lt;/li&gt;
-  &lt;li&gt;
-    &lt;p&gt;基于Hash算法的存储。&lt;/p&gt;
-  &lt;/li&gt;
-  &lt;li&gt;
-    &lt;p&gt;基于MD5压缩映射的存储。&lt;/p&gt;
-  &lt;/li&gt;
-  &lt;li&gt;
-    &lt;p&gt;基于嵌入式Berkeley DB的存储。&lt;/p&gt;
-  &lt;/li&gt;
-  &lt;li&gt;
-    &lt;p&gt;基于布隆过滤器（Bloom Filter）的存储。&lt;/p&gt;
-  &lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;而对于URL逻辑上的去重，这里先给出seay文章中的相似度去重算法，大致是下面这样的：&lt;/p&gt;
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;def urlsimilar(url):
-        hash_size=199999
-        tmp=urlparse.urlparse(url)
-        scheme=tmp[0]
-        netloc=tmp[1]
-        path=tmp[2][1:]
-        query=tmp[4]
-        #First get tail
-        if len(path.split('/'))&amp;gt;1:
-            tail=path.split('/')[-1].split('.')[-1]
-            #print tail
-        elif len(path.split('/'))==1:
-            tail=path
-        else:
-            tail='1'
-         #Second get path_length
-        path_length=len(path.split('/'))-1
-        #Third get directy list except last
-        path_list=path.split('/')[:-1]+[tail]
-        #Fourth hash
-        path_value=0
-        for i in range(path_length+1):
-            if path_length-i==0:
-                path_value+=hash(path_list[path_length-i])%98765
-            else:
-                path_value+=len(path_list[path_length-i])*(10**(i+1))
-
-        #get host hash value
-        netloc_value=hash(hashlib.new(&quot;md5&quot;,netloc).hexdigest())%hash_size
-        url_value=hash(hashlib.new(&quot;md5&quot;,str(path_value+netloc_value)).hexdigest())%hash_size
-
-        return url_value
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-&lt;p&gt;这段函数的大概作用是，最后它会根据算法返回一个hash值，这个hash值也就是该URL的hash相似度。如果两个URL计算出的hash值最后比较相等，我们则可以判断两个URL是具有较高的相似度的。&lt;/p&gt;
-
-&lt;p&gt;但是这个函数应该是seay举例时随手提出的（这里强调下，免得被喷，后文不再细说），只是简单做了demo，并没有进行细化检验。在比较粗糙的情况下，该算法确实能剔除一些简单的参数重复的情况，但一旦参数复杂或者url不规范，是不太能很好的进行去重的。&lt;/p&gt;
-
-&lt;p&gt;那么在针对URL获取的过程中，我们还可以做的小优化有哪些呢？&lt;/p&gt;
-
-&lt;h3 id=&quot;日期时间命名&quot;&gt;日期时间命名&lt;/h3&gt;
-&lt;p&gt;首先，我们可以根据日期来去重。我们知道，在爬取一些Blog和和门户等系统时，经常会遇到以日期命名的目录。&lt;/p&gt;
-
-&lt;p&gt;这些目录大概归纳起来，存在类似下面的形式：&lt;/p&gt;
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;
-2010-11-11
-10-11-11
-20101111
-
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-&lt;p&gt;当然，还有些文件会以时间+随机值命名，也可能是用unix时间戳命名，这些可能是根据上传和编辑时间来定义的。&lt;/p&gt;
-
-&lt;p&gt;笔者建议是，使用redis或者memcache之类等缓存型数据库，将其直接存储;或者在数据大的时候，考虑作为临时hash set存储。&lt;/p&gt;
-
-&lt;p&gt;比如，一旦出现日期时间命名的目录或静态文件，我们可以将其URL地址作为样本存储在数据库里，存储的内容可以是：&lt;/p&gt;
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;目录层级
-命名格式
-URL地址(或hash值)
-
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-&lt;p&gt;有人可能说，在前面seay提出的那个案例里，好像是可以解决类似日期相似度的问题。那我们先看看下面的例子，此处输出仍然基于上面那个函数：&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;print urlsimilar('http://www.baidu.com/blog/2010-10-11/')
-print urlsimilar('http://www.baidu.com/blog/2010-10-13/')
-print urlsimilar('http://www.baidu.com/blog/2010-9-13/')
-print urlsimilar('http://www.baidu.com/whisper/2010-10-11/')
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-&lt;p&gt;输出结果如下：&lt;/p&gt;
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;110086
-110086
-37294
-4842
-
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-&lt;p&gt;我们可以看到，在普通情况下，确实于相同父级目录下，相似度算法是可以判断正确的。
-但是一旦日期格式不规范，或者父级目录存在一定的差异，这里是不能很好的判断的。&lt;/p&gt;
-
-&lt;p&gt;当然，我们也可以通过机器学习来完成去重的工作。不过就简化工作而言，还是可以使用一些小Tips，根据规则匹配来做到。&lt;/p&gt;
-
-&lt;h3 id=&quot;静态文件的去重&quot;&gt;静态文件的去重&lt;/h3&gt;
-
-&lt;p&gt;我们知道，在爬取URL的过程中，也会遇到许多静态文件，如shtml、html、css等等。这些文件在大多数的情况下，是没有太大意义的。除非测试者倾向于使用“宁可错杀一百，绝不放过一个”的全量采集手法。&lt;/p&gt;
-
-&lt;p&gt;这时候，我们可以配置黑名单，建立文件后缀规则库进行过滤。&lt;/p&gt;
-
-&lt;p&gt;当然，在这些静态后缀的URL链接，也可能带上参数混淆的情况。
-个人建议是，用于回调的json、xml等URL，里面可能储存敏感内容，尽量别动；其他类型的静态文件，仍然采取将参数分离的方式，最后对URL进行去重存储。&lt;/p&gt;
-
-&lt;h3 id=&quot;特定情况的过滤&quot;&gt;特定情况的过滤&lt;/h3&gt;
-
-&lt;p&gt;在爬取特定网站时，我们可以预先做好配置，指定过滤一些目录和页面，以节省大量时间资源。&lt;/p&gt;
-
-&lt;p&gt;反过来，我们也可以指定只爬取指定目录下的页面，定向获取我们想要的内容。&lt;/p&gt;
-
-&lt;h3 id=&quot;敏感页面的感知&quot;&gt;敏感页面的感知&lt;/h3&gt;
-
-&lt;p&gt;在seay提出的demo算法中，是有一定局限的。比如我们需要在敏感目录下，尽可能多的拿到文件信息。比如我们爬取到了后台管理目录，可能会遇到下面的情况：&lt;/p&gt;
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;print urlsimilar('http://www.baidu.com/blog/admin/login.php')
-print urlsimilar('http://www.baidu.com/blog/admin/manage_index.php')
-print urlsimilar('http://www.baidu.com/blog/admin/test.css')
-
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;输出结果如下：&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;40768
-40768
-40768
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-&lt;p&gt;很明显有问题不是么？&lt;/p&gt;
-
-&lt;p&gt;当然，我们可以通过对敏感页面关键词进行监控；或者也可以指定后缀文件，进行白名单监控。&lt;/p&gt;
-
-&lt;p&gt;但是一旦这样做，而且还想采用前面的hash算法的话，大家定义的过滤函数的优先级，肯定需要大于该算法。并且，我们在这样做的过程中，也应该考虑过滤成本的问题，建议采用选择性启用。&lt;/p&gt;
-
-&lt;h3 id=&quot;高频敏感目录的优待&quot;&gt;高频敏感目录的优待&lt;/h3&gt;
-
-&lt;p&gt;可能在爬取的过程中，部分爬虫是并用了目录爆破的手段的。如果采用了这种手法并且匹配成功后，我们可以将该目录下的内容单独使用一份过滤规则，从而避免去重算法的误判。&lt;/p&gt;
-
-&lt;h3 id=&quot;响应页面的过滤&quot;&gt;响应页面的过滤&lt;/h3&gt;
-
-&lt;p&gt;对于某些网站来讲，可能有不少页面因为链接是失效的，会被冠以404页面和50x错误。另外，在无权访问的时候，可能网站会做30x跳转和403目录限制。&lt;/p&gt;
-
-&lt;p&gt;这些页面没有实质性内容，在大多数时候是没有意义的，我们可以在配置文件里对需要爬取的这类页面做白名单，比如保留403页面，或者存取30x跳转前（后）的页面。&lt;/p&gt;
-
-&lt;h3 id=&quot;waf警告页面过滤&quot;&gt;WAF（警告）页面过滤&lt;/h3&gt;
-
-&lt;p&gt;某些网站可能被装上了WAF，在访问频率过快时，可能会得到一个WAF的警告页面。而在CMS本身就做了限制的情况下，会以20x的响应码展示一些没有不存在的页面。&lt;/p&gt;
-
-&lt;p&gt;当然，我们可以通过分布式换代理的方式，去解决部分这样的问题，这里先不多做讨论。&lt;/p&gt;
-
-&lt;p&gt;这时候，我们可以配置相应的次数阈值，如果某些页面出现的次数过多，可以将其标记为警告（WAF）页面，进而做出过滤处理。这里对某页面的识别，可以通过黑名单关键字标记，或者计算页面hash值，比如下面这样：&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;content = urllib2.urlopen('http://www.test.com/').read()
-md5_sum = hashlib.md5()
-md5_sum.update(content)
-print md5_sum.hexdigest()
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;当然，我们在实际计算页面hash值和取关键字（做分词或黑名单）时，也可能由于反爬虫机制的存在（如添加随机值），需要适时调整相似度来计算hash值或者采用其他手段。当然这也会消耗更多的时间和机器资源。但某些特定的情况下，可能也会带来意想不到的收获。&lt;/p&gt;
-
-&lt;h3 id=&quot;无意义参数页面去重&quot;&gt;无意义参数页面去重&lt;/h3&gt;
-
-&lt;p&gt;我们在采集页面的过程中，同样有可能会遇到一些毫无意义的、高频出现的、多参数页面。这类页面可能是回调页面，也可能是临时渲染的随机页面。&lt;/p&gt;
-
-&lt;p&gt;在这里，大家可以通过前面处理WAF（警告）的方法进行过滤。当然，使用前面的hash算法也是可以应对大部分情况的。毕竟网站的这类的URL有限，不必为了几种特型去消耗更多的资源，这样得不偿失。&lt;/p&gt;
-
-&lt;h3 id=&quot;js代码中的url&quot;&gt;JS代码中的URL&lt;/h3&gt;
-
-&lt;p&gt;在我们提取js代码，也就是遇到ajax之类的交互情况时，可能会遇到需要拼接的GET请求，或者直接可以取用的POST请求。&lt;/p&gt;
-
-&lt;p&gt;这类的URL地址，最好是结合phantomjs等webkit，更方便地进行动态拼接。&lt;/p&gt;
-
-&lt;p&gt;它们会显得比较特殊，可能仅仅返回状态码，也可能会返回实质性的敏感内容。这种情况，就需要根据爬取者的要求，对爬取的过滤规则进行适应性调整。&lt;/p&gt;
-
-&lt;h3 id=&quot;总结&quot;&gt;总结&lt;/h3&gt;
-
-&lt;p&gt;这里旨在提出一些对相似URL去重的小优化，可能效果有限，也可能存在未尽人意之处。欢迎大家提出建议，诸君共勉。&lt;/p&gt;
-
-&lt;h3 id=&quot;参考文章&quot;&gt;参考文章&lt;/h3&gt;
-
-&lt;p&gt;如何避免重复抓取同一个网页
-https://segmentfault.com/q/1010000002664904&lt;/p&gt;
-
-&lt;p&gt;浅谈动态爬虫与去重
-http://bobao.360.cn/learning/detail/3391.html&lt;/p&gt;
-
-&lt;p&gt;网络爬虫：URL去重策略之布隆过滤器(BloomFilter)的使用
-http://blog.csdn.net/lemon_tree12138/article/details/47973715&lt;/p&gt;
-
-&lt;p&gt;实用科普：爬虫技术浅析 编写爬虫应注意的点
-http://www.cnseay.com/?p=4102&lt;/p&gt;
-
-&lt;p&gt;网络爬虫 (spider) URL消重设计 URL去重设计
-http://woshizn.iteye.com/blog/532605&lt;/p&gt;</content><author><name>DEMON</name></author><summary type="html">以前在做漏洞Fuzz爬虫时，曾做过URL去重相关的工作，当时是参考了seay法师的文章以及网上零碎的一些资料，感觉做的很简单。近来又遇到相关问题，于是乎有了再次改进算法的念头。</summary></entry></feed>
+&lt;p&gt;待续。&lt;/p&gt;</content><author><name>HellSec</name></author><category term="spider" /><summary type="html">前段时间在研究扫描器的问题，在涉及域名采集这块时， 突然有了一些特别的想法，所以单独将这个模块提取出来，做成了一套独立系统。</summary></entry></feed>
