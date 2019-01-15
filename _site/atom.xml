@@ -1,4 +1,185 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.5.2">Jekyll</generator><link href="http://localhost:4000/atom.xml" rel="self" type="application/atom+xml" /><link href="http://localhost:4000/" rel="alternate" type="text/html" /><updated>2018-12-27T17:26:27+08:00</updated><id>http://localhost:4000/</id><title type="html">HellSec</title><subtitle>原创网络安全博客&lt;-|-&gt;匠心独运，做有深度的良品。</subtitle><author><name>HellSec</name></author><entry><title type="html">漫谈漏洞扫描</title><link href="http://localhost:4000/scanner/2018/12/27/talk-about-scanner-roads/" rel="alternate" type="text/html" title="漫谈漏洞扫描" /><published>2018-12-27T16:42:38+08:00</published><updated>2018-12-27T16:42:38+08:00</updated><id>http://localhost:4000/scanner/2018/12/27/talk-about-scanner-roads</id><content type="html" xml:base="http://localhost:4000/scanner/2018/12/27/talk-about-scanner-roads/">&lt;p&gt;
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.5.2">Jekyll</generator><link href="http://localhost:4000/atom.xml" rel="self" type="application/atom+xml" /><link href="http://localhost:4000/" rel="alternate" type="text/html" /><updated>2019-01-15T16:00:16+08:00</updated><id>http://localhost:4000/</id><title type="html">HellSec</title><subtitle>原创网络安全博客&lt;-|-&gt;匠心独运，做有深度的良品。</subtitle><author><name>HellSec</name></author><entry><title type="html">分布式扫描填坑杂谈</title><link href="http://localhost:4000/scanner/2019/01/15/talk-about-scanner-settings/" rel="alternate" type="text/html" title="分布式扫描填坑杂谈" /><published>2019-01-15T15:49:21+08:00</published><updated>2019-01-15T15:49:21+08:00</updated><id>http://localhost:4000/scanner/2019/01/15/talk-about-scanner-settings</id><content type="html" xml:base="http://localhost:4000/scanner/2019/01/15/talk-about-scanner-settings/">&lt;p&gt;
+	&lt;span style=&quot;color:#00B050;&quot;&gt;&lt;strong&gt;前段时间团队新加了几台服务器，因为现行的扫描器是支持分布式的，所以及时进行了分布式部署。结果在调试分布式配置时，还是遇到许多坑，忙完一阵子闲下来了，正好整理下记录。&lt;/strong&gt;&lt;/span&gt;
+&lt;/p&gt;
+
+&lt;p&gt;在本文中，将简单谈谈我这边采用的技术栈，有关对分布式填坑的经历，大家注意这里依旧是采用的python code。&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;celery库版本&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;以root权限启动root的问题，低版本不识别，会报错，这里使用的是celery==3.1.2x。&lt;/p&gt;
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;from celery import Celery, platforms
+platforms.C_FORCE_ROOT = True
+
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;redis库版本&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;版本不合适，或者worker和server版本不对等的话，可能出现celery worker 开启不久就offline的问题，或者redis会不时的掉线重连。&lt;/p&gt;
+
+&lt;p&gt;这里把redis库的版本，从原来的redis==3.0.x降级到redis==2.10.x，基本解决了上述bug。&lt;/p&gt;
+
+&lt;p&gt;需要注意的是，在celery高版本的时候（比如4.x），可能会需要匹配3.x的redis库，大家看情况而定。&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;重连机制&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;我们这里在后端存储结果，考虑到复杂sql交叉调用，还是采用的关系数据库mysql。&lt;/p&gt;
+
+&lt;p&gt;局域网中数据库写入，需要考虑重连机制，常用的如MySQLdb库，原生无重连机制，需要自己重写。&lt;/p&gt;
+
+&lt;p&gt;这里推荐两个模块，都支持重连：&lt;/p&gt;
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;torndb
+facebook开源的一个基于MySQLdb二次封装的一个mysql模块。
+pymysql
+比较常用，需要python3。
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;加强存取稳定性&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;如果想要加强局域网数据存取的稳定性，除了把上述的超时和重连配置好以外，暂时有两个办法：&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;第一：可以将存入局域网数据库服务器失败的数据，暂存本地关系数据库。采用定时调度器，或者监控网络空闲时，再进行同步
+。&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;第二：可以将命令或者数据直接写入本地中间件，当监控到网络空闲时间，自动同步。&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;另外，笔者这方面经验比较浅，欢迎运维大佬和coding大佬多多指教下这一块儿有没有其他可优化的点。&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;局域网调试&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;检测网络状态，可以看出ping其他worker是通的：&lt;/p&gt;
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&amp;gt;&amp;gt;&amp;gt; app = Celery('test', backend='redis://random_host:6379/0', broker='redis://random_host:6379/0')
+&amp;gt;&amp;gt;&amp;gt; app.control.ping(timeout=0.5)
+
+[{'worker1.example.com': 'pong'},
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;查看时区差异:&lt;/p&gt;
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&amp;gt;&amp;gt;&amp;gt; from celery.utils.timeutils import utcoffset
+&amp;gt;&amp;gt;&amp;gt; utcoffset()
+
+0
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;p&gt;库版本不同步等原因，可能造成worker和server的时间不同步。而且时间不同步，似乎会导致celery的超时机制不可用。&lt;/p&gt;
+
+&lt;p&gt;我们可以安装ntp服务，自动更新时间，同步server和worker的指定python库版本，示例命令如下【每个系统情况不一定适用】：&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;apt-get install ntp
+service ntp start
+#手动更新时间
+date -R
+
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;监控woker状态的一些点，可以参考这篇文章：&lt;/p&gt;
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;https://fangchichen.github.io/fangchichen.github.io/2018/08/08/celery%E5%87%BA%E7%8E%B0worker%E5%BC%82%E5%B8%B8offline%E6%83%85%E5%86%B5/
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;celery关键配置&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;还是那句话，各系统情况不同，
+这里仅仅贴出几个关键点,大家觉得可以优化的地方可以讨论下：&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;#任务预取功能，就是每个工作的进程／线程在获取任务的时候，会尽量多拿 n 个，以保证获取的通讯成本可以压缩。
+CELERYD_PREFETCH_MULTIPLIER = 1
+
+#这个表示每个工作的进程／线程 在执行 n 次任务后，主动销毁，之后会起一个新的，主要解决一些资源释放的问题。
+CELERYD_MAX_TASKS_PER_CHILD = 1
+
+#不存取返回结果，加快响应速度。
+CELERY_IGNORE_RESULT=False
+
+#该配置可以保证task不丢失，中断的task在下次启动时将会重新执行。
+TASK_REJECT_ON_WORKER_LOST = True
+#不会多拿任务，只有当worker完成了这个task时，任务才被标记为ack状态。
+#只有当worker完成了这个task时，任务才被标记为ack状态
+CELERY_ACKS_LATE = True
+
+#解决时区同步问题
+CELERY_TIMEZONE = 'Asia/Shanghai'
+CELERY_ENABLE_UTC = True
+USE_TZ = True
+
+#broker的连接超时时间。
+BROKER_CONNECTION_TIMEOUT = 20
+
+#如果确认是因为当前worker的并发是prefork（多进程）,并且可能是由于死锁原因造成，4.0之后的版本不支持。
+CELERYD_FORCE = True
+
+#任务超时会分配给其他worker
+BROKER_TRANSPORT_OPTIONS = {'visibility_timeout': 3600}
+
+#禁用所有速度限制，如果网络资源有限，不建议开足马力。
+#CELERY_DISABLE_RATE_LIMITS = True
+#CELERY_ACKS_LATE = True
+#CELERY_IGNORE_RESULT = True
+
+#这个表示保存任务结果的时长，这个时间会被设置到 backend 里面
+#CELERY_TASK_RESULT_EXPIRES = 3600
+
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;celery命令行参数&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Queue还是建议启用的，方便清空，也方便指定queuename运行特定任务。
+比如配置文件里这么写:&lt;/p&gt;
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;CELERY_QUEUES = (
+            Queue('default', Exchange('default'), routing_key='default'),
+            Queue('wakaka', Exchange('wakaka'), routing_key='wakaka'),
+            )
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;那么，命令行可以这么输入：&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;celery -A test worker -E -l INFO -n workername -Q wakaka --concurrency=4
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;注意，–concurrency的值是并发进程数，这是由你的CPU个数决定性能的，不要设太高。&lt;/p&gt;
+
+&lt;p&gt;win下的话，在高版本celery 4.x，默认的是prefork，报错解决方法如下：&lt;/p&gt;
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;pip install eventlet
+celery -A proj worker -l info -P eventlet
+
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;最后，建议大家不要在win下运行celery，似乎4.x以后某个版本已经放弃支持，而且win下有很多坑没法填。&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;任务调度框架&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;关于任务调度这一块儿，除了celery，感觉dramatiq和rq的坑会少些，以后会抽空来谈谈。&lt;/p&gt;
+
+&lt;h3 id=&quot;结语&quot;&gt;结语&lt;/h3&gt;
+
+&lt;p&gt;以上配置和分析内容，是摸索和查资料得来的，感谢前辈们的开源共享。&lt;/p&gt;</content><author><name>HellSec</name></author><category term="scanner" /><summary type="html">前段时间团队新加了几台服务器，因为现行的扫描器是支持分布式的，所以及时进行了分布式部署。结果在调试分布式配置时，还是遇到许多坑，忙完一阵子闲下来了，正好整理下记录。</summary></entry><entry><title type="html">漫谈漏洞扫描</title><link href="http://localhost:4000/scanner/2018/12/27/talk-about-scanner-roads/" rel="alternate" type="text/html" title="漫谈漏洞扫描" /><published>2018-12-27T16:42:38+08:00</published><updated>2018-12-27T16:42:38+08:00</updated><id>http://localhost:4000/scanner/2018/12/27/talk-about-scanner-roads</id><content type="html" xml:base="http://localhost:4000/scanner/2018/12/27/talk-about-scanner-roads/">&lt;p&gt;
 	&lt;span style=&quot;color:#DAA520;&quot;&gt;&lt;strong&gt;研究漏扫这块儿有段时间了，虽然是业余自己玩，但平素跟公司漏扫产品线打交道比较多，稍微有些心得，在这里简单分享下。&lt;/strong&gt;&lt;/span&gt;
 &lt;/p&gt;
 
@@ -3649,71 +3830,4 @@ nmap -sS -sV -p- –script=”http-title,banner” 192.168.2.10&lt;/li&gt;
   &lt;li&gt;调用callback内容时，其内容也许可控，我们可以尝试往里面注入污染语句。最后，再尝试寻找调用callback的地方。&lt;/li&gt;
   &lt;li&gt;找后台一般有几种情况，可以是子目录，也可以是同域名下其他端口，甚至是其他子域名。比如统一SSO登录的情况下，一套网站总会有一个唯一入口。但由于历史的原因，总会遗漏和不统一的地方，那就是我们的突破口。&lt;/li&gt;
   &lt;li&gt;待续。&lt;/li&gt;
-&lt;/ul&gt;</content><author><name>HellSec</name></author><category term="pentest" /><summary type="html">在安全测试中，我们常常会遇到一些重复性工作。而鄙人记性不佳，有时候并不能高效的进行工作。因此，自己萌生了撰写工作总结的想法，将以往的工作列清单，做一个总结，以作查阅之用。</summary></entry><entry><title type="html">域名采集爬虫</title><link href="http://localhost:4000/spider/2017/10/19/domain-spider/" rel="alternate" type="text/html" title="域名采集爬虫" /><published>2017-10-19T20:59:18+08:00</published><updated>2017-10-19T20:59:18+08:00</updated><id>http://localhost:4000/spider/2017/10/19/domain-spider</id><content type="html" xml:base="http://localhost:4000/spider/2017/10/19/domain-spider/">&lt;p&gt;
-    &lt;span style=&quot;color:#00B050;&quot;&gt;&lt;strong&gt;
-    前段时间在研究扫描器的问题，在涉及域名采集这块时， 突然有了一些特别的想法，所以单独将这个模块提取出来，做成了一套独立系统。
-    &lt;/strong&gt;&lt;/span&gt;
-&lt;/p&gt;
-
-&lt;p&gt;对于域名采集技术，市面上大概有这样几种：&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;DNS域传送泄露&lt;/li&gt;
-  &lt;li&gt;接口查询（包括aizhan，shodan等）&lt;/li&gt;
-  &lt;li&gt;字典枚举&lt;/li&gt;
-  &lt;li&gt;Github泄露&lt;/li&gt;
-  &lt;li&gt;搜索引擎泄露&lt;/li&gt;
-  &lt;li&gt;SSL/TLS证书泄露&lt;/li&gt;
-  &lt;li&gt;DNS历史记录泄露&lt;/li&gt;
-  &lt;li&gt;置换扫描枚举法&lt;/li&gt;
-  &lt;li&gt;互联网自治系统号码(ASN)枚举&lt;/li&gt;
-  &lt;li&gt;NSEC记录枚举&lt;/li&gt;
-  &lt;li&gt;互联网项目数据集枚举&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;不过这里要谈的显然不是这种，尽管自研的扫描器里已经集成了前面说的这些，今天的主角是域名采集爬虫。&lt;/p&gt;
-
-&lt;p&gt;那么何谓域名采集爬虫呢，其实也是老概念。我们要先从一个URL或者多个URL入口进行爬取。在开始，需要设定好爬行深度和允许爬行的根域名，通过不断地迭代存取和过滤，直到爬取完所有可触及的域名为止。&lt;/p&gt;
-
-&lt;p&gt;这样的域名采集方法，较其他技术优势在于：&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;能采到不被搜索引擎收录的可用域名。&lt;/li&gt;
-  &lt;li&gt;囊括范围广，除去CDN影响，能更多地去收集目标资产。&lt;/li&gt;
-  &lt;li&gt;细致入微，在域名采集普及的时代，厂商一般子域名都会多加注意起名，这样做能多收获一些隐藏域名。&lt;/li&gt;
-  &lt;li&gt;可分布式，相对于普通的单机大字典爆破，可以选择性节省更多的时间。&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;当然讲了这么多，其劣势也很明显：&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;将耗费更多的时间和各类资源，即使采用了分布式，由于需要考虑部分目标主机的脆弱性，建立的连接数还是有限的。&lt;/li&gt;
-  &lt;li&gt;容易被封，WAF和各种IDS的规则在检测到爬虫后，可能会直接封禁IP，不过这点可以通过技术手段缓解。&lt;/li&gt;
-  &lt;li&gt;不易部署，相对于常用的域名接口查询和爆破，这点的劣势还是相当明显的。&lt;/li&gt;
-  &lt;li&gt;比较鸡肋，没有太多Team会专门为了爬取域名单独建立一个可用的爬虫体系，一般是扫描器只兼容了传统接口。&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;优劣对比还是比较明显的，这里不多做探讨，下面纯技术介绍。&lt;/p&gt;
-
-&lt;p&gt;这里的系统采用的是scrapy+django+mongodb，每采集好一批数据后，将存入mongodb，其中的数据包括：&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;页面源URL
-子域名
-根域名
-
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;后续其他项目将会解析生成的所有子域名，最后再进行资产汇总计算。这些本不属于此项目，不再细说。&lt;/p&gt;
-
-&lt;p&gt;另外，在采集过程中，爬虫会在中间件（合规的做法如此，笔者则是直接在爬虫文件里进行的过滤），根据条件过滤重复和不合规的URL。&lt;/p&gt;
-
-&lt;p&gt;代码其实很简单，现在已有的是前台查询+后台爬虫（命令行）的形式。后期如果项目可用，会加上前台scrapyd发布任务+MMQ分布式队列缓存。&lt;/p&gt;
-
-&lt;p&gt;另外，以后也考虑集成传统接口、泄露查询和枚举模块。&lt;/p&gt;
-
-&lt;p&gt;至于为啥现在没有做，因为懒。&lt;/p&gt;
-
-&lt;p&gt;代码由于还需要优化，暂时没有放出，以后会补上。&lt;/p&gt;
-
-&lt;p&gt;待续。&lt;/p&gt;</content><author><name>HellSec</name></author><category term="spider" /><summary type="html">前段时间在研究扫描器的问题，在涉及域名采集这块时， 突然有了一些特别的想法，所以单独将这个模块提取出来，做成了一套独立系统。</summary></entry></feed>
+&lt;/ul&gt;</content><author><name>HellSec</name></author><category term="pentest" /><summary type="html">在安全测试中，我们常常会遇到一些重复性工作。而鄙人记性不佳，有时候并不能高效的进行工作。因此，自己萌生了撰写工作总结的想法，将以往的工作列清单，做一个总结，以作查阅之用。</summary></entry></feed>
