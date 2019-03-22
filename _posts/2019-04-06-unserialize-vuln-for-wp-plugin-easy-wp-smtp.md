@@ -1,7 +1,7 @@
 ---
 layout: post
 title:  "WordPress Easy WP SMTP反序列化漏洞分析"
-date:   2019-03-21 16:31:21 +0800
+date:   2019-04-06 16:31:21 +0800
 categories: bug
 category: bug
 ---
@@ -130,7 +130,7 @@ $result = $wpdb->update( $wpdb->options, $update_args, array( 'option_name' => $
 附上数据库wp_options表查询的最初始的默认结果：
 ![](http://ww1.sinaimg.cn/large/697f6f27ly1g1agtwdr61j210i0dujsn.jpg)
 
-手慢很少写分析漏洞文章，可能略显啰嗦，只是为了给小白解释的清楚些，大佬们见谅。
+本文可能略显啰嗦，只是为了给小白解释的清楚些，大佬们见谅。
 
 引用文章：
 

