@@ -307,6 +307,356 @@
   
 
   <article class="post post-type- " itemscope itemtype="http://schema.org/Article">
+    <link itemprop="mainEntityOfPage" href="http://localhost:4000/tips/2013/09/26/e8-af-bb-e4-b9-a6-e7-ac-94-e8-ae-b0-xss-e9-92-93-e9-b1-bc-e7-9a-84-e6-80-9d-e8-80-83-e4-b8-8e-e5-bb-b6-e4-bc-b8/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="HellSec">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="assets/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="HellSec">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+          
+          
+            
+                
+                <a class="post-title-link" href="/tips/2013/09/26/e8-af-bb-e4-b9-a6-e7-ac-94-e8-ae-b0-xss-e9-92-93-e9-b1-bc-e7-9a-84-e6-80-9d-e8-80-83-e4-b8-8e-e5-bb-b6-e4-bc-b8/" itemprop="url">
+                《XSS跨站攻防》读书笔记-钓鱼的思考与延伸
+              </a>
+            
+          
+        </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2013-09-26T13:31:00+08:00">
+                2013-09-26
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/category/#/tips" itemprop="url" rel="index">
+                    <span itemprop="name">tips</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          <p>邱哥文中的一句话说的很好，现在对于cookie限制采用了很多技术，比如令牌验证，比如会话过期时间，卡的比较死算是httponly，一旦使用，如果一旦是域全局限制，整个一个痛字了得！
+由此而论，钓鱼手法是一种针对低权限下较为保守的做法，而且具有一定的可靠性，在取得真实帐密后，也免去了复杂加密的痛苦。当然，前提是，你能懂得欺骗的艺术—事见凯文米特尼克的大作。
+目前市面上流传的xss钓鱼手法不少，本来么，在互联网大众化的时代，没有你做不到的，只有你想不到的。传统的互联网的钓鱼手法很多都可以改装后运用到xss上。
+第一：重定向和伪造，这两种小弟认为是不太具有太大的诱惑力的，一般只能骗骗不小心的孩纸，在网友日益增长的意识面前，不改变网址的高仿的页面已经不太够看了，当然内嵌表单和单点覆盖还是个不错的手法，如果对网站不够熟悉，很可能就在不经意的位置中招而了无所知。
+在这里小弟补充一点自己的看法，举个栗子，clickjacking是一种好的法子，他会通过某种诱惑，比如以苍、武二老师的温柔乡作幌子，欺骗你去点击一个你看不到的，且不该点击的东西。Form框输入欺骗也是一样，在取得你的输入后，他也许会试图传值，post给真正的登陆页面，然后返回导向。你会发现，你已经登陆了。不过，你的个人隐私和帐密却已经悄悄的 被copy到了某处，静静等待着罪恶的发生。
+第二：关于“高级”钓鱼，就以邱哥思想来说，就是在更加隐蔽的层次进行劫持和记录（话说邱哥貌似还删了一部分比较完整的，没能看上原稿甚是遗憾）。其中一种手法便是在表单submit时截获数据，通过节点取得我们所需的value。当然，我们取得数据的触发和时机也可以换。比如可以在在输入最后一个登陆框之后进行一个快速的遍历（可以避免故意输入错误或者截获数据的完整性），因为JS本地执行是优先于服务端的反应的。而另一种，小弟并不太喜欢，即键盘记录劫持钓鱼（不知道以后杀软会不会根据特征和行为对此劫持报毒），使用JS自带的触发可以做许多的事。
+小弟尝试写了下点击劫持，360并没有报危险，看来杀软BS模式的特征行为也许有待改进，不过版本稍微新点的浏览器会有提示或者直接过滤。
+<span style="color: #ff0000;"> &lt;html&gt;</span>
+<span style="color: #ff0000;">&lt;head&gt;</span>
+<span style="color: #ff0000;">&lt;script&gt;</span>
+<span style="color: #ff0000;">function txt(sb)</span>
+<span style="color: #ff0000;">{</span>
+<span style="color: #ff0000;">//window.alert(“F4ck!!”);</span>
+<span style="color: #ff0000;">  var fso, f1;</span>
+<span style="color: #ff0000;">  var ForReading=1;</span>
+<span style="color: #ff0000;">  fso=new ActiveXObject(“Scripting.FileSystemObject”);</span>
+<span style="color: #ff0000;">  f1=fso.CreateTextFile(“c:\hack.txt”,true);</span>
+<span style="color: #ff0000;">  f1.WriteLine(sb.getAttribute(“href”));</span>
+<span style="color: #ff0000;">  f1.WriteBlankLines(1);</span>
+<span style="color: #ff0000;">  f1.Close();</span>
+<span style="color: #ff0000;">}</span>
+<span style="color: #ff0000;"> &lt;/script&gt;</span>
+<span style="color: #ff0000;">&lt;/head&gt;</span>
+<span style="color: #ff0000;">&lt;body&gt;</span>
+<span style="color: #ff0000;">&lt;a href=”http://www.baidu.com” onclick=”txt(this)”&gt;baidu&lt;/a&gt;</span>
+<span style="color: #ff0000;">&lt;a href=”http://www.google.com.hk” onclick=”txt(this)”&gt; google&lt;/a&gt;</span>
+<span style="color: #ff0000;">&lt;a href=”http://blog.hellsec.net” onclick=”txt(this)”&gt; blog&lt;/a&gt;</span>
+<span style="color: #ff0000;">&lt;/body&gt;</span>
+<span style="color: #ff0000;">&lt;/html&gt;</span>
+<a href="http://blog.hellsec.net/wp-content/uploads/2013/09/1.png"><img class="alignnone size-medium wp-image-195" title="1" src="http://blog.hellsec.net/wp-content/uploads/2013/09/1-300x111.png" alt="" width="300" height="111" /></a>
+<a href="http://blog.hellsec.net/wp-content/uploads/2013/09/2.png"><img class="alignnone size-medium wp-image-196" title="2" src="http://blog.hellsec.net/wp-content/uploads/2013/09/2-300x74.png" alt="" width="300" height="74" /></a>
+其中代码中的本地路径也许可以配置为公网肉鸡的远程路径，配置好可写入不可执行权限？聪明的各位朋友应该可以做更多的尝试。
+以上是小弟自己的想法，按邱哥的意思应该是通过截获表单或者监听键盘，通过JS动态生成表单发送出去，如图：
+<a href="http://blog.hellsec.net/wp-content/uploads/2013/09/3.png"><img class="alignnone size-medium wp-image-197" title="3" src="http://blog.hellsec.net/wp-content/uploads/2013/09/3-300x135.png" alt="" width="300" height="135" /></a>
+以上应该算是箱子原理，由更加强大的脚本语言动态接受参数，生成条目，可存入数据库，减少了中介部分，也是更为普遍、稳定的做法。</p>
+
+          <!--noindex-->
+          <div class="post-button text-center">
+            <a class="btn" href="/tips/2013/09/26/e8-af-bb-e4-b9-a6-e7-ac-94-e8-ae-b0-xss-e9-92-93-e9-b1-bc-e7-9a-84-e6-80-9d-e8-80-83-e4-b8-8e-e5-bb-b6-e4-bc-b8/#more" rel="contents">
+              Read more &raquo;
+            </a>
+          </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+        
+        
+        
+        
+          <div class="post-eof"></div>
+        
+      
+    </footer>
+  </article>
+
+  
+    
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type- " itemscope itemtype="http://schema.org/Article">
+    <link itemprop="mainEntityOfPage" href="http://localhost:4000/coding/2013/09/24/php-e5-ad-a6-e4-b9-a0-e6-9c-ad-e8-ae-b0-ef-bc-88-e4-ba-8c-ef-bc-89/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="HellSec">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="assets/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="HellSec">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+          
+          
+            
+                
+                <a class="post-title-link" href="/coding/2013/09/24/php-e5-ad-a6-e4-b9-a0-e6-9c-ad-e8-ae-b0-ef-bc-88-e4-ba-8c-ef-bc-89/" itemprop="url">
+                PHP学习札记（二）
+              </a>
+            
+          
+        </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2013-09-24T12:07:00+08:00">
+                2013-09-24
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/category/#/coding" itemprop="url" rel="index">
+                    <span itemprop="name">coding</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          <p><span style="color: #00B050;">1.对于assert的分析：</span>
+估计不少人都知道，assert这个函数，此为php官方声明文档中，建议用于debug的。在执行时，效果类似于eval，返回true or false;只不过可容错，可执行不是特别符合规范的语句。说白点就是php中的@容错。当配合用上callback的方法，可以知道具体的出错信息。
+个人觉得需要注意的几个小点：
+（1）当被程序员用于调试时，最好调试完毕用其他替换，毕竟assert虽好，使用时需要开启开关ASSERT_ACTIVE以此来控制是否开启debug，实际运营环节是很容易被disable的。
+（2）assert使用时很灵活，其本质是判断一个表达式是否成立，如用于奇技淫巧，可用于加密后对各种WAF的绕过。
+（3）另外，注意下assert_option()的配置，几个细节很值得研究：
+EX:assert_option()
+默认值ASSERT_ACTIVE=1 //Assert函数的开关
+ASSERT_WARNING =1 //当表达式为false时，是否要输出警告性的错误提示,issue a PHP warning for each failed assertion
+ASSERT_BAIL= 0 //是否要中止运行；terminate execution on failed assertions
+ASSERT_QUIET_EVAL= 0 //是否关闭错误提示，在执行表达式时；disable error_reporting during assertion expression evaluation
+ASSERT_CALLBACK= (NULL) // 是否启动回调函数 user function to call on failed assertions</p>
+
+
+          <!--noindex-->
+          <div class="post-button text-center">
+            <a class="btn" href="/coding/2013/09/24/php-e5-ad-a6-e4-b9-a0-e6-9c-ad-e8-ae-b0-ef-bc-88-e4-ba-8c-ef-bc-89/#more" rel="contents">
+              Read more &raquo;
+            </a>
+          </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+        
+        
+        
+        
+          <div class="post-eof"></div>
+        
+      
+    </footer>
+  </article>
+
+  
+    
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type- " itemscope itemtype="http://schema.org/Article">
     <link itemprop="mainEntityOfPage" href="http://localhost:4000/coding/2013/09/07/google-e9-9a-90-e8-97-8f-e6-ac-a1-e7-ba-a7-e5-9f-9f-e5-90-8d-e6-8a-93-e5-8f-96/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -765,317 +1115,6 @@ http://wiki.ubuntu.org.cn/Python正则表达式操作指南</p>
         
         
         
-          <div class="post-eof"></div>
-        
-      
-    </footer>
-  </article>
-
-  
-    
-    
-
-  
-
-  
-  
-  
-
-  <article class="post post-type- " itemscope itemtype="http://schema.org/Article">
-    <link itemprop="mainEntityOfPage" href="http://localhost:4000/coding/2013/07/11/php-e5-ad-a6-e4-b9-a0-e6-9c-ad-e8-ae-b0-ef-bc-88-e4-b8-80-ef-bc-89/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="HellSec">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="assets/images/avatar.gif">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="HellSec">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-          
-          
-            
-                
-                <a class="post-title-link" href="/coding/2013/07/11/php-e5-ad-a6-e4-b9-a0-e6-9c-ad-e8-ae-b0-ef-bc-88-e4-b8-80-ef-bc-89/" itemprop="url">
-                PHP学习札记（一）
-              </a>
-            
-          
-        </h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">Posted on</span>
-              
-              <time title="Post created" itemprop="dateCreated datePublished" datetime="2013-07-11T22:36:00+08:00">
-                2013-07-11
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">In</span>
-              
-              
-                
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/category/#/coding" itemprop="url" rel="index">
-                    <span itemprop="name">coding</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          <p>以下只是摆弄PHP时遇到的一些小问题，朋友们看到有新的见解，忘不吝赐教。
-PHP的几种常见报错：
-1.Fatal error: Can’t use function return value in write context in ……这种情况一般是返回值问题，在即在返回值里面不能使用函数（function）返回值，而应该用获取返回值过后的变量中转替代。
-2.Undefined offset: 1 in…..这种情况属于数组越界，有时候下标取值错误，或者正则匹配失误时，往往会造成这种情况。通常这种情况我会有两种做法，一是检查下标数，看看匹配正则有没有误判导致取错。二是选择了一种稍笨的方法，由于正则博大精深，不熟的话取的时候偶尔会出错，如果可以采用代替函数分割步奏执行，虽然效率稍低，仍不失为一种好方法。
-3.preg_match() expects parameter 2 to be string, array given in……这种情况是使用取得的pre_match时,传入的变量并非string类型，造成这种可能有不少原因。如果只是取得值而类似不准可以用（string）强制转换传入的变量。而万一传入的变量并没有准确的取到值，则要依靠调试，echo，看看错误的缘由。                                                                                                                                               <br />
-4.php中的Notice:undefine dindex以及Notice:Undefinedvariable:一般由于未声明变量而导致的，有时候系统环境变量也需要声明，可考虑使用 isset() 或者empty()进行预置值。</p>
-
-
-          <!--noindex-->
-          <div class="post-button text-center">
-            <a class="btn" href="/coding/2013/07/11/php-e5-ad-a6-e4-b9-a0-e6-9c-ad-e8-ae-b0-ef-bc-88-e4-b8-80-ef-bc-89/#more" rel="contents">
-              Read more &raquo;
-            </a>
-          </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-        
-        
-        
-        
-          <div class="post-eof"></div>
-        
-      
-    </footer>
-  </article>
-
-  
-    
-    
-
-  
-
-  
-  
-  
-
-  <article class="post post-type- " itemscope itemtype="http://schema.org/Article">
-    <link itemprop="mainEntityOfPage" href="http://localhost:4000/tips/2013/07/09/e5-85-b3-e4-ba-8e-e7-bd-91-e7-ab-99-e6-90-ac-e5-ae-b6-e5-92-8c-e7-a7-bb-e6-a4-8d-e6-ba-90-e7-a0-81/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="HellSec">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="assets/images/avatar.gif">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="HellSec">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-          
-          
-            
-                
-                <a class="post-title-link" href="/tips/2013/07/09/e5-85-b3-e4-ba-8e-e7-bd-91-e7-ab-99-e6-90-ac-e5-ae-b6-e5-92-8c-e7-a7-bb-e6-a4-8d-e6-ba-90-e7-a0-81/" itemprop="url">
-                关于网站搬家和移植源码
-              </a>
-            
-          
-        </h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">Posted on</span>
-              
-              <time title="Post created" itemprop="dateCreated datePublished" datetime="2013-07-09T02:34:00+08:00">
-                2013-07-09
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">In</span>
-              
-              
-                
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/category/#/tips" itemprop="url" rel="index">
-                    <span itemprop="name">tips</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          <p>对于黑阔们和站长们来说，网站搬家和顺来的源码移植是个很常见的头疼问题，而数据备份和还原问题没解决好也会带来很多的麻烦。因此我们需要对此多做一些工作。</p>
-
-
-          <!--noindex-->
-          <div class="post-button text-center">
-            <a class="btn" href="/tips/2013/07/09/e5-85-b3-e4-ba-8e-e7-bd-91-e7-ab-99-e6-90-ac-e5-ae-b6-e5-92-8c-e7-a7-bb-e6-a4-8d-e6-ba-90-e7-a0-81/#more" rel="contents">
-              Read more &raquo;
-            </a>
-          </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-        
-        
-        
-        
       
     </footer>
   </article>
@@ -1091,7 +1130,7 @@ PHP的几种常见报错：
 
 
 
-    <a class="extend prev" rel="prev" href="/page7"><i class="fa fa-angle-left"></i></a> <a class="page-number" href="/">1</a> <span class="space">&hellip;</span> <a class="page-number" href="/page7">7</a> <span class="page-number current">8</span> <a class="page-number" href="/page9">9</a> <a class="page-number" href="/page10">10</a> <a class="extend prev" rel="next" href="/page9"><i class="fa fa-angle-right"></i></a>
+    <a class="extend prev" rel="prev" href="/page7"><i class="fa fa-angle-left"></i></a> <a class="page-number" href="/">1</a> <span class="space">&hellip;</span> <a class="page-number" href="/page7">7</a> <span class="page-number current">8</span> <a class="page-number" href="/page9">9</a> <span class="space">&hellip;</span> <a class="page-number" href="/page11">11</a> <a class="extend prev" rel="next" href="/page9"><i class="fa fa-angle-right"></i></a>
   </nav>
 
 
@@ -1137,7 +1176,7 @@ PHP的几种常见报错：
           
             <div class="site-state-item site-state-posts">
               <a href="/archives/">
-                <span class="site-state-item-count">49</span>
+                <span class="site-state-item-count">51</span>
                 <span class="site-state-item-name">posts</span>
               </a>
             </div>
@@ -1148,7 +1187,7 @@ PHP的几种常见报错：
             
             <div class="site-state-item site-state-categories">
               <a href="/categories/">
-                <span class="site-state-item-count">15</span>
+                <span class="site-state-item-count">16</span>
                 <span class="site-state-item-name">categories</span>
               </a>
             </div>
