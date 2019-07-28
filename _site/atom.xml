@@ -1,4 +1,129 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.5.2">Jekyll</generator><link href="http://localhost:4000/atom.xml" rel="self" type="application/atom+xml" /><link href="http://localhost:4000/" rel="alternate" type="text/html" /><updated>2019-07-22T23:10:17+08:00</updated><id>http://localhost:4000/</id><title type="html">HellSec</title><subtitle>原创网络安全博客&lt;-|-&gt;匠心独运，做有深度的良品。</subtitle><author><name>HellSec</name></author><entry><title type="html">安全运维优化思考</title><link href="http://localhost:4000/operation/2019/07/13/sec-operation/" rel="alternate" type="text/html" title="安全运维优化思考" /><published>2019-07-13T23:40:00+08:00</published><updated>2019-07-13T23:40:00+08:00</updated><id>http://localhost:4000/operation/2019/07/13/sec-operation</id><content type="html" xml:base="http://localhost:4000/operation/2019/07/13/sec-operation/">&lt;p&gt;
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.5.2">Jekyll</generator><link href="http://localhost:4000/atom.xml" rel="self" type="application/atom+xml" /><link href="http://localhost:4000/" rel="alternate" type="text/html" /><updated>2019-07-28T18:38:07+08:00</updated><id>http://localhost:4000/</id><title type="html">HellSec</title><subtitle>原创网络安全博客&lt;-|-&gt;匠心独运，做有深度的良品。</subtitle><author><name>HellSec</name></author><entry><title type="html">Git监控小议</title><link href="http://localhost:4000/operation/2019/07/28/sec-git-monitor/" rel="alternate" type="text/html" title="Git监控小议" /><published>2019-07-28T18:00:00+08:00</published><updated>2019-07-28T18:00:00+08:00</updated><id>http://localhost:4000/operation/2019/07/28/sec-git-monitor</id><content type="html" xml:base="http://localhost:4000/operation/2019/07/28/sec-git-monitor/">&lt;p&gt;
+	&lt;span style=&quot;color:#00B050;&quot;&gt;&lt;strong&gt;笔者原来在涉猎git监控产品时，就只做了敏感关键词监控。后来在工作中逐渐发现，对于一般量级的企业单位，其实复合型的监控平台更符合这类企业的需求。&lt;/strong&gt;&lt;/span&gt;
+&lt;/p&gt;
+
+&lt;p&gt;那么，对于git方面的监控，我们应该做些什么呢？&lt;/p&gt;
+
+&lt;h3 id=&quot;复合型监控&quot;&gt;复合型监控&lt;/h3&gt;
+
+&lt;h4 id=&quot;敏感关键词监控&quot;&gt;敏感关键词监控&lt;/h4&gt;
+
+&lt;p&gt;对于类github监控，敏感关键词监控是基础，目前主要监控点有以下几种：&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;敏感email地址
+敏感多级子域名
+ssh key
+物理机key
+云平台key
+硬编码的pwd
+关键域名+敏感路径+敏感key的拼接
+（比如https://xxx/host/{ip}?key={YOUR_API_KEY}）
+组织单位标识
+关键数据库名、表格名、字段名、连接字符串
+vpn配置字符串
+smtp配置字符串
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;大部分类github平台，查询应该是需要登录的，这里以github举个例子。&lt;/p&gt;
+
+&lt;p&gt;我们可以用session认证，不过只有前100页的查询限制。&lt;/p&gt;
+
+&lt;p&gt;当然，大家也可以用key+api接口，个人没采用过这个接口，据说默认搜索前5000个项目。&lt;/p&gt;
+
+&lt;p&gt;所以利用好语法是很重要的，我们要精确地对需要监控的关键词，进行综合定位：&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;搜索路径中有nsa的代码或者文件中有nsa的代码
+nsa in:file,path
+
+搜索用php写的包含userid的代码,文件名为flag，扩展名为txt
+userid language:php filename:flag extension:txt
+
+匹配关键字nsa且搜索大小为100字节的xml代码
+nsa language:xml size:100
+
+搜索conf目录下包含pass的xml代码
+pass path:conf language:xml
+
+除去名为normal_name的repo
+-repo:normal_name
+
+搜索star大于20，20&amp;lt;fork&amp;lt;30的项目
+stars: &amp;gt;20 fork: 20..30
+
+
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;p&gt;另外，类github平台如果做了查询限制，可以考虑采用以下几点去绕过：&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;IP池
+多账号轮询
+UA池
+降频处理
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h4 id=&quot;安全监控&quot;&gt;安全监控&lt;/h4&gt;
+
+&lt;p&gt;在大一点的企业平台，做项目管控时，会接入gitlab或者类github平台的私有项目。&lt;/p&gt;
+
+&lt;p&gt;那么，如果要坚持精简的原则，我们需要完成哪些基础点呢？&lt;/p&gt;
+
+&lt;p&gt;第一，版本监控
+每次漏洞大规模爆发时，常常需要去检查下，己方线上环境的组件，是否出于漏洞影响范围之内。&lt;/p&gt;
+
+&lt;p&gt;因此，维护和及时更新IT资产的checklist库，无论是实现的半自动化还是自动化监控，都是有一定积极作用的。&lt;/p&gt;
+
+&lt;p&gt;第二，安全审计
+对于项目本身，我们需要做一些代码安全审计和日常扫描。&lt;/p&gt;
+
+&lt;p&gt;一般在代码上线，以及测试分支代码变更时，在条件允许的情况下，都应该触发自动化安全扫描。&lt;/p&gt;
+
+&lt;p&gt;在CI自动化和日常扫描时，一旦检测到问题，需要发送报告到安全运维人员过审，再决定要不要通告开发人员，去进行整改或者代码回退。&lt;/p&gt;
+
+&lt;p&gt;对于代码本身，可提供配置文件或者接口，供第三方软件，进行安全审计，这里不再多提。&lt;/p&gt;
+
+&lt;h4 id=&quot;舆情监控&quot;&gt;舆情监控&lt;/h4&gt;
+
+&lt;p&gt;现如今类github平台因为某些zz原因，成为了某些有心人撰写博客和放新闻的地方。&lt;/p&gt;
+
+&lt;p&gt;笔者当初做舆情监控接口的时候，也添加了对这类平台的接口支持，效果感觉尚可。&lt;/p&gt;
+
+&lt;h3 id=&quot;平台优化tips&quot;&gt;平台优化Tips&lt;/h3&gt;
+
+&lt;h4 id=&quot;关键词定制&quot;&gt;关键词定制&lt;/h4&gt;
+
+&lt;p&gt;如果我们在开发后期，想要去定制一些关键词咋办？&lt;/p&gt;
+
+&lt;p&gt;存在配置文件的情况下，我们可以做关键词命中。&lt;/p&gt;
+
+&lt;p&gt;一旦触发命中我们自己添加的关键词（不一定是标准搜索语法），也会直接通过微信或者邮件，将结果推送到负责人那里。&lt;/p&gt;
+
+&lt;h4 id=&quot;规则可配置&quot;&gt;规则可配置&lt;/h4&gt;
+
+&lt;p&gt;如果我们在开发后期，想要去定制一些关键词咋办？&lt;/p&gt;
+
+&lt;p&gt;存在配置文件的情况下，我们可以做关键词命中。&lt;/p&gt;
+
+&lt;p&gt;一旦触发命中我们自己添加的关键词（不一定是标准搜索语法），也会直接通过微信或者邮件，将结果推送到负责人那里。&lt;/p&gt;
+
+&lt;h4 id=&quot;污点化&quot;&gt;污点化&lt;/h4&gt;
+
+&lt;p&gt;在为了防止企业git项目被泄露到公网，我们在命名规范时，可以尝试制定编码规范，必须带上容易识别的特征，或者带上关键词。&lt;/p&gt;
+
+&lt;p&gt;这样有个好处，在代码泄露时能及时监控到，但防君子不防小人，内部人员可能会做关键词替换。但这种情况，也可以通过一些特殊技巧去提升保密性。&lt;/p&gt;
+
+&lt;p&gt;另外，白帽子提交速度可能比监控响应更快，这就需要考验规范制定者的素质了。&lt;/p&gt;
+
+&lt;h4 id=&quot;参考文章&quot;&gt;参考文章&lt;/h4&gt;
+
+&lt;p&gt;&lt;a href=&quot;https://www.freebuf.com/articles/web/150638.html&quot;&gt;深入分析一款简单的Github信息泄露爬虫&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&quot;https://blog.csdn.net/xpx1995/article/details/79031397&quot;&gt;Github代码高级搜索小技巧&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&quot;https://www.freebuf.com/sectool/114017.html&quot;&gt;基于Github的源码白盒扫描工具Raptor&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&quot;https://www.freebuf.com/column/178342.html&quot;&gt;Github信息泄露专项&lt;/a&gt;&lt;/p&gt;</content><author><name>HellSec</name></author><category term="operation" /><summary type="html">笔者原来在涉猎git监控产品时，就只做了敏感关键词监控。后来在工作中逐渐发现，对于一般量级的企业单位，其实复合型的监控平台更符合这类企业的需求。</summary></entry><entry><title type="html">安全运维优化思考</title><link href="http://localhost:4000/operation/2019/07/13/sec-operation/" rel="alternate" type="text/html" title="安全运维优化思考" /><published>2019-07-13T23:40:00+08:00</published><updated>2019-07-13T23:40:00+08:00</updated><id>http://localhost:4000/operation/2019/07/13/sec-operation</id><content type="html" xml:base="http://localhost:4000/operation/2019/07/13/sec-operation/">&lt;p&gt;
 	&lt;span style=&quot;color:#DAA520;&quot;&gt;&lt;strong&gt;近期由乙方安服实验室，转入了甲方的业务安全部门。在接触了一部分业务安全的运维工作后，也做了些对于自身工作的优化方向的思考。&lt;/strong&gt;&lt;/span&gt;
 &lt;/p&gt;
 
@@ -2751,106 +2876,4 @@ export HISTTIMEFORMAT=&quot;%F %T 'who -u am i 2&amp;gt;/dev/null| awk '{print $
 
 &lt;h4 id=&quot;后记&quot;&gt;后记&lt;/h4&gt;
 
-&lt;p&gt;本文将持续更新，将作者遇到的一些应急的内容和技巧添加到里面，其中有部分内容参考了各大安全论坛的资料，再次感谢其他作者的付出。&lt;/p&gt;</content><author><name>HellSec</name></author><category term="pentest" /><summary type="html">在我们工作过程中，难免会遇到一些需要应急响应的事件。在紧急情况下，某些平时的苦工可能会帮助我们简化流程。这里做下应急方面的笔记，列出一些实用的小技巧。</summary></entry><entry><title type="html">关于selenium的post方法思考</title><link href="http://localhost:4000/spider/2018/04/18/selenium-post-func/" rel="alternate" type="text/html" title="关于selenium的post方法思考" /><published>2018-04-18T00:08:18+08:00</published><updated>2018-04-18T00:08:18+08:00</updated><id>http://localhost:4000/spider/2018/04/18/selenium-post-func</id><content type="html" xml:base="http://localhost:4000/spider/2018/04/18/selenium-post-func/">&lt;p&gt;
-	&lt;span style=&quot;color:#00B050;&quot;&gt;&lt;strong&gt;Selenium是一款比较常见的web应用自动化测试系统，它支持多种浏览器，多用于在爬虫中解决JavaScript渲染问题。&lt;/strong&gt;&lt;/span&gt;
-	
-&lt;/p&gt;
-
-&lt;p&gt;当requests，urllib*无法正常获取网页内容的时候，用它模拟浏览器进行网页加载，可以得到一些无法直接在网页源代码里面看到的内容。&lt;/p&gt;
-
-&lt;p&gt;利用selenium及其相关的库，笔者大概尝试过搭配headless chrome、headless firefox，以及快要凉凉的过气选手phantomjs。这几种无界面浏览器当然各有千秋，这里不做过多评论。&lt;/p&gt;
-
-&lt;p&gt;由于selenium原生代码似乎是不带post方式的，故此在测试用例时，很是费了一些精力。在这里，笔者会以headless firefox模式为例，简单谈一下在selenium下如何进行post数据。&lt;/p&gt;
-
-&lt;h4 id=&quot;第三方库&quot;&gt;第三方库&lt;/h4&gt;
-
-&lt;p&gt;以seleniumrequests为例，这个库是一个selenium扩展，使得selenium下也可以使用requests的功能，我们可以采用pip安装：&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;pip install selenium-requests
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-&lt;p&gt;当然，这个库使用起来也是很简单的：&lt;/p&gt;
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;# selenium.webdriver from the seleniumrequests module
-from seleniumrequests import Firefox
-
-# Simple usage with built-in WebDrivers:
-webdriver = Firefox()
-response = webdriver.request('GET', 'https://www.google.com/')
-print(response)
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-&lt;p&gt;不过这个库也有它的缺点，不方便自定义一些驱动参数，无法设置headless状态（也许是我没找到方法）。有兴趣的朋友可以自行研究下，其支持方法如下：&lt;/p&gt;
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&amp;gt;&amp;gt;&amp;gt; dir(seleniumrequests)
-['Android', 'Chrome', 'Firefox', 'Ie', 'Opera', 'PhantomJS', 'Remote', 'RequestMixin', 'Safari', '__builtins__', '__doc__', '__file__', '__name__', '__package__', '__path__', '__warningregistry__', 'request']
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;想象一下画面，爬一次页面弹就会给你弹一个浏览器出来，这TM真酸爽。&lt;/p&gt;
-
-&lt;h4 id=&quot;html点击大法好&quot;&gt;HTML点击大法好&lt;/h4&gt;
-
-&lt;p&gt;个人不太喜欢这种法子，不过好像有一部分人比较推崇。其原理是解析post请求后，将其传递的参数重构为form表单，最后再将这些新生成的代码存入html网页。&lt;/p&gt;
-
-&lt;p&gt;最后，会再借用selenium定位submit元素，触发事件提交表单。&lt;/p&gt;
-
-&lt;p&gt;窃以为这种方法不太妥帖，每开一个网页程序就得生成一个新的html文件。先不论程序是否一定具有写入和删除的权限，如果运行的次数增多后，明显会增加机器负担。&lt;/p&gt;
-
-&lt;h4 id=&quot;ajax代行天子令&quot;&gt;Ajax代行天子令&lt;/h4&gt;
-
-&lt;p&gt;Ajax模拟post发送请求，这是笔者自己采用的办法。当然，不一定是最好的。&lt;/p&gt;
-
-&lt;p&gt;无论是原生JS的XMLHttpRequest，还是Jquery，都可以模拟生成ajax post请求，最后再借助selenium执行JS代码。&lt;/p&gt;
-
-&lt;p&gt;XMLHttpRequest示例片段：&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;brower = webdriver.Firefox(firefox_options=fireFoxOptions)
-js = &quot;&quot;&quot;var xmlhttp=new XMLHttpRequest();
-        xmlhttp.open(&quot;GET&quot;,&quot;http://127.0.0.1/phproot/echo.php&quot;,false);
-        xmlhttp.setRequestHeader(&quot;Content-type&quot;,&quot;application/x-www-form-urlencoded&quot;);
-        xmlhttp.setRequestHeader(&quot;X-Forwarded-For&quot;,&quot;test&quot;);
-        xmlhttp.setRequestHeader(&quot;Referer&quot;,&quot;test&quot;);
-        xmlhttp.setRequestHeader(&quot;User-Agent&quot;,&quot;Mozilla/5.0&quot;);
-        xmlhttp.setRequestHeader(&quot;Cookie&quot;,&quot;&quot;);
-        xmlhttp.send(&quot;test=1&quot;);
-        return xmlhttp.responseText;
-	    &quot;&quot;&quot; 
-brower.implicitly_wait(30)
-#time.sleep(30)
-resp = brower.execute_script(js)
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-&lt;p&gt;Jquery示例片段：&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;jquery = open(&quot;jquery.min.js&quot;, &quot;r&quot;).read()
-
-driver = webdriver.Firefox(firefox_options=fireFoxOptions)
-driver.execute_script(jquery)
-
-ajax_query = '''
-            $.ajax('%s', {
-            type: %s,
-            data: %s, 
-            headers: { &quot;User-Agent&quot;: &quot;Mozilla/5.0&quot; },
-            crossDomain: true,
-            xhrFields: {
-             withCredentials: true
-            },
-            success: function(){}
-            });
-            ''' % (url, request_type, data)
-
-ajax_query = ajax_query.replace(&quot; &quot;, &quot;&quot;).replace(&quot;\n&quot;, &quot;&quot;)
-resp = driver.execute_script(&quot;return &quot; + ajax_query)
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-&lt;p&gt;但这样做还是有缺陷，通过driver.get预访问一次将要请求的URL，我们能解决跨域的问题。&lt;/p&gt;
-
-&lt;p&gt;但是由于w3g的安全设定，我们无法自行在JS中预置cookie（可以通过传递解决）、Referer等等危险的头部参数。&lt;/p&gt;
-
-&lt;p&gt;如若我们需要fuzz请求包头部一些冷门的参数，这样使用就会有一定的局限性。&lt;/p&gt;
-
-&lt;h4 id=&quot;尾声&quot;&gt;尾声&lt;/h4&gt;
-
-&lt;p&gt;总而言之，selenium没有自带原生post方式是一个遗憾，而且其调用headless模式的浏览器，渲染和启动也显得太慢了些，无法用于高并发。&lt;/p&gt;
-
-&lt;p&gt;还是那句话，个人觉得在资源有限的情况下，它不太适用于高并发的大规模测试，fuzz指定的一定量payload也许尚可。&lt;/p&gt;</content><author><name>HellSec</name></author><category term="spider" /><summary type="html">Selenium是一款比较常见的web应用自动化测试系统，它支持多种浏览器，多用于在爬虫中解决JavaScript渲染问题。</summary></entry></feed>
+&lt;p&gt;本文将持续更新，将作者遇到的一些应急的内容和技巧添加到里面，其中有部分内容参考了各大安全论坛的资料，再次感谢其他作者的付出。&lt;/p&gt;</content><author><name>HellSec</name></author><category term="pentest" /><summary type="html">在我们工作过程中，难免会遇到一些需要应急响应的事件。在紧急情况下，某些平时的苦工可能会帮助我们简化流程。这里做下应急方面的笔记，列出一些实用的小技巧。</summary></entry></feed>
