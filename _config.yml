@@ -154,8 +154,8 @@ menu_icons:
 # ---------------------------------------------------------------
 
 # Schemes
-scheme: Muse
-#scheme: Mist
+#scheme: Muse
+scheme: Mist
 #scheme: Pisces
 
 
@@ -290,6 +290,10 @@ sidebar:
 #links:
   #Title: http://example.com/
 
+# title
+links_title: 友链
+links:
+    bstaint的博客: https://www.bstaint.net/
 
 # ---------------------------------------------------------------
 # Post Settings
@@ -356,7 +360,7 @@ custom_logo:
 # Available value:
 #    normal | night | night eighties | night blue | night bright
 # https://github.com/chriskempson/tomorrow-theme
-highlight_theme: normal
+highlight_theme: night bright
 
 
 # ---------------------------------------------------------------

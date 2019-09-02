@@ -14,7 +14,7 @@
 
 
 
-<html class="theme-next muse use-motion" lang="en">
+<html class="theme-next mist use-motion" lang="en">
 <head>
   <meta charset="UTF-8"/>
 <meta http-equiv="X-UA-Compatible" content="IE=edge" />
@@ -115,7 +115,7 @@
 <meta name="keywords" content="blog, security, web, php, python">
 <meta property="og:type" content="article">
 <meta property="og:title" content="PYTHON学习札记（二）">
-<meta property="og:url" content="/coding/2013/10/02/python-e6-9c-ad-e8-ae-b0-ef-bc-88-e4-ba-8c-ef-bc-89/">
+<meta property="og:url" content="http://localhost:4000/coding/2013/10/02/python-e6-9c-ad-e8-ae-b0-ef-bc-88-e4-ba-8c-ef-bc-89/">
 <meta property="og:site_name" content="HellSec">
 <meta property="og:description" content="1.stat模块: 对于文件的状态能直接获取，通过集合分别赋值给几个变量（注意，不超过10项），说到底就是获取的文件描述符的状态。 import os import time file = &quot;../src/xx.txt&quot; def dump( st ): mode, ino, dev, nlink, uid, gid, size, atime, mtime, ctime = st print &quot;- size:&quot;, size, &quot;bytes&quot; print &quot;- owner:&quot;, uid, gid print &quot;- created:&quot;, time.ctime( ctime ) print &quot;- last accessed:&quot;, time.ctime( atime ) print &quot;- last modified:&quot;, time.ctime( mtime ) print &quot;- mode:&quot;, oct( mode ) print &quot;- inode/dev:&quot;, ino, dev st = os.stat( file ) print &quot;stat&quot;, file dump( st ) 还有种类似的法子: fp = open( file ) st = os.fstat( fp.fileno() ) 相当于先获取I/O操作句柄，再获取状态，比上面一个法子稍复杂。">
 <meta property="og:locale" content="en">
@@ -128,7 +128,7 @@
   var NexT = window.NexT || {};
   var CONFIG = {
     root: '',
-    scheme: 'Muse',
+    scheme: 'Mist',
     sidebar: {"position":"left","display":"post","offset":12,"offset_float":0,"b2t":false,"scrollpercent":false},
     fancybox: true,
     motion: true,
@@ -148,7 +148,7 @@
 
 
 
-  <link rel="canonical" href=""/>
+  <link rel="canonical" href="http://localhost:4000/"/>
 
 
 
@@ -304,7 +304,7 @@
   
 
   <article class="post post-type- " itemscope itemtype="http://schema.org/Article">
-    <link itemprop="mainEntityOfPage" href="/coding/2013/10/02/python-e6-9c-ad-e8-ae-b0-ef-bc-88-e4-ba-8c-ef-bc-89/">
+    <link itemprop="mainEntityOfPage" href="http://localhost:4000/coding/2013/10/02/python-e6-9c-ad-e8-ae-b0-ef-bc-88-e4-ba-8c-ef-bc-89/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="HellSec">
@@ -581,7 +581,7 @@ pickle模块主要特点为通过句柄就直接能完成文件操作，不知�
           
             <div class="site-state-item site-state-posts">
               <a href="/archives/">
-                <span class="site-state-item-count">53</span>
+                <span class="site-state-item-count">54</span>
                 <span class="site-state-item-name">posts</span>
               </a>
             </div>
@@ -622,6 +622,22 @@ pickle模块主要特点为通过句柄就直接能完成文件操作，不知�
 
         
         
+          <div class="links-of-blogroll motion-element links-of-blogroll-">
+            <div class="links-of-blogroll-title">
+              <i class="fa  fa-fw fa-globe"></i>
+              友链
+            </div>
+            <ul class="links-of-blogroll-list">
+              
+                
+                
+                <li class="links-of-blogroll-item">
+                  <a href="https://www.bstaint.net/" title="bstaint的博客" target="_blank">bstaint的博客</a>
+                </li>
+              
+            </ul>
+          </div>
+        
 
         
 
@@ -659,7 +675,7 @@ pickle模块主要特点为通过句柄就直接能完成文件操作，不知�
 <div class="theme-info">
   Theme -
   <a class="theme-link" href="https://github.com/simpleyyt/jekyll-theme-next">
-    NexT.Muse
+    NexT.Mist
   </a>
 </div>
 
