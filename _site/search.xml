@@ -42,8 +42,10 @@ Access-Control-Allow-Credentials: false
 www.evil.com
 http://www.evil.com\.whitedomain.com ===&gt; 
 www.evil.com
-http://www.evil.com#www.whitedomain.com ===&gt; www.evil.com  ==&gt; 
-http://www.evil.com?www.whitedomain.com ===&gt; www.evil.com 
+http://www.evil.com#www.whitedomain.com ===&gt; 
+www.evil.com
+http://www.evil.com?www.whitedomain.com ===&gt; 
+www.evil.com 
 
 </code></pre>
 </div>
@@ -70,7 +72,7 @@ return registration;
 </code></pre>
 </div>
 
-<p>pom.xml配置:</p>
+<p>需要在pom.xml里配置的话:</p>
 
 <div class="highlighter-rouge"><pre class="highlight"><code>&lt;web-app&gt;
 
@@ -80,7 +82,7 @@ return registration;
     &lt;/filter&gt;
     &lt;filter-mapping&gt;
         &lt;filter-name&gt;cross-origin&lt;/filter-name&gt;
-        &lt;url-pattern&gt;/cometd/*&lt;/url-pattern&gt;
+        &lt;url-pattern&gt;/*&lt;/url-pattern&gt;
     &lt;/filter-mapping&gt;
 
 &lt;/web-app&gt;
@@ -125,9 +127,7 @@ return !!allowedOrigin;
 
 const ALLOW_ORIGIN = [ // 域名白名单
 
-'*.test1.com',
-
-'*.test2.com',
+'*.whitedomain.com',
 
 ];
 

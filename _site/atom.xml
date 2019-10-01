@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.5.2">Jekyll</generator><link href="/atom.xml" rel="self" type="application/atom+xml" /><link href="/" rel="alternate" type="text/html" /><updated>2019-10-01T15:55:06+08:00</updated><id>/</id><title type="html">HellSec</title><subtitle>原创网络安全博客&lt;-|-&gt;匠心独运，做有深度的良品。</subtitle><author><name>HellSec</name></author><entry><title type="html">cors漏洞之123</title><link href="/vuln/2019/09/28/cors-tips/" rel="alternate" type="text/html" title="cors漏洞之123" /><published>2019-09-28T21:13:00+08:00</published><updated>2019-09-28T21:13:00+08:00</updated><id>/vuln/2019/09/28/cors-tips</id><content type="html" xml:base="/vuln/2019/09/28/cors-tips/">&lt;p&gt;
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.5.2">Jekyll</generator><link href="/atom.xml" rel="self" type="application/atom+xml" /><link href="/" rel="alternate" type="text/html" /><updated>2019-10-01T16:00:23+08:00</updated><id>/</id><title type="html">HellSec</title><subtitle>原创网络安全博客&lt;-|-&gt;匠心独运，做有深度的良品。</subtitle><author><name>HellSec</name></author><entry><title type="html">cors漏洞之123</title><link href="/vuln/2019/09/28/cors-tips/" rel="alternate" type="text/html" title="cors漏洞之123" /><published>2019-09-28T21:13:00+08:00</published><updated>2019-09-28T21:13:00+08:00</updated><id>/vuln/2019/09/28/cors-tips</id><content type="html" xml:base="/vuln/2019/09/28/cors-tips/">&lt;p&gt;
 	&lt;span style=&quot;color:#00B050;&quot;&gt;&lt;strong&gt;cors漏洞相信大家已经很熟悉了，一般会用于配合csrf漏洞对用户进行攻击。这里就遇到的一些case，简单讲讲可能漏报误报的点，以及相应的修复方案。
 &lt;/strong&gt;&lt;/span&gt;
 &lt;/p&gt;
@@ -36,8 +36,10 @@ Access-Control-Allow-Credentials: false
 www.evil.com
 http://www.evil.com\.whitedomain.com ===&amp;gt; 
 www.evil.com
-http://www.evil.com#www.whitedomain.com ===&amp;gt; www.evil.com  ==&amp;gt; 
-http://www.evil.com?www.whitedomain.com ===&amp;gt; www.evil.com 
+http://www.evil.com#www.whitedomain.com ===&amp;gt; 
+www.evil.com
+http://www.evil.com?www.whitedomain.com ===&amp;gt; 
+www.evil.com 
 
 &lt;/code&gt;&lt;/pre&gt;
 &lt;/div&gt;
@@ -64,7 +66,7 @@ return registration;
 &lt;/code&gt;&lt;/pre&gt;
 &lt;/div&gt;
 
-&lt;p&gt;pom.xml配置:&lt;/p&gt;
+&lt;p&gt;需要在pom.xml里配置的话:&lt;/p&gt;
 
 &lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&amp;lt;web-app&amp;gt;
 
@@ -74,7 +76,7 @@ return registration;
     &amp;lt;/filter&amp;gt;
     &amp;lt;filter-mapping&amp;gt;
         &amp;lt;filter-name&amp;gt;cross-origin&amp;lt;/filter-name&amp;gt;
-        &amp;lt;url-pattern&amp;gt;/cometd/*&amp;lt;/url-pattern&amp;gt;
+        &amp;lt;url-pattern&amp;gt;/*&amp;lt;/url-pattern&amp;gt;
     &amp;lt;/filter-mapping&amp;gt;
 
 &amp;lt;/web-app&amp;gt;
@@ -119,9 +121,7 @@ return !!allowedOrigin;
 
 const ALLOW_ORIGIN = [ // 域名白名单
 
-'*.test1.com',
-
-'*.test2.com',
+'*.whitedomain.com',
 
 ];
 
