@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.5.2">Jekyll</generator><link href="/atom.xml" rel="self" type="application/atom+xml" /><link href="/" rel="alternate" type="text/html" /><updated>2019-10-01T16:00:23+08:00</updated><id>/</id><title type="html">HellSec</title><subtitle>原创网络安全博客&lt;-|-&gt;匠心独运，做有深度的良品。</subtitle><author><name>HellSec</name></author><entry><title type="html">cors漏洞之123</title><link href="/vuln/2019/09/28/cors-tips/" rel="alternate" type="text/html" title="cors漏洞之123" /><published>2019-09-28T21:13:00+08:00</published><updated>2019-09-28T21:13:00+08:00</updated><id>/vuln/2019/09/28/cors-tips</id><content type="html" xml:base="/vuln/2019/09/28/cors-tips/">&lt;p&gt;
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.5.2">Jekyll</generator><link href="http://localhost:4000/atom.xml" rel="self" type="application/atom+xml" /><link href="http://localhost:4000/" rel="alternate" type="text/html" /><updated>2019-10-01T16:01:23+08:00</updated><id>http://localhost:4000/</id><title type="html">HellSec</title><subtitle>原创网络安全博客&lt;-|-&gt;匠心独运，做有深度的良品。</subtitle><author><name>HellSec</name></author><entry><title type="html">cors漏洞之123</title><link href="http://localhost:4000/vuln/2019/09/28/cors-tips/" rel="alternate" type="text/html" title="cors漏洞之123" /><published>2019-09-28T21:13:00+08:00</published><updated>2019-09-28T21:13:00+08:00</updated><id>http://localhost:4000/vuln/2019/09/28/cors-tips</id><content type="html" xml:base="http://localhost:4000/vuln/2019/09/28/cors-tips/">&lt;p&gt;
 	&lt;span style=&quot;color:#00B050;&quot;&gt;&lt;strong&gt;cors漏洞相信大家已经很熟悉了，一般会用于配合csrf漏洞对用户进行攻击。这里就遇到的一些case，简单讲讲可能漏报误报的点，以及相应的修复方案。
 &lt;/strong&gt;&lt;/span&gt;
 &lt;/p&gt;
@@ -152,7 +152,7 @@ res.send({ code: -2, msg: '非法请求' });
 
 });
 &lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;</content><author><name>HellSec</name></author><category term="vuln" /><summary type="html">cors漏洞相信大家已经很熟悉了，一般会用于配合csrf漏洞对用户进行攻击。这里就遇到的一些case，简单讲讲可能漏报误报的点，以及相应的修复方案。</summary></entry><entry><title type="html">浅谈被动漏扫思路</title><link href="/scanner/2019/08/15/axe-scanner-design/" rel="alternate" type="text/html" title="浅谈被动漏扫思路" /><published>2019-08-15T21:13:00+08:00</published><updated>2019-08-15T21:13:00+08:00</updated><id>/scanner/2019/08/15/axe-scanner-design</id><content type="html" xml:base="/scanner/2019/08/15/axe-scanner-design/">&lt;p&gt;
+&lt;/div&gt;</content><author><name>HellSec</name></author><category term="vuln" /><summary type="html">cors漏洞相信大家已经很熟悉了，一般会用于配合csrf漏洞对用户进行攻击。这里就遇到的一些case，简单讲讲可能漏报误报的点，以及相应的修复方案。</summary></entry><entry><title type="html">浅谈被动漏扫思路</title><link href="http://localhost:4000/scanner/2019/08/15/axe-scanner-design/" rel="alternate" type="text/html" title="浅谈被动漏扫思路" /><published>2019-08-15T21:13:00+08:00</published><updated>2019-08-15T21:13:00+08:00</updated><id>http://localhost:4000/scanner/2019/08/15/axe-scanner-design</id><content type="html" xml:base="http://localhost:4000/scanner/2019/08/15/axe-scanner-design/">&lt;p&gt;
 	&lt;span style=&quot;color:#DAA520;&quot;&gt;&lt;strong&gt;本文中的规则分析，大部分来自于以前被动漏扫研发的实践，以后会再接触更多业务后，会继续进行更新。其中如有纰漏或者差错，希望诸位给出修正意见。
 &lt;/strong&gt;&lt;/span&gt;
 &lt;/p&gt;
@@ -509,7 +509,7 @@ Content-Type: xxxxx
 
 &lt;p&gt;如果黑盒测试，只能根据常用上传目录去爆破shell文件名，以获取到shell标识为成功。&lt;/p&gt;
 
-&lt;p&gt;否则的话，需要结合白盒定位，手动配置好路径，估算生成的文件名，去进行黑盒探测。&lt;/p&gt;</content><author><name>HellSec</name></author><category term="scanner" /><summary type="html">本文中的规则分析，大部分来自于以前被动漏扫研发的实践，以后会再接触更多业务后，会继续进行更新。其中如有纰漏或者差错，希望诸位给出修正意见。</summary></entry><entry><title type="html">Git监控小议</title><link href="/operation/2019/07/28/sec-git-monitor/" rel="alternate" type="text/html" title="Git监控小议" /><published>2019-07-28T18:00:00+08:00</published><updated>2019-07-28T18:00:00+08:00</updated><id>/operation/2019/07/28/sec-git-monitor</id><content type="html" xml:base="/operation/2019/07/28/sec-git-monitor/">&lt;p&gt;
+&lt;p&gt;否则的话，需要结合白盒定位，手动配置好路径，估算生成的文件名，去进行黑盒探测。&lt;/p&gt;</content><author><name>HellSec</name></author><category term="scanner" /><summary type="html">本文中的规则分析，大部分来自于以前被动漏扫研发的实践，以后会再接触更多业务后，会继续进行更新。其中如有纰漏或者差错，希望诸位给出修正意见。</summary></entry><entry><title type="html">Git监控小议</title><link href="http://localhost:4000/operation/2019/07/28/sec-git-monitor/" rel="alternate" type="text/html" title="Git监控小议" /><published>2019-07-28T18:00:00+08:00</published><updated>2019-07-28T18:00:00+08:00</updated><id>http://localhost:4000/operation/2019/07/28/sec-git-monitor</id><content type="html" xml:base="http://localhost:4000/operation/2019/07/28/sec-git-monitor/">&lt;p&gt;
 	&lt;span style=&quot;color:#00B050;&quot;&gt;&lt;strong&gt;笔者原来在涉猎git监控产品时，就只做了敏感关键词监控。后来在工作中逐渐发现，对于一般量级的企业单位，其实复合型的监控平台更符合这类企业的需求。&lt;/strong&gt;&lt;/span&gt;
 &lt;/p&gt;
 
@@ -638,7 +638,7 @@ UA池
 
 &lt;p&gt;&lt;a href=&quot;https://www.freebuf.com/sectool/114017.html&quot;&gt;基于Github的源码白盒扫描工具Raptor&lt;/a&gt;&lt;/p&gt;
 
-&lt;p&gt;&lt;a href=&quot;https://www.freebuf.com/column/178342.html&quot;&gt;Github信息泄露专项&lt;/a&gt;&lt;/p&gt;</content><author><name>HellSec</name></author><category term="operation" /><summary type="html">笔者原来在涉猎git监控产品时，就只做了敏感关键词监控。后来在工作中逐渐发现，对于一般量级的企业单位，其实复合型的监控平台更符合这类企业的需求。</summary></entry><entry><title type="html">安全运维优化思考</title><link href="/operation/2019/07/13/sec-operation/" rel="alternate" type="text/html" title="安全运维优化思考" /><published>2019-07-13T23:40:00+08:00</published><updated>2019-07-13T23:40:00+08:00</updated><id>/operation/2019/07/13/sec-operation</id><content type="html" xml:base="/operation/2019/07/13/sec-operation/">&lt;p&gt;
+&lt;p&gt;&lt;a href=&quot;https://www.freebuf.com/column/178342.html&quot;&gt;Github信息泄露专项&lt;/a&gt;&lt;/p&gt;</content><author><name>HellSec</name></author><category term="operation" /><summary type="html">笔者原来在涉猎git监控产品时，就只做了敏感关键词监控。后来在工作中逐渐发现，对于一般量级的企业单位，其实复合型的监控平台更符合这类企业的需求。</summary></entry><entry><title type="html">安全运维优化思考</title><link href="http://localhost:4000/operation/2019/07/13/sec-operation/" rel="alternate" type="text/html" title="安全运维优化思考" /><published>2019-07-13T23:40:00+08:00</published><updated>2019-07-13T23:40:00+08:00</updated><id>http://localhost:4000/operation/2019/07/13/sec-operation</id><content type="html" xml:base="http://localhost:4000/operation/2019/07/13/sec-operation/">&lt;p&gt;
 	&lt;span style=&quot;color:#DAA520;&quot;&gt;&lt;strong&gt;近期由乙方安服实验室，转入了甲方的业务安全部门。在接触了一部分业务安全的运维工作后，也做了些对于自身工作的优化方向的思考。&lt;/strong&gt;&lt;/span&gt;
 &lt;/p&gt;
 
@@ -701,7 +701,7 @@ UA池
 &lt;p&gt;当然笔者见识有限，窥一斑而不得见全豹。但总的来说，确实可以根据不同产品的实际情况，去对流程进行一些灵活变通。&lt;/p&gt;
 
 &lt;h4 id=&quot;后记&quot;&gt;后记&lt;/h4&gt;
-&lt;p&gt;以上只是简单谈了一些感受，这方面的工作资历尚浅，期待各路读者斧正和指教。&lt;/p&gt;</content><author><name>HellSec</name></author><category term="operation" /><summary type="html">近期由乙方安服实验室，转入了甲方的业务安全部门。在接触了一部分业务安全的运维工作后，也做了些对于自身工作的优化方向的思考。</summary></entry><entry><title type="html">PHP开发框架LaravelのSQL注入漏洞分析</title><link href="/bug/2019/03/26/php-framework-Laravel-sqli/" rel="alternate" type="text/html" title="PHP开发框架LaravelのSQL注入漏洞分析" /><published>2019-03-26T19:07:00+08:00</published><updated>2019-03-26T19:07:00+08:00</updated><id>/bug/2019/03/26/php-framework-Laravel-sqli</id><content type="html" xml:base="/bug/2019/03/26/php-framework-Laravel-sqli/">&lt;p&gt;
+&lt;p&gt;以上只是简单谈了一些感受，这方面的工作资历尚浅，期待各路读者斧正和指教。&lt;/p&gt;</content><author><name>HellSec</name></author><category term="operation" /><summary type="html">近期由乙方安服实验室，转入了甲方的业务安全部门。在接触了一部分业务安全的运维工作后，也做了些对于自身工作的优化方向的思考。</summary></entry><entry><title type="html">PHP开发框架LaravelのSQL注入漏洞分析</title><link href="http://localhost:4000/bug/2019/03/26/php-framework-Laravel-sqli/" rel="alternate" type="text/html" title="PHP开发框架LaravelのSQL注入漏洞分析" /><published>2019-03-26T19:07:00+08:00</published><updated>2019-03-26T19:07:00+08:00</updated><id>http://localhost:4000/bug/2019/03/26/php-framework-Laravel-sqli</id><content type="html" xml:base="http://localhost:4000/bug/2019/03/26/php-framework-Laravel-sqli/">&lt;p&gt;
 	&lt;span style=&quot;color:#00B050;&quot;&gt;&lt;strong&gt;PHP开发框架Laravel，前几天在官方博客通报了一个SQL注入漏洞，这里简单分析下。&lt;/strong&gt;&lt;/span&gt;
 &lt;/p&gt;
 
@@ -799,7 +799,7 @@ V5.8.4
 
 &lt;p&gt;&lt;a href=&quot;https://blog.laravel.com/unique-rule-sql-injection-warning?fbclid=IwAR26Cs1Ewh983UxSF5fNO8Xr0hUnwSO_Ikbr08Adi20m5h5llP0WhNDmgRg&quot;&gt;官方通告&lt;/a&gt;&lt;/p&gt;
 
-&lt;p&gt;&lt;a href=&quot;https://laravel.com/docs/5.8/validation#rule-unique&quot;&gt;说明文档&lt;/a&gt;&lt;/p&gt;</content><author><name>HellSec</name></author><category term="bug" /><summary type="html">PHP开发框架Laravel，前几天在官方博客通报了一个SQL注入漏洞，这里简单分析下。</summary></entry><entry><title type="html">WordPress Easy WP SMTP反序列化漏洞分析</title><link href="/bug/2019/03/24/unserialize-vuln-for-wp-plugin-easy-wp-smtp/" rel="alternate" type="text/html" title="WordPress Easy WP SMTP反序列化漏洞分析" /><published>2019-03-24T16:31:21+08:00</published><updated>2019-03-24T16:31:21+08:00</updated><id>/bug/2019/03/24/unserialize-vuln-for-wp-plugin-easy-wp-smtp</id><content type="html" xml:base="/bug/2019/03/24/unserialize-vuln-for-wp-plugin-easy-wp-smtp/">&lt;p&gt;
+&lt;p&gt;&lt;a href=&quot;https://laravel.com/docs/5.8/validation#rule-unique&quot;&gt;说明文档&lt;/a&gt;&lt;/p&gt;</content><author><name>HellSec</name></author><category term="bug" /><summary type="html">PHP开发框架Laravel，前几天在官方博客通报了一个SQL注入漏洞，这里简单分析下。</summary></entry><entry><title type="html">WordPress Easy WP SMTP反序列化漏洞分析</title><link href="http://localhost:4000/bug/2019/03/24/unserialize-vuln-for-wp-plugin-easy-wp-smtp/" rel="alternate" type="text/html" title="WordPress Easy WP SMTP反序列化漏洞分析" /><published>2019-03-24T16:31:21+08:00</published><updated>2019-03-24T16:31:21+08:00</updated><id>http://localhost:4000/bug/2019/03/24/unserialize-vuln-for-wp-plugin-easy-wp-smtp</id><content type="html" xml:base="http://localhost:4000/bug/2019/03/24/unserialize-vuln-for-wp-plugin-easy-wp-smtp/">&lt;p&gt;
 	&lt;span style=&quot;color:#DAA520;&quot;&gt;&lt;strong&gt;Wordpress插件Easy WP SMTP最近新出了个漏洞，以前有关注过，好像新的代码变化有点大，所以这里花了点时间简单分析下。&lt;/strong&gt;&lt;/span&gt;
 &lt;/p&gt;
 
@@ -926,7 +926,7 @@ $result = $wpdb-&amp;gt;update( $wpdb-&amp;gt;options, $update_args, array( 'opt
 
 &lt;p&gt;引用文章：&lt;/p&gt;
 
-&lt;p&gt;&lt;a href=&quot;https://blog.nintechnet.com/critical-0day-vulnerability-fixed-in-wordpress-easy-wp-smtp-plugin/&quot;&gt;Critical zero-day vulnerability fixed in WordPress Easy WP SMTP plugin.&lt;/a&gt;&lt;/p&gt;</content><author><name>HellSec</name></author><category term="bug" /><summary type="html">Wordpress插件Easy WP SMTP最近新出了个漏洞，以前有关注过，好像新的代码变化有点大，所以这里花了点时间简单分析下。</summary></entry><entry><title type="html">分布式扫描填坑杂谈</title><link href="/scanner/2019/01/15/talk-about-scanner-settings/" rel="alternate" type="text/html" title="分布式扫描填坑杂谈" /><published>2019-01-15T15:49:21+08:00</published><updated>2019-01-15T15:49:21+08:00</updated><id>/scanner/2019/01/15/talk-about-scanner-settings</id><content type="html" xml:base="/scanner/2019/01/15/talk-about-scanner-settings/">&lt;p&gt;
+&lt;p&gt;&lt;a href=&quot;https://blog.nintechnet.com/critical-0day-vulnerability-fixed-in-wordpress-easy-wp-smtp-plugin/&quot;&gt;Critical zero-day vulnerability fixed in WordPress Easy WP SMTP plugin.&lt;/a&gt;&lt;/p&gt;</content><author><name>HellSec</name></author><category term="bug" /><summary type="html">Wordpress插件Easy WP SMTP最近新出了个漏洞，以前有关注过，好像新的代码变化有点大，所以这里花了点时间简单分析下。</summary></entry><entry><title type="html">分布式扫描填坑杂谈</title><link href="http://localhost:4000/scanner/2019/01/15/talk-about-scanner-settings/" rel="alternate" type="text/html" title="分布式扫描填坑杂谈" /><published>2019-01-15T15:49:21+08:00</published><updated>2019-01-15T15:49:21+08:00</updated><id>http://localhost:4000/scanner/2019/01/15/talk-about-scanner-settings</id><content type="html" xml:base="http://localhost:4000/scanner/2019/01/15/talk-about-scanner-settings/">&lt;p&gt;
 	&lt;span style=&quot;color:#00B050;&quot;&gt;&lt;strong&gt;前段时间团队新加了几台服务器，因为现行的扫描器是支持分布式的，所以及时进行了分布式部署。结果在调试分布式配置时，还是遇到许多坑，忙完一阵子闲下来了，正好整理下记录。&lt;/strong&gt;&lt;/span&gt;
 &lt;/p&gt;
 
@@ -1107,7 +1107,7 @@ celery -A proj worker -l info -P eventlet
 
 &lt;h3 id=&quot;结语&quot;&gt;结语&lt;/h3&gt;
 
-&lt;p&gt;以上配置和分析内容，是摸索和查资料得来的，感谢前辈们的开源共享。&lt;/p&gt;</content><author><name>HellSec</name></author><category term="scanner" /><summary type="html">前段时间团队新加了几台服务器，因为现行的扫描器是支持分布式的，所以及时进行了分布式部署。结果在调试分布式配置时，还是遇到许多坑，忙完一阵子闲下来了，正好整理下记录。</summary></entry><entry><title type="html">漫谈漏洞扫描</title><link href="/scanner/2018/12/27/talk-about-scanner-roads/" rel="alternate" type="text/html" title="漫谈漏洞扫描" /><published>2018-12-27T16:42:38+08:00</published><updated>2018-12-27T16:42:38+08:00</updated><id>/scanner/2018/12/27/talk-about-scanner-roads</id><content type="html" xml:base="/scanner/2018/12/27/talk-about-scanner-roads/">&lt;p&gt;
+&lt;p&gt;以上配置和分析内容，是摸索和查资料得来的，感谢前辈们的开源共享。&lt;/p&gt;</content><author><name>HellSec</name></author><category term="scanner" /><summary type="html">前段时间团队新加了几台服务器，因为现行的扫描器是支持分布式的，所以及时进行了分布式部署。结果在调试分布式配置时，还是遇到许多坑，忙完一阵子闲下来了，正好整理下记录。</summary></entry><entry><title type="html">漫谈漏洞扫描</title><link href="http://localhost:4000/scanner/2018/12/27/talk-about-scanner-roads/" rel="alternate" type="text/html" title="漫谈漏洞扫描" /><published>2018-12-27T16:42:38+08:00</published><updated>2018-12-27T16:42:38+08:00</updated><id>http://localhost:4000/scanner/2018/12/27/talk-about-scanner-roads</id><content type="html" xml:base="http://localhost:4000/scanner/2018/12/27/talk-about-scanner-roads/">&lt;p&gt;
 	&lt;span style=&quot;color:#DAA520;&quot;&gt;&lt;strong&gt;研究漏扫这块儿有段时间了，虽然是业余自己玩，但平素跟公司漏扫产品线打交道比较多，稍微有些心得，在这里简单分享下。&lt;/strong&gt;&lt;/span&gt;
 &lt;/p&gt;
 
@@ -1298,7 +1298,7 @@ wyproxy的衍生扫描器
 
 &lt;p&gt;笔者见过的常见漏扫的架构差不多就是这些了，点到为止吧。另外，笔者自研的也有类似产品，这里就不打广告了XD。&lt;/p&gt;
 
-&lt;p&gt;可能有部分内容，由于时间关系没能例举全，也可能有部分笔误，期待指正和建议。&lt;/p&gt;</content><author><name>HellSec</name></author><category term="scanner" /><summary type="html">研究漏扫这块儿有段时间了，虽然是业余自己玩，但平素跟公司漏扫产品线打交道比较多，稍微有些心得，在这里简单分享下。</summary></entry><entry><title type="html">浅谈漏扫之插件篇</title><link href="/scanner/2018/10/08/scanner-plugins/" rel="alternate" type="text/html" title="浅谈漏扫之插件篇" /><published>2018-10-08T12:37:38+08:00</published><updated>2018-10-08T12:37:38+08:00</updated><id>/scanner/2018/10/08/scanner-plugins</id><content type="html" xml:base="/scanner/2018/10/08/scanner-plugins/">&lt;p&gt;
+&lt;p&gt;可能有部分内容，由于时间关系没能例举全，也可能有部分笔误，期待指正和建议。&lt;/p&gt;</content><author><name>HellSec</name></author><category term="scanner" /><summary type="html">研究漏扫这块儿有段时间了，虽然是业余自己玩，但平素跟公司漏扫产品线打交道比较多，稍微有些心得，在这里简单分享下。</summary></entry><entry><title type="html">浅谈漏扫之插件篇</title><link href="http://localhost:4000/scanner/2018/10/08/scanner-plugins/" rel="alternate" type="text/html" title="浅谈漏扫之插件篇" /><published>2018-10-08T12:37:38+08:00</published><updated>2018-10-08T12:37:38+08:00</updated><id>http://localhost:4000/scanner/2018/10/08/scanner-plugins</id><content type="html" xml:base="http://localhost:4000/scanner/2018/10/08/scanner-plugins/">&lt;p&gt;
 	&lt;span style=&quot;color:#00B050;&quot;&gt;&lt;strong&gt;在我们试图构建漏扫系统的时候，调整好插件的配置和格式，能更有效地帮助我们进行漏洞探测，以及提升对bug的进行fuzz的高效性。&lt;/strong&gt;&lt;/span&gt;
 &lt;/p&gt;
 
@@ -1522,7 +1522,7 @@ for vuln_path in vuln_paths:
 
 &lt;h3 id=&quot;结语&quot;&gt;结语&lt;/h3&gt;
 
-&lt;p&gt;上面列举的案例分析代码，部分改编于Github上搜到的漏洞利用框架，部分来自于笔者自己的储备，这里再次感谢各位大佬的开源。&lt;/p&gt;</content><author><name>HellSec</name></author><category term="scanner" /><summary type="html">在我们试图构建漏扫系统的时候，调整好插件的配置和格式，能更有效地帮助我们进行漏洞探测，以及提升对bug的进行fuzz的高效性。</summary></entry><entry><title type="html">浅谈漏扫之加速篇</title><link href="/scanner/2018/09/03/scanner-faster/" rel="alternate" type="text/html" title="浅谈漏扫之加速篇" /><published>2018-09-03T12:48:18+08:00</published><updated>2018-09-03T12:48:18+08:00</updated><id>/scanner/2018/09/03/scanner-faster</id><content type="html" xml:base="/scanner/2018/09/03/scanner-faster/">&lt;p&gt;
+&lt;p&gt;上面列举的案例分析代码，部分改编于Github上搜到的漏洞利用框架，部分来自于笔者自己的储备，这里再次感谢各位大佬的开源。&lt;/p&gt;</content><author><name>HellSec</name></author><category term="scanner" /><summary type="html">在我们试图构建漏扫系统的时候，调整好插件的配置和格式，能更有效地帮助我们进行漏洞探测，以及提升对bug的进行fuzz的高效性。</summary></entry><entry><title type="html">浅谈漏扫之加速篇</title><link href="http://localhost:4000/scanner/2018/09/03/scanner-faster/" rel="alternate" type="text/html" title="浅谈漏扫之加速篇" /><published>2018-09-03T12:48:18+08:00</published><updated>2018-09-03T12:48:18+08:00</updated><id>http://localhost:4000/scanner/2018/09/03/scanner-faster</id><content type="html" xml:base="http://localhost:4000/scanner/2018/09/03/scanner-faster/">&lt;p&gt;
 	&lt;span style=&quot;color:#DAA520;&quot;&gt;&lt;strong&gt;众所周知，在渗透测试中，除了内网和敏感线上环境，我们会尽可能用上高效的扫描器。虽然说打造扫描神器主要是靠规则和POC，不过它们也需要稳定而健壮的引擎，这就不得不谈到如何有效地对单线程脚本进行加速了。&lt;/strong&gt;&lt;/span&gt;
 &lt;/p&gt;
 
