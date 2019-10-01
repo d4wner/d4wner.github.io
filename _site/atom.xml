@@ -1,4 +1,158 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.5.2">Jekyll</generator><link href="http://localhost:4000/atom.xml" rel="self" type="application/atom+xml" /><link href="http://localhost:4000/" rel="alternate" type="text/html" /><updated>2019-09-02T22:47:01+08:00</updated><id>http://localhost:4000/</id><title type="html">HellSec</title><subtitle>原创网络安全博客&lt;-|-&gt;匠心独运，做有深度的良品。</subtitle><author><name>HellSec</name></author><entry><title type="html">浅谈被动漏扫思路</title><link href="http://localhost:4000/scanner/2019/08/15/axe-scanner-design/" rel="alternate" type="text/html" title="浅谈被动漏扫思路" /><published>2019-08-15T21:13:00+08:00</published><updated>2019-08-15T21:13:00+08:00</updated><id>http://localhost:4000/scanner/2019/08/15/axe-scanner-design</id><content type="html" xml:base="http://localhost:4000/scanner/2019/08/15/axe-scanner-design/">&lt;p&gt;
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.5.2">Jekyll</generator><link href="/atom.xml" rel="self" type="application/atom+xml" /><link href="/" rel="alternate" type="text/html" /><updated>2019-10-01T15:55:06+08:00</updated><id>/</id><title type="html">HellSec</title><subtitle>原创网络安全博客&lt;-|-&gt;匠心独运，做有深度的良品。</subtitle><author><name>HellSec</name></author><entry><title type="html">cors漏洞之123</title><link href="/vuln/2019/09/28/cors-tips/" rel="alternate" type="text/html" title="cors漏洞之123" /><published>2019-09-28T21:13:00+08:00</published><updated>2019-09-28T21:13:00+08:00</updated><id>/vuln/2019/09/28/cors-tips</id><content type="html" xml:base="/vuln/2019/09/28/cors-tips/">&lt;p&gt;
+	&lt;span style=&quot;color:#00B050;&quot;&gt;&lt;strong&gt;cors漏洞相信大家已经很熟悉了，一般会用于配合csrf漏洞对用户进行攻击。这里就遇到的一些case，简单讲讲可能漏报误报的点，以及相应的修复方案。
+&lt;/strong&gt;&lt;/span&gt;
+&lt;/p&gt;
+
+&lt;h3 id=&quot;cors漏洞要素&quot;&gt;cors漏洞要素&lt;/h3&gt;
+
+&lt;p&gt;cors漏洞成功主要需要两个点，&lt;/p&gt;
+
+&lt;p&gt;在Html Response头部里面：&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;Access-Control-Allow-Origin: http://www.whitedomain.com
+Access-Control-Allow-Origin: true or false
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;p&gt;或者同时具备：&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;Access-Control-Allow-Origin: *
+Access-Control-Allow-Credentials: false
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;p&gt;Credentials这里是比较容易被忽略的，Credentials为false的话，数据包是不会带上&lt;strong&gt;传统的认证信息&lt;/strong&gt;，你获取到的敏感内容也是相对有限的。&lt;/p&gt;
+
+&lt;p&gt;另外，cors漏洞也需要注意一点，你在构造测试点的时候，需要得到：&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;Origin: http://www.whitedomain.com
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;p&gt;这里的域名是不能带上目录的，因为你实际上构造钓鱼页面的时候，是无法构造畸形Origin的。&lt;/p&gt;
+
+&lt;p&gt;为啥呢，因为你从页面发送给后端的请求，浏览器会主动去解析过滤，如果在这里去构造畸形的域名，他会只取到host部分，不会处理目录，然后拿去给后端解析。&lt;/p&gt;
+
+&lt;p&gt;比如说，浏览器会像下面这样处理去取host，由于需要配合通用后端过滤设置，需要www.whitedomain.com结尾的绕过尝试：&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;http://www.evil.com/whitedomain.com ===&amp;gt; 
+www.evil.com
+http://www.evil.com\.whitedomain.com ===&amp;gt; 
+www.evil.com
+http://www.evil.com#www.whitedomain.com ===&amp;gt; www.evil.com  ==&amp;gt; 
+http://www.evil.com?www.whitedomain.com ===&amp;gt; www.evil.com 
+
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;p&gt;大概举几个例子就行，反正我这边暂时没找到可以绕过的尝试，后缀whitedomain.com，搞出来基本上取出来的真正host，也只能是whitedomain.com。&lt;/p&gt;
+
+&lt;p&gt;这是啥意思呢？意思是你去构造畸形的域名，浏览器可能就直接过滤拦截了。
+传到后端的，基本就是你想要构造的恶意目的域名。这时候，后端做好相应的防跨域配置和服务器配置，基本就可以稳定拦截了。&lt;/p&gt;
+
+&lt;h3 id=&quot;修复方法&quot;&gt;修复方法&lt;/h3&gt;
+
+&lt;p&gt;java后端配置举例（jetty版本）：&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;public FilterRegistrationBean crossFilter()
+{
+FilterRegistrationBean registration = new FilterRegistrationBean();
+registration.setFilter(new org.eclipse.jetty.servlets.CrossOriginFilter() );
+registration.addInitParameter(name: &quot;allowOrigins&quot;, value: &quot;*.whitedomain.com&quot;);
+registration.addInitParameter(name: &quot;allowMethods&quot;, value: &quot;GET,POST,HEAD&quot;);
+registration.addInitParameter(name: &quot;allowHeaders&quot;, value: &quot;X-Requested-With,Content-Type,Accept,Origin&quot;);
+registration.addUrlPatterns(&quot;/*&quot;);
+registration.setName(&quot;cross-origin&quot;);
+return registration;
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;pom.xml配置:&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&amp;lt;web-app&amp;gt;
+
+    &amp;lt;filter&amp;gt;
+        &amp;lt;filter-name&amp;gt;cross-origin&amp;lt;/filter-name&amp;gt;
+        &amp;lt;filter-class&amp;gt;org.eclipse.jetty.servlets.CrossOriginFilter&amp;lt;/filter-class&amp;gt;
+    &amp;lt;/filter&amp;gt;
+    &amp;lt;filter-mapping&amp;gt;
+        &amp;lt;filter-name&amp;gt;cross-origin&amp;lt;/filter-name&amp;gt;
+        &amp;lt;url-pattern&amp;gt;/cometd/*&amp;lt;/url-pattern&amp;gt;
+    &amp;lt;/filter-mapping&amp;gt;
+
+&amp;lt;/web-app&amp;gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;当然，如果遇到特殊情况，需要在前端直接配置，nodejs配置举例：&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;// 判断origin是否在域名白名单列表中
+
+function isOriginAllowed(origin, allowedOrigin) {
+
+if (_.isArray(allowedOrigin)) {
+
+for(let i = 0; i &amp;lt; allowedOrigin.length; i++) {
+
+if(isOriginAllowed(origin, allowedOrigin[i])) {
+
+return true;
+
+}
+
+}
+
+return false;
+
+} else if (_.isString(allowedOrigin)) {
+
+return origin === allowedOrigin;
+
+} else if (allowedOrigin instanceof RegExp) {
+
+return allowedOrigin.test(origin);
+
+} else {
+
+return !!allowedOrigin;
+
+}
+
+}
+
+const ALLOW_ORIGIN = [ // 域名白名单
+
+'*.test1.com',
+
+'*.test2.com',
+
+];
+
+app.post('/formdata', function (req, res, next) {
+
+let reqOrigin = req.headers.origin; // request响应头的origin属性
+
+// 判断请求是否在域名白名单内
+
+if(isOriginAllowed(reqOrigin, ALLOW_ORIGIN)) {
+
+// 设置CORS为请求的Origin值
+
+res.header(&quot;Access-Control-Allow-Origin&quot;, reqOrigin);
+
+//个人觉得下面一句根据业务而定，可设定可不设定。
+res.header('Access-Control-Allow-Credentials', 'true');
+
+// 你的业务代码逻辑代码 ...
+
+// ...
+
+} else {
+
+res.send({ code: -2, msg: '非法请求' });
+
+}
+
+});
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;</content><author><name>HellSec</name></author><category term="vuln" /><summary type="html">cors漏洞相信大家已经很熟悉了，一般会用于配合csrf漏洞对用户进行攻击。这里就遇到的一些case，简单讲讲可能漏报误报的点，以及相应的修复方案。</summary></entry><entry><title type="html">浅谈被动漏扫思路</title><link href="/scanner/2019/08/15/axe-scanner-design/" rel="alternate" type="text/html" title="浅谈被动漏扫思路" /><published>2019-08-15T21:13:00+08:00</published><updated>2019-08-15T21:13:00+08:00</updated><id>/scanner/2019/08/15/axe-scanner-design</id><content type="html" xml:base="/scanner/2019/08/15/axe-scanner-design/">&lt;p&gt;
 	&lt;span style=&quot;color:#DAA520;&quot;&gt;&lt;strong&gt;本文中的规则分析，大部分来自于以前被动漏扫研发的实践，以后会再接触更多业务后，会继续进行更新。其中如有纰漏或者差错，希望诸位给出修正意见。
 &lt;/strong&gt;&lt;/span&gt;
 &lt;/p&gt;
@@ -355,7 +509,7 @@ Content-Type: xxxxx
 
 &lt;p&gt;如果黑盒测试，只能根据常用上传目录去爆破shell文件名，以获取到shell标识为成功。&lt;/p&gt;
 
-&lt;p&gt;否则的话，需要结合白盒定位，手动配置好路径，估算生成的文件名，去进行黑盒探测。&lt;/p&gt;</content><author><name>HellSec</name></author><category term="scanner" /><summary type="html">本文中的规则分析，大部分来自于以前被动漏扫研发的实践，以后会再接触更多业务后，会继续进行更新。其中如有纰漏或者差错，希望诸位给出修正意见。</summary></entry><entry><title type="html">Git监控小议</title><link href="http://localhost:4000/operation/2019/07/28/sec-git-monitor/" rel="alternate" type="text/html" title="Git监控小议" /><published>2019-07-28T18:00:00+08:00</published><updated>2019-07-28T18:00:00+08:00</updated><id>http://localhost:4000/operation/2019/07/28/sec-git-monitor</id><content type="html" xml:base="http://localhost:4000/operation/2019/07/28/sec-git-monitor/">&lt;p&gt;
+&lt;p&gt;否则的话，需要结合白盒定位，手动配置好路径，估算生成的文件名，去进行黑盒探测。&lt;/p&gt;</content><author><name>HellSec</name></author><category term="scanner" /><summary type="html">本文中的规则分析，大部分来自于以前被动漏扫研发的实践，以后会再接触更多业务后，会继续进行更新。其中如有纰漏或者差错，希望诸位给出修正意见。</summary></entry><entry><title type="html">Git监控小议</title><link href="/operation/2019/07/28/sec-git-monitor/" rel="alternate" type="text/html" title="Git监控小议" /><published>2019-07-28T18:00:00+08:00</published><updated>2019-07-28T18:00:00+08:00</updated><id>/operation/2019/07/28/sec-git-monitor</id><content type="html" xml:base="/operation/2019/07/28/sec-git-monitor/">&lt;p&gt;
 	&lt;span style=&quot;color:#00B050;&quot;&gt;&lt;strong&gt;笔者原来在涉猎git监控产品时，就只做了敏感关键词监控。后来在工作中逐渐发现，对于一般量级的企业单位，其实复合型的监控平台更符合这类企业的需求。&lt;/strong&gt;&lt;/span&gt;
 &lt;/p&gt;
 
@@ -484,7 +638,7 @@ UA池
 
 &lt;p&gt;&lt;a href=&quot;https://www.freebuf.com/sectool/114017.html&quot;&gt;基于Github的源码白盒扫描工具Raptor&lt;/a&gt;&lt;/p&gt;
 
-&lt;p&gt;&lt;a href=&quot;https://www.freebuf.com/column/178342.html&quot;&gt;Github信息泄露专项&lt;/a&gt;&lt;/p&gt;</content><author><name>HellSec</name></author><category term="operation" /><summary type="html">笔者原来在涉猎git监控产品时，就只做了敏感关键词监控。后来在工作中逐渐发现，对于一般量级的企业单位，其实复合型的监控平台更符合这类企业的需求。</summary></entry><entry><title type="html">安全运维优化思考</title><link href="http://localhost:4000/operation/2019/07/13/sec-operation/" rel="alternate" type="text/html" title="安全运维优化思考" /><published>2019-07-13T23:40:00+08:00</published><updated>2019-07-13T23:40:00+08:00</updated><id>http://localhost:4000/operation/2019/07/13/sec-operation</id><content type="html" xml:base="http://localhost:4000/operation/2019/07/13/sec-operation/">&lt;p&gt;
+&lt;p&gt;&lt;a href=&quot;https://www.freebuf.com/column/178342.html&quot;&gt;Github信息泄露专项&lt;/a&gt;&lt;/p&gt;</content><author><name>HellSec</name></author><category term="operation" /><summary type="html">笔者原来在涉猎git监控产品时，就只做了敏感关键词监控。后来在工作中逐渐发现，对于一般量级的企业单位，其实复合型的监控平台更符合这类企业的需求。</summary></entry><entry><title type="html">安全运维优化思考</title><link href="/operation/2019/07/13/sec-operation/" rel="alternate" type="text/html" title="安全运维优化思考" /><published>2019-07-13T23:40:00+08:00</published><updated>2019-07-13T23:40:00+08:00</updated><id>/operation/2019/07/13/sec-operation</id><content type="html" xml:base="/operation/2019/07/13/sec-operation/">&lt;p&gt;
 	&lt;span style=&quot;color:#DAA520;&quot;&gt;&lt;strong&gt;近期由乙方安服实验室，转入了甲方的业务安全部门。在接触了一部分业务安全的运维工作后，也做了些对于自身工作的优化方向的思考。&lt;/strong&gt;&lt;/span&gt;
 &lt;/p&gt;
 
@@ -547,7 +701,7 @@ UA池
 &lt;p&gt;当然笔者见识有限，窥一斑而不得见全豹。但总的来说，确实可以根据不同产品的实际情况，去对流程进行一些灵活变通。&lt;/p&gt;
 
 &lt;h4 id=&quot;后记&quot;&gt;后记&lt;/h4&gt;
-&lt;p&gt;以上只是简单谈了一些感受，这方面的工作资历尚浅，期待各路读者斧正和指教。&lt;/p&gt;</content><author><name>HellSec</name></author><category term="operation" /><summary type="html">近期由乙方安服实验室，转入了甲方的业务安全部门。在接触了一部分业务安全的运维工作后，也做了些对于自身工作的优化方向的思考。</summary></entry><entry><title type="html">PHP开发框架LaravelのSQL注入漏洞分析</title><link href="http://localhost:4000/bug/2019/03/26/php-framework-Laravel-sqli/" rel="alternate" type="text/html" title="PHP开发框架LaravelのSQL注入漏洞分析" /><published>2019-03-26T19:07:00+08:00</published><updated>2019-03-26T19:07:00+08:00</updated><id>http://localhost:4000/bug/2019/03/26/php-framework-Laravel-sqli</id><content type="html" xml:base="http://localhost:4000/bug/2019/03/26/php-framework-Laravel-sqli/">&lt;p&gt;
+&lt;p&gt;以上只是简单谈了一些感受，这方面的工作资历尚浅，期待各路读者斧正和指教。&lt;/p&gt;</content><author><name>HellSec</name></author><category term="operation" /><summary type="html">近期由乙方安服实验室，转入了甲方的业务安全部门。在接触了一部分业务安全的运维工作后，也做了些对于自身工作的优化方向的思考。</summary></entry><entry><title type="html">PHP开发框架LaravelのSQL注入漏洞分析</title><link href="/bug/2019/03/26/php-framework-Laravel-sqli/" rel="alternate" type="text/html" title="PHP开发框架LaravelのSQL注入漏洞分析" /><published>2019-03-26T19:07:00+08:00</published><updated>2019-03-26T19:07:00+08:00</updated><id>/bug/2019/03/26/php-framework-Laravel-sqli</id><content type="html" xml:base="/bug/2019/03/26/php-framework-Laravel-sqli/">&lt;p&gt;
 	&lt;span style=&quot;color:#00B050;&quot;&gt;&lt;strong&gt;PHP开发框架Laravel，前几天在官方博客通报了一个SQL注入漏洞，这里简单分析下。&lt;/strong&gt;&lt;/span&gt;
 &lt;/p&gt;
 
@@ -645,7 +799,7 @@ V5.8.4
 
 &lt;p&gt;&lt;a href=&quot;https://blog.laravel.com/unique-rule-sql-injection-warning?fbclid=IwAR26Cs1Ewh983UxSF5fNO8Xr0hUnwSO_Ikbr08Adi20m5h5llP0WhNDmgRg&quot;&gt;官方通告&lt;/a&gt;&lt;/p&gt;
 
-&lt;p&gt;&lt;a href=&quot;https://laravel.com/docs/5.8/validation#rule-unique&quot;&gt;说明文档&lt;/a&gt;&lt;/p&gt;</content><author><name>HellSec</name></author><category term="bug" /><summary type="html">PHP开发框架Laravel，前几天在官方博客通报了一个SQL注入漏洞，这里简单分析下。</summary></entry><entry><title type="html">WordPress Easy WP SMTP反序列化漏洞分析</title><link href="http://localhost:4000/bug/2019/03/24/unserialize-vuln-for-wp-plugin-easy-wp-smtp/" rel="alternate" type="text/html" title="WordPress Easy WP SMTP反序列化漏洞分析" /><published>2019-03-24T16:31:21+08:00</published><updated>2019-03-24T16:31:21+08:00</updated><id>http://localhost:4000/bug/2019/03/24/unserialize-vuln-for-wp-plugin-easy-wp-smtp</id><content type="html" xml:base="http://localhost:4000/bug/2019/03/24/unserialize-vuln-for-wp-plugin-easy-wp-smtp/">&lt;p&gt;
+&lt;p&gt;&lt;a href=&quot;https://laravel.com/docs/5.8/validation#rule-unique&quot;&gt;说明文档&lt;/a&gt;&lt;/p&gt;</content><author><name>HellSec</name></author><category term="bug" /><summary type="html">PHP开发框架Laravel，前几天在官方博客通报了一个SQL注入漏洞，这里简单分析下。</summary></entry><entry><title type="html">WordPress Easy WP SMTP反序列化漏洞分析</title><link href="/bug/2019/03/24/unserialize-vuln-for-wp-plugin-easy-wp-smtp/" rel="alternate" type="text/html" title="WordPress Easy WP SMTP反序列化漏洞分析" /><published>2019-03-24T16:31:21+08:00</published><updated>2019-03-24T16:31:21+08:00</updated><id>/bug/2019/03/24/unserialize-vuln-for-wp-plugin-easy-wp-smtp</id><content type="html" xml:base="/bug/2019/03/24/unserialize-vuln-for-wp-plugin-easy-wp-smtp/">&lt;p&gt;
 	&lt;span style=&quot;color:#DAA520;&quot;&gt;&lt;strong&gt;Wordpress插件Easy WP SMTP最近新出了个漏洞，以前有关注过，好像新的代码变化有点大，所以这里花了点时间简单分析下。&lt;/strong&gt;&lt;/span&gt;
 &lt;/p&gt;
 
@@ -772,7 +926,7 @@ $result = $wpdb-&amp;gt;update( $wpdb-&amp;gt;options, $update_args, array( 'opt
 
 &lt;p&gt;引用文章：&lt;/p&gt;
 
-&lt;p&gt;&lt;a href=&quot;https://blog.nintechnet.com/critical-0day-vulnerability-fixed-in-wordpress-easy-wp-smtp-plugin/&quot;&gt;Critical zero-day vulnerability fixed in WordPress Easy WP SMTP plugin.&lt;/a&gt;&lt;/p&gt;</content><author><name>HellSec</name></author><category term="bug" /><summary type="html">Wordpress插件Easy WP SMTP最近新出了个漏洞，以前有关注过，好像新的代码变化有点大，所以这里花了点时间简单分析下。</summary></entry><entry><title type="html">分布式扫描填坑杂谈</title><link href="http://localhost:4000/scanner/2019/01/15/talk-about-scanner-settings/" rel="alternate" type="text/html" title="分布式扫描填坑杂谈" /><published>2019-01-15T15:49:21+08:00</published><updated>2019-01-15T15:49:21+08:00</updated><id>http://localhost:4000/scanner/2019/01/15/talk-about-scanner-settings</id><content type="html" xml:base="http://localhost:4000/scanner/2019/01/15/talk-about-scanner-settings/">&lt;p&gt;
+&lt;p&gt;&lt;a href=&quot;https://blog.nintechnet.com/critical-0day-vulnerability-fixed-in-wordpress-easy-wp-smtp-plugin/&quot;&gt;Critical zero-day vulnerability fixed in WordPress Easy WP SMTP plugin.&lt;/a&gt;&lt;/p&gt;</content><author><name>HellSec</name></author><category term="bug" /><summary type="html">Wordpress插件Easy WP SMTP最近新出了个漏洞，以前有关注过，好像新的代码变化有点大，所以这里花了点时间简单分析下。</summary></entry><entry><title type="html">分布式扫描填坑杂谈</title><link href="/scanner/2019/01/15/talk-about-scanner-settings/" rel="alternate" type="text/html" title="分布式扫描填坑杂谈" /><published>2019-01-15T15:49:21+08:00</published><updated>2019-01-15T15:49:21+08:00</updated><id>/scanner/2019/01/15/talk-about-scanner-settings</id><content type="html" xml:base="/scanner/2019/01/15/talk-about-scanner-settings/">&lt;p&gt;
 	&lt;span style=&quot;color:#00B050;&quot;&gt;&lt;strong&gt;前段时间团队新加了几台服务器，因为现行的扫描器是支持分布式的，所以及时进行了分布式部署。结果在调试分布式配置时，还是遇到许多坑，忙完一阵子闲下来了，正好整理下记录。&lt;/strong&gt;&lt;/span&gt;
 &lt;/p&gt;
 
@@ -953,7 +1107,7 @@ celery -A proj worker -l info -P eventlet
 
 &lt;h3 id=&quot;结语&quot;&gt;结语&lt;/h3&gt;
 
-&lt;p&gt;以上配置和分析内容，是摸索和查资料得来的，感谢前辈们的开源共享。&lt;/p&gt;</content><author><name>HellSec</name></author><category term="scanner" /><summary type="html">前段时间团队新加了几台服务器，因为现行的扫描器是支持分布式的，所以及时进行了分布式部署。结果在调试分布式配置时，还是遇到许多坑，忙完一阵子闲下来了，正好整理下记录。</summary></entry><entry><title type="html">漫谈漏洞扫描</title><link href="http://localhost:4000/scanner/2018/12/27/talk-about-scanner-roads/" rel="alternate" type="text/html" title="漫谈漏洞扫描" /><published>2018-12-27T16:42:38+08:00</published><updated>2018-12-27T16:42:38+08:00</updated><id>http://localhost:4000/scanner/2018/12/27/talk-about-scanner-roads</id><content type="html" xml:base="http://localhost:4000/scanner/2018/12/27/talk-about-scanner-roads/">&lt;p&gt;
+&lt;p&gt;以上配置和分析内容，是摸索和查资料得来的，感谢前辈们的开源共享。&lt;/p&gt;</content><author><name>HellSec</name></author><category term="scanner" /><summary type="html">前段时间团队新加了几台服务器，因为现行的扫描器是支持分布式的，所以及时进行了分布式部署。结果在调试分布式配置时，还是遇到许多坑，忙完一阵子闲下来了，正好整理下记录。</summary></entry><entry><title type="html">漫谈漏洞扫描</title><link href="/scanner/2018/12/27/talk-about-scanner-roads/" rel="alternate" type="text/html" title="漫谈漏洞扫描" /><published>2018-12-27T16:42:38+08:00</published><updated>2018-12-27T16:42:38+08:00</updated><id>/scanner/2018/12/27/talk-about-scanner-roads</id><content type="html" xml:base="/scanner/2018/12/27/talk-about-scanner-roads/">&lt;p&gt;
 	&lt;span style=&quot;color:#DAA520;&quot;&gt;&lt;strong&gt;研究漏扫这块儿有段时间了，虽然是业余自己玩，但平素跟公司漏扫产品线打交道比较多，稍微有些心得，在这里简单分享下。&lt;/strong&gt;&lt;/span&gt;
 &lt;/p&gt;
 
@@ -1144,7 +1298,7 @@ wyproxy的衍生扫描器
 
 &lt;p&gt;笔者见过的常见漏扫的架构差不多就是这些了，点到为止吧。另外，笔者自研的也有类似产品，这里就不打广告了XD。&lt;/p&gt;
 
-&lt;p&gt;可能有部分内容，由于时间关系没能例举全，也可能有部分笔误，期待指正和建议。&lt;/p&gt;</content><author><name>HellSec</name></author><category term="scanner" /><summary type="html">研究漏扫这块儿有段时间了，虽然是业余自己玩，但平素跟公司漏扫产品线打交道比较多，稍微有些心得，在这里简单分享下。</summary></entry><entry><title type="html">浅谈漏扫之插件篇</title><link href="http://localhost:4000/scanner/2018/10/08/scanner-plugins/" rel="alternate" type="text/html" title="浅谈漏扫之插件篇" /><published>2018-10-08T12:37:38+08:00</published><updated>2018-10-08T12:37:38+08:00</updated><id>http://localhost:4000/scanner/2018/10/08/scanner-plugins</id><content type="html" xml:base="http://localhost:4000/scanner/2018/10/08/scanner-plugins/">&lt;p&gt;
+&lt;p&gt;可能有部分内容，由于时间关系没能例举全，也可能有部分笔误，期待指正和建议。&lt;/p&gt;</content><author><name>HellSec</name></author><category term="scanner" /><summary type="html">研究漏扫这块儿有段时间了，虽然是业余自己玩，但平素跟公司漏扫产品线打交道比较多，稍微有些心得，在这里简单分享下。</summary></entry><entry><title type="html">浅谈漏扫之插件篇</title><link href="/scanner/2018/10/08/scanner-plugins/" rel="alternate" type="text/html" title="浅谈漏扫之插件篇" /><published>2018-10-08T12:37:38+08:00</published><updated>2018-10-08T12:37:38+08:00</updated><id>/scanner/2018/10/08/scanner-plugins</id><content type="html" xml:base="/scanner/2018/10/08/scanner-plugins/">&lt;p&gt;
 	&lt;span style=&quot;color:#00B050;&quot;&gt;&lt;strong&gt;在我们试图构建漏扫系统的时候，调整好插件的配置和格式，能更有效地帮助我们进行漏洞探测，以及提升对bug的进行fuzz的高效性。&lt;/strong&gt;&lt;/span&gt;
 &lt;/p&gt;
 
@@ -1368,7 +1522,7 @@ for vuln_path in vuln_paths:
 
 &lt;h3 id=&quot;结语&quot;&gt;结语&lt;/h3&gt;
 
-&lt;p&gt;上面列举的案例分析代码，部分改编于Github上搜到的漏洞利用框架，部分来自于笔者自己的储备，这里再次感谢各位大佬的开源。&lt;/p&gt;</content><author><name>HellSec</name></author><category term="scanner" /><summary type="html">在我们试图构建漏扫系统的时候，调整好插件的配置和格式，能更有效地帮助我们进行漏洞探测，以及提升对bug的进行fuzz的高效性。</summary></entry><entry><title type="html">浅谈漏扫之加速篇</title><link href="http://localhost:4000/scanner/2018/09/03/scanner-faster/" rel="alternate" type="text/html" title="浅谈漏扫之加速篇" /><published>2018-09-03T12:48:18+08:00</published><updated>2018-09-03T12:48:18+08:00</updated><id>http://localhost:4000/scanner/2018/09/03/scanner-faster</id><content type="html" xml:base="http://localhost:4000/scanner/2018/09/03/scanner-faster/">&lt;p&gt;
+&lt;p&gt;上面列举的案例分析代码，部分改编于Github上搜到的漏洞利用框架，部分来自于笔者自己的储备，这里再次感谢各位大佬的开源。&lt;/p&gt;</content><author><name>HellSec</name></author><category term="scanner" /><summary type="html">在我们试图构建漏扫系统的时候，调整好插件的配置和格式，能更有效地帮助我们进行漏洞探测，以及提升对bug的进行fuzz的高效性。</summary></entry><entry><title type="html">浅谈漏扫之加速篇</title><link href="/scanner/2018/09/03/scanner-faster/" rel="alternate" type="text/html" title="浅谈漏扫之加速篇" /><published>2018-09-03T12:48:18+08:00</published><updated>2018-09-03T12:48:18+08:00</updated><id>/scanner/2018/09/03/scanner-faster</id><content type="html" xml:base="/scanner/2018/09/03/scanner-faster/">&lt;p&gt;
 	&lt;span style=&quot;color:#DAA520;&quot;&gt;&lt;strong&gt;众所周知，在渗透测试中，除了内网和敏感线上环境，我们会尽可能用上高效的扫描器。虽然说打造扫描神器主要是靠规则和POC，不过它们也需要稳定而健壮的引擎，这就不得不谈到如何有效地对单线程脚本进行加速了。&lt;/strong&gt;&lt;/span&gt;
 &lt;/p&gt;
 
@@ -1884,306 +2038,4 @@ Task: 获取插件，执行任务，输出报告。
 &lt;p&gt;&lt;a href=&quot;https://www.cnblogs.com/PrettyTom/p/6582357.html&quot;&gt;Python的多进程&lt;/a&gt;&lt;/p&gt;
 
 &lt;p&gt;&lt;a href=&quot;https://www.chabug.org/tools/553.html&quot;&gt;[X1r0z]模拟bugscan node的通信机制及在线体验
-&lt;/a&gt;&lt;/p&gt;</content><author><name>HellSec</name></author><category term="scanner" /><summary type="html">众所周知，在渗透测试中，除了内网和敏感线上环境，我们会尽可能用上高效的扫描器。虽然说打造扫描神器主要是靠规则和POC，不过它们也需要稳定而健壮的引擎，这就不得不谈到如何有效地对单线程脚本进行加速了。</summary></entry><entry><title type="html">浅谈进程隐藏之术</title><link href="http://localhost:4000/cert/2018/07/04/hide-process/" rel="alternate" type="text/html" title="浅谈进程隐藏之术" /><published>2018-07-04T19:30:38+08:00</published><updated>2018-07-04T19:30:38+08:00</updated><id>http://localhost:4000/cert/2018/07/04/hide-process</id><content type="html" xml:base="http://localhost:4000/cert/2018/07/04/hide-process/">&lt;p&gt;
-	&lt;span style=&quot;color:#00B050;&quot;&gt;&lt;strong&gt;前段时间遇到了一些【进程隐藏】相关的应急事件，故此心生一念，对网上一些资料和部分个人经验做了总结，以飨众人。&lt;/strong&gt;&lt;/span&gt;
-&lt;/p&gt;
-
-&lt;h3 id=&quot;windows进程隐藏&quot;&gt;windows进程隐藏&lt;/h3&gt;
-
-&lt;h4 id=&quot;基于系统服务的进程隐藏技术&quot;&gt;基于系统服务的进程隐藏技术&lt;/h4&gt;
-
-&lt;p&gt;在WIN 9X系列操作系统中, 系统进程列表中不能看到任何系统服务进程, 因此只需要将指定进程注册为系统服务就能够使该进程从系统进程列表中隐形。&lt;/p&gt;
-
-&lt;p&gt;在WIN 9X下用RegisterServiceProcess函数隐藏进程，NT架构下用不了 即win2000和xp等什么的用不了此方法。&lt;/p&gt;
-
-&lt;p&gt;替换tasklist、ps、top
-https://blog.csdn.net/qq_27446553/article/details/54591099
-windows高版本内核难以进行真正的进程隐藏，除非编写底层驱动。
-在进程LoadLibrary某个DLL文件后，这个DLL是不可以被删除的，但是可以改名和移动位置（当然，就算移动了位置也不可以删除它），所以代码中可以用MoveFile移动到某个角落去。
-这样，DLL就从原来的位置消失了，而新位置在资源管理器中又无法访问到，达到了简单隐藏DLL的目的。&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;CreateDirectory('d:\test\....\', nil);
-MoveFile('D:\test\Hack.dll', 'd:\test\....\Hack.dll');
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;h4 id=&quot;基于api-hook的进程隐藏技术&quot;&gt;基于API HOOK的进程隐藏技术&lt;/h4&gt;
-
-&lt;p&gt;API HOOK指的是通过特殊的编程手段截获WINDOWS系统调用的API函数,并将其丢弃或者进行替换。 通过API
-HOOK编程方法,截获系统遍历进程函数并对其进行替换,可以实现对任意进程的隐藏。&lt;/p&gt;
-
-&lt;h4 id=&quot;基于-dll-的进程隐藏技术远程注入dll技术&quot;&gt;基于 DLL 的进程隐藏技术:远程注入Dll技术&lt;/h4&gt;
-
-&lt;p&gt;先编写一个API的DLL，将它远程注入进程，写入远程进程的内存地址空间，并建立远程线程执行。&lt;/p&gt;
-
-&lt;p&gt;不触发PG（patchguard），又能隐藏驱动：
-当驱动加载时 会将驱动信息加入那个链表，可以直接阻止这个加入的过程。
-“MiProcessLoaderEntry”，这个函数将驱动信息加入链表和移除链表：&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;调用MiProcessLoaderEntry(pDriverObject-&amp;gt;DriverSection, 0);
-PCHunter显示为红色~
-
-能不能完全隐藏?
-pTargetDriverObject-&amp;gt;DriverSection = NULL;
-
-// 破坏驱动对象特征
-pTargetDriverObject-&amp;gt;DriverStart = NULL;
-pTargetDriverObject-&amp;gt;DriverSize = NULL;
-pTargetDriverObject-&amp;gt;DriverUnload = NULL;
-pTargetDriverObject-&amp;gt;DriverInit = NULL;
-pTargetDriverObject-&amp;gt;DeviceObject = NULL;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;h4 id=&quot;基于远程线程注入代码的进程隐藏技术&quot;&gt;基于远程线程注入代码的进程隐藏技术&lt;/h4&gt;
-
-&lt;p&gt;这种方法与远程线程注入DLL的原理一样,都是通过在某进程中创建远程线程来共享该进程的内存空间。&lt;/p&gt;
-
-&lt;p&gt;所不同的是,远程线程注入代码通过直接拷贝程序代码到某进程的内存空间来达到注入的目的。&lt;/p&gt;
-
-&lt;p&gt;因为程序代码存在于内存中,不仅进程列表中无法检测,即使遍历进程加载的内存模块也无法找到被隐藏程序的踪迹。&lt;/p&gt;
-
-&lt;h4 id=&quot;rootkit方式&quot;&gt;Rootkit方式&lt;/h4&gt;
-
-&lt;p&gt;Intel CPU 有4 个特权级别： Ring 0， Ring 1， Ring 2， Ring 3。Windows 只使用了其中的 Ring  0 和  Ring  3 两个级别。&lt;/p&gt;
-
-&lt;p&gt;操作系统分为内核和外壳两部分：内核运行在Ring0级，通常称为核心态（或内核态），用于实现最底层的管理功能，在内核态可以访问系统数据和硬件，包括处理机调度、内存管理、设备管理、文件管理等；外壳运行在 Ring 3级，通常称为用户态，是基于内核提供的交互功能而存在的界面，它负责指令传递和解释。通常情况下，用户态的应用程序没有权限访问核心态的地址空间。&lt;/p&gt;
-
-&lt;p&gt;Rootkit 是攻击者用来隐藏自己的踪迹和保留 root 访问权限的工具，它能使攻击者一直保持对目标机器的访问，以实施对目标计算机的控制[1]。从 Rootkit 运行的环境来看，可将
-其分为用户级 Rootkit 和内核级 Rootkit。
-用户态下，应用程序会调用 Win32 子系统动态库（包括Kernel32.dll， User32.dll， Gdi32.dll等）提供的Win32 API函数，它们是Windows提供给应用程序与操作系统的接口，运行在Ring3级。用户级 Rootkit 通常就是通过拦截 Win32 API，建立系统钩子，插入自己的代码，从而控制检测工具对进程或服务的遍历调用，实现隐藏功能。&lt;/p&gt;
-
-&lt;p&gt;内核级Rootkit 是指利用驱动程序技术或其它相关技术进入Windows 操作系统内核，通过对 Windows 操作系统内核相关的数据结构或对象进行篡改，以实现隐藏功能。&lt;/p&gt;
-
-&lt;p&gt;由于Rootkit运行在Ring0级别，甚至进入内核空间，因而可以对内核指令进行修改，而用户级检测却无法发现内核操作被拦
-截。
-下面介绍两种使用Rootkit技术来实现进程隐藏的方法。注册表来实现启动,因而易于被检测出来。显然,要增强进程的隐蔽性,关键在于增强加载程序文件的隐藏性。&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;SSDT Hook&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;参考资料：&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;进程隐藏与进程保护（SSDT Hook 实现）（一）
-http://www.cnblogs.com/zmlctt/p/3979105.html
-
-进程隐藏与进程保护（SSDT Hook 实现）（二）
-https://www.cnblogs.com/zmlctt/p/3979108.html
-
-进程隐藏与进程保护（SSDT Hook 实现）（三）
-http://www.cnblogs.com/BoyXiao/archive/2011/09/05/2168115.html
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;DKOM（Direct Kernel Object Manipulation，直接内核对象操作）&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;使用DKOM方法进行进程隐藏。在Windows操作系统中，系统会为每一个活动进程创建一个进程对象EPROCESS，为进程中的每一个线程创建一个线程对象 ETHREAD。
-
-在 EPROCESS 进程结构中有个双向链表 LIST_ENTRY，LIST_ENTRY结构中有FLINK 和BLINK 两个成员指针，分别指向当前进程的前驱进程和后继进程。
-
-如果要隐藏当前进程，只需把当前进程的前驱进程的BLINK 修改为当前进程的BLINK，再把当前进程的后继进程的FLINK修改为当前进程的FLINK。
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;关于断链隐藏进程&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;Windows系统中的所有进程通过其ActiveProcessLinks结构中的指针来引用。它们构成了诸如taskmgr.exe（任务管理器）或某些SysInternals（例如procexp.exe）等工具使用的双链表。&lt;/p&gt;
-
-&lt;p&gt;DKOM技术【直接内核对象操纵（Direct Kernel Object Manipulation）】隐藏了一个取消链接它自己的ActiveProcessLinks的进程，并将“前一个”和“下一个”进程直接相互链接。
-事实上，许多监控/系统工具（例如SysInternals Microsoft套件）都是基于双链表的进程枚举。&lt;/p&gt;
-
-&lt;p&gt;不过断链隐藏进程，容易蓝屏，貌似也过不了pg。&lt;/p&gt;
-
-&lt;h3 id=&quot;linux进程隐藏&quot;&gt;Linux进程隐藏&lt;/h3&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;
-    &lt;p&gt;一种简单的方法：系统启动时会依据 /etc/fstab 文件内容来挂载分区，在 proc 分区挂载参数中加入 hidepid=2 参数后，登陆系统的用户只能查看到当前用户启动的进程的信息。也就是说， tomcat 用户只能看到属于 tomcat 用户进程的信息。&lt;/p&gt;
-  &lt;/li&gt;
-  &lt;li&gt;
-    &lt;p&gt;在内核中新增两个信号，当进程向内核发出 hide 信号时，内核将不会为该进程在 /proc 目录下生成对应的目录，从而也就从底层铲除了进程的信息，即使黑客获得了 root 权限也无法通过常规手段察觉到蛛丝马迹。除此之外，新增的unhide信号作用恰好与 hide 信号相反。&lt;/p&gt;
-  &lt;/li&gt;
-  &lt;li&gt;
-    &lt;p&gt;对其他用户隐藏&lt;/p&gt;
-  &lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;如果你使用的linux kernel(内核)是3.2以上的版本(或者使用的RHEL/CentOS是6.5以上的版本)，你就可以对其他用户隐藏进程。
-只有root用户可以看到所有的进程，而非root用户，只能看到属于自己的进程信息。你所需要做的仅仅是开启linux kernel加固选项 “hidepid “来重新挂载 /proc文件系统。&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;https://www.jb51.net/LINUXjishu/347787.html
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;linux下根据进程名称隐藏进程的PID&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;ol&gt;
-  &lt;li&gt;
-    &lt;p&gt;把要隐藏的进程PID设置为0，因为系统默认是不显示PID为0的进程，不过缺陷比较大。
-其核心思想就是把task-&amp;gt;pid变成0，就成了0号进程。而在ps，top命令中，是不显示0号进程的相关信息。这么一来，在/proc/文件夹下就不会有该进程的相关信息了。&lt;/p&gt;
-  &lt;/li&gt;
-  &lt;li&gt;
-    &lt;p&gt;修改系统调用sys_getdents（）。&lt;/p&gt;
-  &lt;/li&gt;
-&lt;/ol&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;http://blog.chinaunix.net/uid-26585427-id-5077452.html
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;ol&gt;
-  &lt;li&gt;另外，还有一种比较简便的方法，就是把int main(int argc, char*argv[])中的参数变成0，那么就在单纯的ps命令中就不会显示进程相关信息，但是/proc/文件夹下，还会存在该进程的相关信息。&lt;/li&gt;
-&lt;/ol&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;https://blog.csdn.net/xqhrs232/article/details/51906206
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;遍历PspCidTable表检测隐藏进程&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;https://www.cnblogs.com/kuangke/p/5761615.html
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;部分补充说明&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;在变更文件里可以看到一些挖矿程序，同时 /etc/ld.so.preload 文件的变更需要引起注意，这里涉及到 Linux 动态链接库预加载机制，是一种常用的进程隐藏方法，而 top 等命令都是受这个机制影响的。&lt;/p&gt;
-
-&lt;p&gt;可以看看其中有没有包含可疑的so文件，然后记录后去掉。&lt;/p&gt;
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;注意
-/etc/rc.d/init.d/network
-/etc/resolv.conf
-
-cat /etc/ld.so.preload
-top 查看pid
-ls  -lh /proc/pid号
-得到相关文件位置后进行清理
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;隐藏进程，会出现proc下面大小异常：&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;cat /pro/$$/mountinfo 
-cat /proc/mounts 
-mount
-以上三个等价，可靠性不同。
-
-$$ 表示当前shell进程的进程ID
-
-#处理后可以瞒过直接mount
-cp /etc/mtab .
-mount –bind /bin /proc/[pid]
-mv . /etc/mtab
-
-#这样可以进行隐藏
-mount –bind /tmp/empty /proc/2694
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;h3 id=&quot;windows工具检查&quot;&gt;Windows工具检查&lt;/h3&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;Winpmem内存转储【配合Volatility进行内存取证】&lt;/li&gt;
-  &lt;li&gt;冰刃&lt;/li&gt;
-  &lt;li&gt;process explorer&lt;/li&gt;
-  &lt;li&gt;Filemon：查看进程和文件对应&lt;/li&gt;
-  &lt;li&gt;Regmon：查看进程和注册表对应&lt;/li&gt;
-  &lt;li&gt;PC Hunter(xuetr) 可查看硬盘上隐藏的文件&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h4 id=&quot;手动杀进程&quot;&gt;手动杀进程&lt;/h4&gt;
-
-&lt;p&gt;非常古老的pskill&lt;/p&gt;
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;pskill $PID
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;可以用它结束一些常见的杀毒软件进程，使用方法如下：&lt;/p&gt;
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;c:\&amp;gt; ProcessHacker.exe -c -ctype process -cobject $PID-Number -caction terminate
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;也是暂停进程的运行，如下：&lt;/p&gt;
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;c:\&amp;gt; ProcessHacker.exe -c -ctype process -cobject $PID-Number –caction suspend
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;wmic：&lt;/p&gt;
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;wmic process where caption=&quot;qq.exe&quot; delete
-wmic process where handle=10000 delete
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;TASKKILL：&lt;/p&gt;
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;TASKKILL /S system /F /IM notepad.exe /T
-TASKKILL /PID 1230 /PID 1241 /PID 1253 /T
-TASKKILL /F /IM QQ.exe
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;ntsd：&lt;/p&gt;
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;ntsd -c q -p pid
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;h3 id=&quot;linux下工具检查&quot;&gt;Linux下工具检查：&lt;/h3&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;暴力枚举进程
-    &lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;通过PsLookupProcessByProcessId获得EPROCESS
-通过ZwQuerySystemInformation
-通过进程活动连来枚举
-&lt;/code&gt;&lt;/pre&gt;
-    &lt;/div&gt;
-  &lt;/li&gt;
-  &lt;li&gt;
-    &lt;p&gt;hkrookit&lt;/p&gt;
-  &lt;/li&gt;
-  &lt;li&gt;
-    &lt;p&gt;rkhunter&lt;/p&gt;
-
-    &lt;p&gt;具体用法，请查看：&lt;a href=&quot;/pentest/2018/06/25/security-emergency/&quot;&gt;《信安应急响应手册
-》&lt;/a&gt;。&lt;/p&gt;
-  &lt;/li&gt;
-  &lt;li&gt;偶然发现的小工具&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;可检测通过Hook vfs 函数来隐藏的进程。&lt;/p&gt;
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;https://security.tencent.com/index.php/opensource/detail/16
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;Volatility：
-    &lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;pslist – 通过检查双链表来检测进程
-pstree – 使用了相同技术，只是显示有小小的差别
-psscan – 在内存中扫描_POOL_HEADER结构（内存页池）以识别相关进程
-psxview – 几种技术的组合：
-pslist：如上所述
-psscan：如上所述
-thrdproc：线程扫描，检索调度程序使用的_KTHREAD列表（不能在不中断进程执行的情况下修改它），然后搜索相关的_EPROCESS对象。
-pspcid
-csrss：csrss.exe进程保留着可以在其内存中检索到的进程的独立列表。
-session
-deskthrd
-&lt;/code&gt;&lt;/pre&gt;
-    &lt;/div&gt;
-  &lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h3 id=&quot;尾声&quot;&gt;尾声&lt;/h3&gt;
-
-&lt;p&gt;需要强调的是，攻防都是相对的，技术是在进步的，工具需要配合手工才能变成神器。&lt;/p&gt;
-
-&lt;p&gt;以后在实践中遇到新东西，或者在其他资料站看到实用的内容，后面会继续给大家更新。&lt;/p&gt;</content><author><name>HellSec</name></author><category term="cert" /><summary type="html">前段时间遇到了一些【进程隐藏】相关的应急事件，故此心生一念，对网上一些资料和部分个人经验做了总结，以飨众人。</summary></entry></feed>
+&lt;/a&gt;&lt;/p&gt;</content><author><name>HellSec</name></author><category term="scanner" /><summary type="html">众所周知，在渗透测试中，除了内网和敏感线上环境，我们会尽可能用上高效的扫描器。虽然说打造扫描神器主要是靠规则和POC，不过它们也需要稳定而健壮的引擎，这就不得不谈到如何有效地对单线程脚本进行加速了。</summary></entry></feed>
