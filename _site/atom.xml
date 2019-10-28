@@ -1,4 +1,134 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.5.2">Jekyll</generator><link href="http://localhost:4000/atom.xml" rel="self" type="application/atom+xml" /><link href="http://localhost:4000/" rel="alternate" type="text/html" /><updated>2019-10-09T23:45:28+08:00</updated><id>http://localhost:4000/</id><title type="html">HellSec</title><subtitle>原创网络安全博客&lt;-|-&gt;匠心独运，做有深度的良品。</subtitle><author><name>HellSec</name></author><entry><title type="html">celery超时机制小结</title><link href="http://localhost:4000/coding/2019/10/08/celery-timeout-tips/" rel="alternate" type="text/html" title="celery超时机制小结" /><published>2019-10-08T11:35:00+08:00</published><updated>2019-10-08T11:35:00+08:00</updated><id>http://localhost:4000/coding/2019/10/08/celery-timeout-tips</id><content type="html" xml:base="http://localhost:4000/coding/2019/10/08/celery-timeout-tips/">&lt;p&gt;
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.5.2">Jekyll</generator><link href="/atom.xml" rel="self" type="application/atom+xml" /><link href="/" rel="alternate" type="text/html" /><updated>2019-10-28T23:42:16+08:00</updated><id>/</id><title type="html">HellSec</title><subtitle>原创网络安全博客&lt;-|-&gt;匠心独运，做有深度的良品。</subtitle><author><name>HellSec</name></author><entry><title type="html">xdebug+phpstorm+phpstudy本地调试踩坑</title><link href="/vuln/2019/10/10/xdebug-phpstorm-phpstudy/" rel="alternate" type="text/html" title="xdebug+phpstorm+phpstudy本地调试踩坑" /><published>2019-10-10T21:13:00+08:00</published><updated>2019-10-10T21:13:00+08:00</updated><id>/vuln/2019/10/10/xdebug-phpstorm-phpstudy</id><content type="html" xml:base="/vuln/2019/10/10/xdebug-phpstorm-phpstudy/">&lt;p&gt;
+	&lt;span style=&quot;color:#00B050;&quot;&gt;&lt;strong&gt;这两天用idea审java比较顺手，顺便也迁移了下php调试环境，从vscode迁移到jetbrains家的phpstorm。以前习惯了纯搜索字符串，通过打印调试，没有动态hook变量看起来比较费劲。迁移过程中遇到一些坑，故此记录一下。
+&lt;/strong&gt;&lt;/span&gt;
+&lt;/p&gt;
+
+&lt;h3 id=&quot;phpstorm配置&quot;&gt;phpstorm配置&lt;/h3&gt;
+
+&lt;p&gt;先贴下我自己的php.ini配置【XDebug部分】：&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;[XDebug]
+xdebug.profiler_output_dir=&quot;D:\phpstudy_pro\Extensions\tmp\xdebug&quot;
+xdebug.trace_output_dir=&quot;D:\phpstudy_pro\Extensions\tmp\xdebug&quot;
+zend_extension=&quot;D:\phpstudy_pro\Extensions\php\php_xdebug-2.2.5-5.6-vc11-nts-x86_64.dll&quot;
+xdebug.remote_port = 9000
+xdebug.remote_autostart= On
+xdebug.remote_enable = On
+xdebug.idekey = phpstorm-xdebug
+xdebug.remote_handler = &quot;dbgp&quot;
+xdebug.remote_host = &quot;127.0.0.1&quot;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;h3 id=&quot;前人踩坑总结&quot;&gt;前人踩坑总结&lt;/h3&gt;
+
+&lt;p&gt;中间遇到一个坑，网上大部分配置操作都照做了。&lt;/p&gt;
+
+&lt;p&gt;这里着重讲几个重要的配置，跟下面网上扒拉的图不大一致【由于没找到合适的图床，暂时只能引用网上的】：&lt;/p&gt;
+
+&lt;p&gt;顶栏点击File-&amp;gt;Settings，搜索框输入debug，ideakey是我自己设置的&lt;strong&gt;phpstorm-xdebug&lt;/strong&gt;：&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;http://www.pianshen.com/images/875/e473bbd1c2ba3874beb5b2c1be586e3b.png&quot; alt=&quot;image&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;下图是网图，我设置的是&lt;strong&gt;9000&lt;/strong&gt;：&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;http://www.pianshen.com/images/213/403b3aca2b50f4b3529c098af21b19f5.png&quot; alt=&quot;image&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;因为是本地映射调试，下面网图的Use path mappings不要勾选，但填不填域名关系不大，我自己填的&lt;strong&gt;127.0.0.1&lt;/strong&gt;：&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;http://www.pianshen.com/images/497/bcad8b94b1ec8f582f0d14a176a0f439.png&quot; alt=&quot;image&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;注意，最新版的phpstorm下面不是web application，而是&lt;strong&gt;web page&lt;/strong&gt;：&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;http://static.oschina.net/uploads/space/2014/1128/150910_uD44_174025.png&quot; alt=&quot;image&quot; /&gt;&lt;/p&gt;
+
+&lt;h3 id=&quot;设置cli-interpreter&quot;&gt;设置CLI Interpreter&lt;/h3&gt;
+
+&lt;p&gt;设置链路为：&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;Settings-&amp;gt;Languages&amp;amp;Frameworks-&amp;gt;PHP
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;设置为你引用的php.exe绝对路径即可，另外该页面的Include Path按默认的就好。&lt;/p&gt;
+
+&lt;h3 id=&quot;文件映射map报错可以看变量无法跟踪文件&quot;&gt;文件映射map报错，可以看变量，无法跟踪文件&lt;/h3&gt;
+
+&lt;p&gt;记得在调试variables的时候，映射本地路径的时候，会要求&lt;strong&gt;做文件夹路径映射&lt;/strong&gt;，否则会报错，提示map错误，无法定位跟踪需要调试的文件。&lt;/p&gt;
+
+&lt;h3 id=&quot;phpstorm-interpreter无法拦截&quot;&gt;PHPStorm Interpreter无法拦截&lt;/h3&gt;
+
+&lt;p&gt;另外，还有个大坑就是，在配置时遇到interpreter无法拦截：&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;PHPStorm报错：Cannot accept external Xdebug connection: Cannot evaluate expression'isset($_SERVER['PHP_IDE_CONFIG'])';
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;我看了下网上的说法，PHPStorm这个报错，是因为对于xdebug，zend_extension和extension不能同时启用，否则拦截启用不了（vscode似乎不受影响，我测的时候是可以拦截的）。&lt;/p&gt;
+
+&lt;p&gt;导致此问题的一个可能原因是：服务器端的php.ini中配置了：&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;extension=/path/xdebug.dll
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;应该只保留下面一个，而且zend_extension需要绝对路径，extension不需要（至少win下是如此）：&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;zend_extension=/path/xdebug.dll
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;原文是xdebug.so，按理说win下应该改成xdebug.dll，网上答案全tm爬虫抄的。&lt;/p&gt;
+
+&lt;p&gt;这里我受了误导，耽误了很长时间。因为我发现，鄙人在win下的php.ini针对xdebug，只配置了zend_extension，并没有如网上所述去设置extension。&lt;/p&gt;
+
+&lt;p&gt;那么为什么还会出现这种情况呢？&lt;/p&gt;
+
+&lt;p&gt;后来终于想明白了，最开始，我在phpstudy界面自己加载了扩展，当时就直接：&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;网站-&amp;gt;管理-&amp;gt;PHP扩展-&amp;gt;勾选php_xdebug
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;但是这里的配置，我所使用的php版本的php.ini里是看不到的，也许是引用的全局配置，具体在哪儿我没搞明白。&lt;/p&gt;
+
+&lt;p&gt;反正因为这个重复了，但是vscode没有影响，在PHPStorm就直接无法拦截了。&lt;/p&gt;
+
+&lt;p&gt;当我&lt;strong&gt;取消勾选&lt;/strong&gt;这里的&lt;strong&gt;xdebug扩展（php_xdebug）&lt;/strong&gt;时，问题就解决了。&lt;/p&gt;
+
+&lt;h4 id=&quot;xdebug下断点超时&quot;&gt;xdebug下断点超时&lt;/h4&gt;
+
+&lt;p&gt;在调试的时候，看着看着variables突然就没了，回网页一看，结果发现页面超时500。
+尝试修改php.ini的超时配置，并没有卵用：&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;max_execution_time=600
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;p&gt;然后尝试直接在Apache（或者其他webserver）里做配置，成功解决超时问题：&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;FcgidIOTimeout 3600
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;QA:&lt;/p&gt;
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;明天试试在引用处下断点，因为多空间引用可能走不到那一点，超时问题咋解决?
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h3 id=&quot;参考资料&quot;&gt;参考资料&lt;/h3&gt;
+
+&lt;p&gt;&lt;a href=&quot;http://www.pianshen.com/article/7930277434/&quot;&gt;《waiting for incoming connetcion with ide key 17142 问题解决
+》&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&quot;http://ju.outofmemory.cn/entry/331038&quot;&gt;《MAMP 与 PhpStorm 远程调试
+》&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&quot;https://www.jb51.net/article/128545.htm&quot;&gt;《使用PHPStorm+XDebug搭建单步调试环境》&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&quot;https://blog.csdn.net/yizhou35/article/details/17043925&quot;&gt;《PHP Warning: Xdebug MUST be loaded as a Zend extension in Unknown on line 0 解决办法》&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&quot;https://blog.csdn.net/universee/article/details/74516250&quot;&gt;《PhpStorm和WAMP配置调试参数，问题描述Error. Interpreter is not specified or invalid. Press “Fix” to edit your pro》&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&quot;https://www.cnblogs.com/yjken/p/6555438.html&quot;&gt;《phpstorm中配置真正的远程调试(xdebug)》&lt;/a&gt;&lt;/p&gt;</content><author><name>HellSec</name></author><category term="vuln" /><summary type="html">这两天用idea审java比较顺手，顺便也迁移了下php调试环境，从vscode迁移到jetbrains家的phpstorm。以前习惯了纯搜索字符串，通过打印调试，没有动态hook变量看起来比较费劲。迁移过程中遇到一些坑，故此记录一下。</summary></entry><entry><title type="html">celery超时机制小结</title><link href="/coding/2019/10/08/celery-timeout-tips/" rel="alternate" type="text/html" title="celery超时机制小结" /><published>2019-10-08T11:35:00+08:00</published><updated>2019-10-08T11:35:00+08:00</updated><id>/coding/2019/10/08/celery-timeout-tips</id><content type="html" xml:base="/coding/2019/10/08/celery-timeout-tips/">&lt;p&gt;
 	&lt;span style=&quot;color:#DAA520;&quot;&gt;&lt;strong&gt;以前在使用celery任务时，老是被其超时机制不奏效所困扰，没有一个比较完美的解决方案。前两天琢磨出新的方案，故此借机梳理下过往细节。&lt;/strong&gt;&lt;/span&gt;
 &lt;/p&gt;
 
@@ -133,7 +263,7 @@ if __name__ == '__main__':
 
 &lt;p&gt;&lt;a href=&quot;https://www.jianshu.com/p/5a969b067ce6&quot;&gt;《hard杀死soft》&lt;/a&gt;&lt;/p&gt;
 
-&lt;p&gt;&lt;a href=&quot;http://blog.sina.com.cn/s/blog_63041bb80102uy5o.html&quot;&gt;《Python设置函数调用超时》&lt;/a&gt;&lt;/p&gt;</content><author><name>HellSec</name></author><category term="coding" /><summary type="html">以前在使用celery任务时，老是被其超时机制不奏效所困扰，没有一个比较完美的解决方案。前两天琢磨出新的方案，故此借机梳理下过往细节。</summary></entry><entry><title type="html">cors漏洞之123</title><link href="http://localhost:4000/vuln/2019/09/28/cors-tips/" rel="alternate" type="text/html" title="cors漏洞之123" /><published>2019-09-28T21:13:00+08:00</published><updated>2019-09-28T21:13:00+08:00</updated><id>http://localhost:4000/vuln/2019/09/28/cors-tips</id><content type="html" xml:base="http://localhost:4000/vuln/2019/09/28/cors-tips/">&lt;p&gt;
+&lt;p&gt;&lt;a href=&quot;http://blog.sina.com.cn/s/blog_63041bb80102uy5o.html&quot;&gt;《Python设置函数调用超时》&lt;/a&gt;&lt;/p&gt;</content><author><name>HellSec</name></author><category term="coding" /><summary type="html">以前在使用celery任务时，老是被其超时机制不奏效所困扰，没有一个比较完美的解决方案。前两天琢磨出新的方案，故此借机梳理下过往细节。</summary></entry><entry><title type="html">cors漏洞之123</title><link href="/vuln/2019/09/28/cors-tips/" rel="alternate" type="text/html" title="cors漏洞之123" /><published>2019-09-28T21:13:00+08:00</published><updated>2019-09-28T21:13:00+08:00</updated><id>/vuln/2019/09/28/cors-tips</id><content type="html" xml:base="/vuln/2019/09/28/cors-tips/">&lt;p&gt;
 	&lt;span style=&quot;color:#00B050;&quot;&gt;&lt;strong&gt;cors漏洞相信大家已经很熟悉了，一般会用于配合csrf漏洞对用户进行攻击。这里就遇到的一些case，简单讲讲可能漏报误报的点，以及相应的修复方案。
 &lt;/strong&gt;&lt;/span&gt;
 &lt;/p&gt;
@@ -287,7 +417,7 @@ res.send({ code: -2, msg: '非法请求' });
 
 });
 &lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;</content><author><name>HellSec</name></author><category term="vuln" /><summary type="html">cors漏洞相信大家已经很熟悉了，一般会用于配合csrf漏洞对用户进行攻击。这里就遇到的一些case，简单讲讲可能漏报误报的点，以及相应的修复方案。</summary></entry><entry><title type="html">浅谈被动漏扫思路</title><link href="http://localhost:4000/scanner/2019/08/15/axe-scanner-design/" rel="alternate" type="text/html" title="浅谈被动漏扫思路" /><published>2019-08-15T21:13:00+08:00</published><updated>2019-08-15T21:13:00+08:00</updated><id>http://localhost:4000/scanner/2019/08/15/axe-scanner-design</id><content type="html" xml:base="http://localhost:4000/scanner/2019/08/15/axe-scanner-design/">&lt;p&gt;
+&lt;/div&gt;</content><author><name>HellSec</name></author><category term="vuln" /><summary type="html">cors漏洞相信大家已经很熟悉了，一般会用于配合csrf漏洞对用户进行攻击。这里就遇到的一些case，简单讲讲可能漏报误报的点，以及相应的修复方案。</summary></entry><entry><title type="html">浅谈被动漏扫思路</title><link href="/scanner/2019/08/15/axe-scanner-design/" rel="alternate" type="text/html" title="浅谈被动漏扫思路" /><published>2019-08-15T21:13:00+08:00</published><updated>2019-08-15T21:13:00+08:00</updated><id>/scanner/2019/08/15/axe-scanner-design</id><content type="html" xml:base="/scanner/2019/08/15/axe-scanner-design/">&lt;p&gt;
 	&lt;span style=&quot;color:#DAA520;&quot;&gt;&lt;strong&gt;本文中的规则分析，大部分来自于以前被动漏扫研发的实践，以后会再接触更多业务后，会继续进行更新。其中如有纰漏或者差错，希望诸位给出修正意见。
 &lt;/strong&gt;&lt;/span&gt;
 &lt;/p&gt;
@@ -644,7 +774,7 @@ Content-Type: xxxxx
 
 &lt;p&gt;如果黑盒测试，只能根据常用上传目录去爆破shell文件名，以获取到shell标识为成功。&lt;/p&gt;
 
-&lt;p&gt;否则的话，需要结合白盒定位，手动配置好路径，估算生成的文件名，去进行黑盒探测。&lt;/p&gt;</content><author><name>HellSec</name></author><category term="scanner" /><summary type="html">本文中的规则分析，大部分来自于以前被动漏扫研发的实践，以后会再接触更多业务后，会继续进行更新。其中如有纰漏或者差错，希望诸位给出修正意见。</summary></entry><entry><title type="html">Git监控小议</title><link href="http://localhost:4000/operation/2019/07/28/sec-git-monitor/" rel="alternate" type="text/html" title="Git监控小议" /><published>2019-07-28T18:00:00+08:00</published><updated>2019-07-28T18:00:00+08:00</updated><id>http://localhost:4000/operation/2019/07/28/sec-git-monitor</id><content type="html" xml:base="http://localhost:4000/operation/2019/07/28/sec-git-monitor/">&lt;p&gt;
+&lt;p&gt;否则的话，需要结合白盒定位，手动配置好路径，估算生成的文件名，去进行黑盒探测。&lt;/p&gt;</content><author><name>HellSec</name></author><category term="scanner" /><summary type="html">本文中的规则分析，大部分来自于以前被动漏扫研发的实践，以后会再接触更多业务后，会继续进行更新。其中如有纰漏或者差错，希望诸位给出修正意见。</summary></entry><entry><title type="html">Git监控小议</title><link href="/operation/2019/07/28/sec-git-monitor/" rel="alternate" type="text/html" title="Git监控小议" /><published>2019-07-28T18:00:00+08:00</published><updated>2019-07-28T18:00:00+08:00</updated><id>/operation/2019/07/28/sec-git-monitor</id><content type="html" xml:base="/operation/2019/07/28/sec-git-monitor/">&lt;p&gt;
 	&lt;span style=&quot;color:#00B050;&quot;&gt;&lt;strong&gt;笔者原来在涉猎git监控产品时，就只做了敏感关键词监控。后来在工作中逐渐发现，对于一般量级的企业单位，其实复合型的监控平台更符合这类企业的需求。&lt;/strong&gt;&lt;/span&gt;
 &lt;/p&gt;
 
@@ -773,7 +903,7 @@ UA池
 
 &lt;p&gt;&lt;a href=&quot;https://www.freebuf.com/sectool/114017.html&quot;&gt;基于Github的源码白盒扫描工具Raptor&lt;/a&gt;&lt;/p&gt;
 
-&lt;p&gt;&lt;a href=&quot;https://www.freebuf.com/column/178342.html&quot;&gt;Github信息泄露专项&lt;/a&gt;&lt;/p&gt;</content><author><name>HellSec</name></author><category term="operation" /><summary type="html">笔者原来在涉猎git监控产品时，就只做了敏感关键词监控。后来在工作中逐渐发现，对于一般量级的企业单位，其实复合型的监控平台更符合这类企业的需求。</summary></entry><entry><title type="html">安全运维优化思考</title><link href="http://localhost:4000/operation/2019/07/13/sec-operation/" rel="alternate" type="text/html" title="安全运维优化思考" /><published>2019-07-13T23:40:00+08:00</published><updated>2019-07-13T23:40:00+08:00</updated><id>http://localhost:4000/operation/2019/07/13/sec-operation</id><content type="html" xml:base="http://localhost:4000/operation/2019/07/13/sec-operation/">&lt;p&gt;
+&lt;p&gt;&lt;a href=&quot;https://www.freebuf.com/column/178342.html&quot;&gt;Github信息泄露专项&lt;/a&gt;&lt;/p&gt;</content><author><name>HellSec</name></author><category term="operation" /><summary type="html">笔者原来在涉猎git监控产品时，就只做了敏感关键词监控。后来在工作中逐渐发现，对于一般量级的企业单位，其实复合型的监控平台更符合这类企业的需求。</summary></entry><entry><title type="html">安全运维优化思考</title><link href="/operation/2019/07/13/sec-operation/" rel="alternate" type="text/html" title="安全运维优化思考" /><published>2019-07-13T23:40:00+08:00</published><updated>2019-07-13T23:40:00+08:00</updated><id>/operation/2019/07/13/sec-operation</id><content type="html" xml:base="/operation/2019/07/13/sec-operation/">&lt;p&gt;
 	&lt;span style=&quot;color:#DAA520;&quot;&gt;&lt;strong&gt;近期由乙方安服实验室，转入了甲方的业务安全部门。在接触了一部分业务安全的运维工作后，也做了些对于自身工作的优化方向的思考。&lt;/strong&gt;&lt;/span&gt;
 &lt;/p&gt;
 
@@ -836,7 +966,7 @@ UA池
 &lt;p&gt;当然笔者见识有限，窥一斑而不得见全豹。但总的来说，确实可以根据不同产品的实际情况，去对流程进行一些灵活变通。&lt;/p&gt;
 
 &lt;h4 id=&quot;后记&quot;&gt;后记&lt;/h4&gt;
-&lt;p&gt;以上只是简单谈了一些感受，这方面的工作资历尚浅，期待各路读者斧正和指教。&lt;/p&gt;</content><author><name>HellSec</name></author><category term="operation" /><summary type="html">近期由乙方安服实验室，转入了甲方的业务安全部门。在接触了一部分业务安全的运维工作后，也做了些对于自身工作的优化方向的思考。</summary></entry><entry><title type="html">PHP开发框架LaravelのSQL注入漏洞分析</title><link href="http://localhost:4000/bug/2019/03/26/php-framework-Laravel-sqli/" rel="alternate" type="text/html" title="PHP开发框架LaravelのSQL注入漏洞分析" /><published>2019-03-26T19:07:00+08:00</published><updated>2019-03-26T19:07:00+08:00</updated><id>http://localhost:4000/bug/2019/03/26/php-framework-Laravel-sqli</id><content type="html" xml:base="http://localhost:4000/bug/2019/03/26/php-framework-Laravel-sqli/">&lt;p&gt;
+&lt;p&gt;以上只是简单谈了一些感受，这方面的工作资历尚浅，期待各路读者斧正和指教。&lt;/p&gt;</content><author><name>HellSec</name></author><category term="operation" /><summary type="html">近期由乙方安服实验室，转入了甲方的业务安全部门。在接触了一部分业务安全的运维工作后，也做了些对于自身工作的优化方向的思考。</summary></entry><entry><title type="html">PHP开发框架LaravelのSQL注入漏洞分析</title><link href="/bug/2019/03/26/php-framework-Laravel-sqli/" rel="alternate" type="text/html" title="PHP开发框架LaravelのSQL注入漏洞分析" /><published>2019-03-26T19:07:00+08:00</published><updated>2019-03-26T19:07:00+08:00</updated><id>/bug/2019/03/26/php-framework-Laravel-sqli</id><content type="html" xml:base="/bug/2019/03/26/php-framework-Laravel-sqli/">&lt;p&gt;
 	&lt;span style=&quot;color:#00B050;&quot;&gt;&lt;strong&gt;PHP开发框架Laravel，前几天在官方博客通报了一个SQL注入漏洞，这里简单分析下。&lt;/strong&gt;&lt;/span&gt;
 &lt;/p&gt;
 
@@ -934,7 +1064,7 @@ V5.8.4
 
 &lt;p&gt;&lt;a href=&quot;https://blog.laravel.com/unique-rule-sql-injection-warning?fbclid=IwAR26Cs1Ewh983UxSF5fNO8Xr0hUnwSO_Ikbr08Adi20m5h5llP0WhNDmgRg&quot;&gt;官方通告&lt;/a&gt;&lt;/p&gt;
 
-&lt;p&gt;&lt;a href=&quot;https://laravel.com/docs/5.8/validation#rule-unique&quot;&gt;说明文档&lt;/a&gt;&lt;/p&gt;</content><author><name>HellSec</name></author><category term="bug" /><summary type="html">PHP开发框架Laravel，前几天在官方博客通报了一个SQL注入漏洞，这里简单分析下。</summary></entry><entry><title type="html">WordPress Easy WP SMTP反序列化漏洞分析</title><link href="http://localhost:4000/bug/2019/03/24/unserialize-vuln-for-wp-plugin-easy-wp-smtp/" rel="alternate" type="text/html" title="WordPress Easy WP SMTP反序列化漏洞分析" /><published>2019-03-24T16:31:21+08:00</published><updated>2019-03-24T16:31:21+08:00</updated><id>http://localhost:4000/bug/2019/03/24/unserialize-vuln-for-wp-plugin-easy-wp-smtp</id><content type="html" xml:base="http://localhost:4000/bug/2019/03/24/unserialize-vuln-for-wp-plugin-easy-wp-smtp/">&lt;p&gt;
+&lt;p&gt;&lt;a href=&quot;https://laravel.com/docs/5.8/validation#rule-unique&quot;&gt;说明文档&lt;/a&gt;&lt;/p&gt;</content><author><name>HellSec</name></author><category term="bug" /><summary type="html">PHP开发框架Laravel，前几天在官方博客通报了一个SQL注入漏洞，这里简单分析下。</summary></entry><entry><title type="html">WordPress Easy WP SMTP反序列化漏洞分析</title><link href="/bug/2019/03/24/unserialize-vuln-for-wp-plugin-easy-wp-smtp/" rel="alternate" type="text/html" title="WordPress Easy WP SMTP反序列化漏洞分析" /><published>2019-03-24T16:31:21+08:00</published><updated>2019-03-24T16:31:21+08:00</updated><id>/bug/2019/03/24/unserialize-vuln-for-wp-plugin-easy-wp-smtp</id><content type="html" xml:base="/bug/2019/03/24/unserialize-vuln-for-wp-plugin-easy-wp-smtp/">&lt;p&gt;
 	&lt;span style=&quot;color:#DAA520;&quot;&gt;&lt;strong&gt;Wordpress插件Easy WP SMTP最近新出了个漏洞，以前有关注过，好像新的代码变化有点大，所以这里花了点时间简单分析下。&lt;/strong&gt;&lt;/span&gt;
 &lt;/p&gt;
 
@@ -1061,7 +1191,7 @@ $result = $wpdb-&amp;gt;update( $wpdb-&amp;gt;options, $update_args, array( 'opt
 
 &lt;p&gt;引用文章：&lt;/p&gt;
 
-&lt;p&gt;&lt;a href=&quot;https://blog.nintechnet.com/critical-0day-vulnerability-fixed-in-wordpress-easy-wp-smtp-plugin/&quot;&gt;Critical zero-day vulnerability fixed in WordPress Easy WP SMTP plugin.&lt;/a&gt;&lt;/p&gt;</content><author><name>HellSec</name></author><category term="bug" /><summary type="html">Wordpress插件Easy WP SMTP最近新出了个漏洞，以前有关注过，好像新的代码变化有点大，所以这里花了点时间简单分析下。</summary></entry><entry><title type="html">分布式扫描填坑杂谈</title><link href="http://localhost:4000/scanner/2019/01/15/talk-about-scanner-settings/" rel="alternate" type="text/html" title="分布式扫描填坑杂谈" /><published>2019-01-15T15:49:21+08:00</published><updated>2019-01-15T15:49:21+08:00</updated><id>http://localhost:4000/scanner/2019/01/15/talk-about-scanner-settings</id><content type="html" xml:base="http://localhost:4000/scanner/2019/01/15/talk-about-scanner-settings/">&lt;p&gt;
+&lt;p&gt;&lt;a href=&quot;https://blog.nintechnet.com/critical-0day-vulnerability-fixed-in-wordpress-easy-wp-smtp-plugin/&quot;&gt;Critical zero-day vulnerability fixed in WordPress Easy WP SMTP plugin.&lt;/a&gt;&lt;/p&gt;</content><author><name>HellSec</name></author><category term="bug" /><summary type="html">Wordpress插件Easy WP SMTP最近新出了个漏洞，以前有关注过，好像新的代码变化有点大，所以这里花了点时间简单分析下。</summary></entry><entry><title type="html">分布式扫描填坑杂谈</title><link href="/scanner/2019/01/15/talk-about-scanner-settings/" rel="alternate" type="text/html" title="分布式扫描填坑杂谈" /><published>2019-01-15T15:49:21+08:00</published><updated>2019-01-15T15:49:21+08:00</updated><id>/scanner/2019/01/15/talk-about-scanner-settings</id><content type="html" xml:base="/scanner/2019/01/15/talk-about-scanner-settings/">&lt;p&gt;
 	&lt;span style=&quot;color:#00B050;&quot;&gt;&lt;strong&gt;前段时间团队新加了几台服务器，因为现行的扫描器是支持分布式的，所以及时进行了分布式部署。结果在调试分布式配置时，还是遇到许多坑，忙完一阵子闲下来了，正好整理下记录。&lt;/strong&gt;&lt;/span&gt;
 &lt;/p&gt;
 
@@ -1242,7 +1372,7 @@ celery -A proj worker -l info -P eventlet
 
 &lt;h3 id=&quot;结语&quot;&gt;结语&lt;/h3&gt;
 
-&lt;p&gt;以上配置和分析内容，是摸索和查资料得来的，感谢前辈们的开源共享。&lt;/p&gt;</content><author><name>HellSec</name></author><category term="scanner" /><summary type="html">前段时间团队新加了几台服务器，因为现行的扫描器是支持分布式的，所以及时进行了分布式部署。结果在调试分布式配置时，还是遇到许多坑，忙完一阵子闲下来了，正好整理下记录。</summary></entry><entry><title type="html">漫谈漏洞扫描</title><link href="http://localhost:4000/scanner/2018/12/27/talk-about-scanner-roads/" rel="alternate" type="text/html" title="漫谈漏洞扫描" /><published>2018-12-27T16:42:38+08:00</published><updated>2018-12-27T16:42:38+08:00</updated><id>http://localhost:4000/scanner/2018/12/27/talk-about-scanner-roads</id><content type="html" xml:base="http://localhost:4000/scanner/2018/12/27/talk-about-scanner-roads/">&lt;p&gt;
+&lt;p&gt;以上配置和分析内容，是摸索和查资料得来的，感谢前辈们的开源共享。&lt;/p&gt;</content><author><name>HellSec</name></author><category term="scanner" /><summary type="html">前段时间团队新加了几台服务器，因为现行的扫描器是支持分布式的，所以及时进行了分布式部署。结果在调试分布式配置时，还是遇到许多坑，忙完一阵子闲下来了，正好整理下记录。</summary></entry><entry><title type="html">漫谈漏洞扫描</title><link href="/scanner/2018/12/27/talk-about-scanner-roads/" rel="alternate" type="text/html" title="漫谈漏洞扫描" /><published>2018-12-27T16:42:38+08:00</published><updated>2018-12-27T16:42:38+08:00</updated><id>/scanner/2018/12/27/talk-about-scanner-roads</id><content type="html" xml:base="/scanner/2018/12/27/talk-about-scanner-roads/">&lt;p&gt;
 	&lt;span style=&quot;color:#DAA520;&quot;&gt;&lt;strong&gt;研究漏扫这块儿有段时间了，虽然是业余自己玩，但平素跟公司漏扫产品线打交道比较多，稍微有些心得，在这里简单分享下。&lt;/strong&gt;&lt;/span&gt;
 &lt;/p&gt;
 
@@ -1433,228 +1563,4 @@ wyproxy的衍生扫描器
 
 &lt;p&gt;笔者见过的常见漏扫的架构差不多就是这些了，点到为止吧。另外，笔者自研的也有类似产品，这里就不打广告了XD。&lt;/p&gt;
 
-&lt;p&gt;可能有部分内容，由于时间关系没能例举全，也可能有部分笔误，期待指正和建议。&lt;/p&gt;</content><author><name>HellSec</name></author><category term="scanner" /><summary type="html">研究漏扫这块儿有段时间了，虽然是业余自己玩，但平素跟公司漏扫产品线打交道比较多，稍微有些心得，在这里简单分享下。</summary></entry><entry><title type="html">浅谈漏扫之插件篇</title><link href="http://localhost:4000/scanner/2018/10/08/scanner-plugins/" rel="alternate" type="text/html" title="浅谈漏扫之插件篇" /><published>2018-10-08T12:37:38+08:00</published><updated>2018-10-08T12:37:38+08:00</updated><id>http://localhost:4000/scanner/2018/10/08/scanner-plugins</id><content type="html" xml:base="http://localhost:4000/scanner/2018/10/08/scanner-plugins/">&lt;p&gt;
-	&lt;span style=&quot;color:#00B050;&quot;&gt;&lt;strong&gt;在我们试图构建漏扫系统的时候，调整好插件的配置和格式，能更有效地帮助我们进行漏洞探测，以及提升对bug的进行fuzz的高效性。&lt;/strong&gt;&lt;/span&gt;
-&lt;/p&gt;
-
-&lt;p&gt;在本文中，我们将简单谈谈插件相关的内容。下面的示例代码依旧沿用python，但求行文精炼不赘言。&lt;/p&gt;
-
-&lt;h3 id=&quot;插件的格式&quot;&gt;插件的格式&lt;/h3&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;入口函数&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;def run():
-    print 'I am the bone of my sword'
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-&lt;p&gt;运行这类插件时，加载插件的入口函数run，就可以直接运行插件。&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;类 + 入口函数&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;class BaseVerify:
-
-    def __init__(self, url):
-        self.url = url
-    
-    def run(self):
-        print 'I am the bone of my sword'
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;对于这种插件，在我们获取到漏洞库文件路径后，需要对服务类型进行匹配，最后再进行插件调用。
-此后，我们会获得BaseVerify类的实例，再引用里面的入口函数。&lt;/p&gt;
-
-&lt;p&gt;调用方式：&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;test = BaseVerify('http://www.baidu.com')
-test.run()
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;入口函数 + 验证函数&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;def assign(service, arg):
-    if service != &quot;wordpress&quot;:
-        return
-    else:
-        r = urlparse.urlparse(arg)
-        return True, r.netloc
-        
-def audit(arg):
-    print 'I am the bone of my sword'
-        
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-&lt;p&gt;这里也可以在类中引入函数，不过此处关键点在于，同时也使用了验证函数。&lt;/p&gt;
-
-&lt;p&gt;这样做的好处在于，即使不做插件目录分类，也能进行精准扫描，不至于在验证漏洞时处耗时过多。&lt;/p&gt;
-
-&lt;p&gt;不过顺便提一句，即使只运行了验证service类型的代码，在加载大量插件的情况下，也是会消耗一定的资源的。&lt;/p&gt;
-
-&lt;p&gt;调用方式(仅做参考)：&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;try:
-    audit( assign('www', 'http://www.baidu.com')[1] )
-except:
-    pass
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;关于插件注释&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;在每个文件中，建议通过类属性或者直接头部注释，对每个插件进行细节标识。
-不然的话，他人在复现和修改的时候，很难对代码量较大的内容进行阅读调整。当然，对于某些故意加密的插件，那就另当别论了。&lt;/p&gt;
-
-&lt;h3 id=&quot;插件的加载&quot;&gt;插件的加载&lt;/h3&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;__import__&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;plugin_path = 'plugin_dir.plugin_name'
-try:
-    plugin = __import__(plugin_path, fromlist=[plugin_path])
-    test = getattr(plugin,'audit')
-    test('http://www.baidu.com')
-except Exception,e:
-    print e
-
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-&lt;p&gt;这里在获取某个插件的路径后，可转换为__import__可识别的路径格式，然后再对其入口函数audit进行引用。&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;importlib&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;
-from importlib import import_module
-plugin_path = 'plugin_dir.plugin_name'
-split_dot = plugin_path.rindex('.')
-module, name = plugin_path[:split_dot], plugin_path[split_dot+1:]
-mod = import_module(module)
-try:
-    test = getattr(mod, name)
-    test.audit('http://www.baidu.com')
-except:
-    pass
-
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-&lt;p&gt;注意，这里的plugin_path如果不含’.’的话，可用：&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;from importlib import import_module
-plugin_path = 'plugin_name'
-test = import_module(plugin_path)
-test.audit('http://www.baidu.com')
-
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;import&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;import sys
-sys.path.append('plugin_dir/')
-#加入系统路径plugin_dir
-import plugin_name
-plugin_name.audit('http://www.baidu.com')
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;imp&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;import imp
-#这里需要正常路径名
-test = imp.load_source('audit', 'plugin_dir/plugin_name.py')
-test.audit('http://www.baidu.com')
-
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;导入细节的讨论&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;笔者还见过某框架，除了导入必要的核心库文件以外，还把所有分类插件里的验证、运行等函数，也在主文件头部一股脑导入的。&lt;/p&gt;
-
-&lt;p&gt;也就是说，在每次运行框架之前，就算只是-v看版本，也会预载入所有内容。&lt;/p&gt;
-
-&lt;p&gt;而在某些框架脚本，在每次运行前会自动下载一个巨大的封装库（作者diy的），而不是把它放在requirement文件里。&lt;/p&gt;
-
-&lt;p&gt;也不是说这样一定不好，不过个人窃以为，如果想要尽可能优化框架的效率，还是不太推荐大家这么做。&lt;/p&gt;
-
-&lt;h3 id=&quot;插件的存储&quot;&gt;插件的存储&lt;/h3&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;临时加载&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;在插件不算多的时候，我们是可以这么做的，也不会太影响效率。
-比如metasploit就可以选择是否启用postgresql数据库。
-如果插件都放在一个目录下，进行文件遍历即可，大概可以这样写：&lt;/p&gt;
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;vuln_dir = 'plugin_dir/*'
-vuln_paths = [f.replace('/','.') for f in glob.glob(vuln_dir)]
-for vuln_path in vuln_paths:
-    #vuln_path == 'plugin_dir.plugin_name'
-    #下面省略
-    ...
-    ...
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;离线插件入库&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;另外还有不少框架，是直接用数据库或者json文件存储了插件相关信息。在我们需要的时候，再查询导入储存的插件路径，进而对相应的插件进行调用。&lt;/p&gt;
-
-&lt;p&gt;当然，这样需要我们每次手动或调用update脚本，去现更新这些库。&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;在线核验下发&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;如果想要再自动化一点，我们可以参考下bugscan、antoor、tangscan等社区级别的漏洞利用框架，对于插件下发的法子。&lt;/p&gt;
-
-&lt;p&gt;在贡献者上传poc，并填写好相关验证信息后，后台会有工作人员或者自动化脚本，检测该poc是否合乎官方规定的语法格式。
-如果没有发现问题，脚本会生成基础信息然后入库，待做好加密打码等工作后【非必要步骤】，再供离线的框架或者框架client节点爬取更新【如有出入，当我扯淡】。&lt;/p&gt;
-
-&lt;h3 id=&quot;结果的聚合&quot;&gt;结果的聚合&lt;/h3&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;分级过滤&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;一般在汇总数据报告时，可能会出现有的确认是漏洞，有的却是存在的敏感URL。&lt;/p&gt;
-
-&lt;p&gt;混在一起存储也不是不行，不过更好的法子是通过分级，使用单独的函数上报master，最后再进行分储和输出。&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;混合存储&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;在整合网上搜集来的插件时，由于各结果的返回格式不是很好统一，有的整合型框架为了兼容会直接简单处理下，就糅合在一起存储和输出了。
-其实这也没啥，只要入库的时候，将特殊字符等问题处理好，做好插件漏洞的信息粗放分类标注，那就基本OK了。&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;单体输出&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;某些作者单独开发的框架，是直接省略了存储这一环节的，或者是提供了选项，默认不开启的。
-这时候，插件验证如果成功，会直接把信息反馈输出到命令行里。如果在验证单体漏洞或者单个目标的时候，这样做还是比较有效率的。&lt;/p&gt;
-
-&lt;h3 id=&quot;结语&quot;&gt;结语&lt;/h3&gt;
-
-&lt;p&gt;上面列举的案例分析代码，部分改编于Github上搜到的漏洞利用框架，部分来自于笔者自己的储备，这里再次感谢各位大佬的开源。&lt;/p&gt;</content><author><name>HellSec</name></author><category term="scanner" /><summary type="html">在我们试图构建漏扫系统的时候，调整好插件的配置和格式，能更有效地帮助我们进行漏洞探测，以及提升对bug的进行fuzz的高效性。</summary></entry></feed>
+&lt;p&gt;可能有部分内容，由于时间关系没能例举全，也可能有部分笔误，期待指正和建议。&lt;/p&gt;</content><author><name>HellSec</name></author><category term="scanner" /><summary type="html">研究漏扫这块儿有段时间了，虽然是业余自己玩，但平素跟公司漏扫产品线打交道比较多，稍微有些心得，在这里简单分享下。</summary></entry></feed>
