@@ -1,0 +1,146 @@
+<p>
+	<span style="color:#00B050;"><strong>在实现漏洞扫描的时候，部分开发者会使用payload直接进行fuzz，而且并没有对server端的拦截和过滤，有相对智能的反馈，这对扫描效率和成功率是影响比较大的。</strong></span>
+</p>
+
+<p>那么，我们该如何去实现精细化定制呢？</p>
+
+<h3 id="字符fuzz">字符fuzz</h3>
+
+<p>另外，在存在waf的时候，我们发送payload过多，可能直接会触发server端的拒绝服务或者ban ip的操作，所以要在保持一定的发包频率的情况下，尽可能少触发waf的规则。
+另外，web系统本身可能自带了过滤，如果无脑发payload，可能fuzz了半天都是白费功夫。
+在字符形态的时候，如果能直接过滤掉一批有害或者无效字符，能较大程度上提升扫描器的效率。</p>
+
+<h3 id="字符规则过滤">字符规则过滤</h3>
+
+<p>在检测时，先通过<strong>字符键值对</strong>进行探测，如果不通过，则在黑名单库里加上该<strong>字符键值对</strong>。然后，我们再接着尝试<strong>单边字符</strong>是否被过滤，过滤了再把<strong>单边字符</strong>加入黑名单，这样能在一定程度上提升检测效率。</p>
+
+<p>校验存在键值对的流程：</p>
+<div class="highlighter-rouge"><pre class="highlight"><code>graph LR
+字符键值对--&gt;payload流程
+</code></pre>
+</div>
+
+<p>需要注意的是，我们在进行字符fuzz的时候，别忘了加入定位的keyword，不然在复杂的response响应中，不太容易匹配到。</p>
+
+<p>键值对举例如下：</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code><span class="p">{</span><span class="err">payload</span><span class="p">}</span><span class="w">
+</span><span class="err">--</span><span class="w">
+</span><span class="err">&lt;payload&gt;</span><span class="w">
+</span><span class="p">[</span><span class="err">payload</span><span class="p">]</span><span class="w">
+</span><span class="err">(payload)</span><span class="w">
+</span><span class="err">||</span><span class="w">
+</span><span class="err">&amp;&amp;</span><span class="w">
+</span><span class="err">/*payload*/</span><span class="w">
+</span></code></pre>
+</div>
+
+<p>校验不存在键值对的流程：</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>graph LR
+字符键值对--&gt;单个字符
+单个字符--&gt;payload流程
+</code></pre>
+</div>
+
+<p>单个字符举例如下：</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>?
+'
+"
++
+#
+;
+,
+～
+</code></pre>
+</div>
+<p>当然，有人会问是不是每种漏洞类型的检测，都需要按照上述list。</p>
+
+<p>很明显不是啊，每种漏洞检测需要用到的字符集是不一样的，所以需要根据实际检测的情况，以及所使用的payload库进行分类处理。</p>
+
+<p>最后，我们可以根据需要，生成<strong>字符（键值对）</strong> 到黑名单库，从而转到<strong>payload流程</strong>进行下一步判断。</p>
+
+<h3 id="从fuzz到payload">从fuzz到payload</h3>
+
+<p>那么我们已经获取到黑名单<strong>字符（键值对）</strong>以后，该如何去尝试fuzz payload呢？</p>
+
+<p>每个人习惯不一样，这里可以直接提取黑名单里的内容作为list，接着挨个对payload进行对比尝试，如果满足黑名单条件，则从fuzz列表里去除掉。</p>
+
+<p>这样一来，能在一定程度上减少fuzz发包数，简易代码示例：</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code># /usr/bin/python2.X
+...
+...
+
+#init payload list
+fuzz_payload = orig_payload
+
+for y in orig_payload:
+    for x in char_blacklist:
+        #x may be: '(.*?)'
+        if re.match(x, y):
+            fuzz_payload.remove(x)
+</code></pre>
+</div>
+
+<h3 id="手工简化payload">手工简化payload</h3>
+
+<p>拿刷众测举例，我们常常需要在短时间内定位到一个参数是否含有漏洞，配合自动化提交快人一步。</p>
+
+<p>就sql注入而言，某某曾说过一个参数发两个包就能确认是否含有注入，发四个包就能确定是什么数据库。</p>
+
+<p>当然可能讲的稍微夸张，但理确实是这个理。</p>
+
+<p>我们先需要通过fuzz点，来确认单参数是否含有sql注入。这里可以提下，一旦结束单参数fuzz，我们可以直接结束掉该url所有参数的fuzz。</p>
+
+<p>另外，不少厂商是是接受多点同类漏洞的，这意思是拿到某个或者某类参数，我们可以去尝试自动化类比fuzz其他地方，是否也存在相似问题。</p>
+
+<p>过滤掉前面的的黑名单字符集，把poc打散然后闭合和注释，再通过判断content-length差距、页面hash变化、时间延时变化，分两步检测快速fuzz出初步结果。</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>or 8 &lt; 9
+or 0 between 8 and 9
+and 8 &gt; 9
+xor 8 &gt; 9
+xor 0 between 8 and 9
+or sleep(8)
+and sleep(8)
+xor sleep(8)
+;select sleep(8)
+</code></pre>
+</div>
+
+<p>接着，我们可以通过主流数据库的<strong>单个甄别性</strong>查询语句（比如mssql/oracle/mysql/…），分独立的包发送进行探测，这样能很快的作出判断。</p>
+
+<p>可能有人会说，这样可能会漏掉部分特殊的点。</p>
+
+<p>拜托，众测的时候就是比手快的，你说一个url所有参数都跑一遍的话，就拿sqlmap举例，如果某个点稍微有点特殊，可能几分钟都过去了，才能判断那个点是不是有注入。</p>
+
+<p>如果你在半小时后找到个注入，人家已经在十来分钟的时候提交了，不把人气的吐血三升？</p>
+
+<p>而且，并不是说我们就不关注细节。只不过是做深入fuzz的优先级是相对的，我们需要优先关注cover的广度，而不是cover的深度。</p>
+
+<p>最后，我们可以最快速度得出结果后，再后续使用专用fuzz工具进行二段攻击。</p>
+
+<h3 id="分级fuzz">分级fuzz</h3>
+
+<p>另外，在发送payload之前，我们能够检测到系统框架的类型，是一个比较有利的起手，这代表我们可以不用盲目尝试payload。</p>
+
+<p>在使用网上的payload的同时，我们也需要去尽可能的去分级和简化。大家要相信，这玩意儿是给自己或者团队用的，不是用来忽悠客户的。</p>
+
+<p>搞一堆华丽丽的东西，最后自己吃没吃饱，只有自家的肚子知道。</p>
+
+<p>分级和简化payload后的结果就是，比如在使用传统扫描器（含接口）如sqlmap和awvs的时候，大家可能永远会觉得机器会帮你扫出来，永远有惰性不会去精简poc，别人一键化拿shell的时候，你可能才刚刚确认cms框架类型。</p>
+
+<p>最终，我们根据测试的场景，可以将手中的扫描器按测试需求，分级别去发送payload：</p>
+
+<ul>
+  <li>level1: 最简单可以获取基础反馈的poc。</li>
+  <li>level2: 直接可以获取数据和证明危害的payload。</li>
+  <li>level3: 直接可以获取shell，或者证明rce/上传漏洞存在的txt文件。</li>
+</ul>
+
+<p>当然，如果这里调的level比较高的话，低级别的poc检测成功后，是可以向上跃迁检测的。</p>
+
+<p>另外，这里不建议优先采用公共dns平台，因为即使是使用了api交互，公共dns平台也一般会有延时的风险，更别提可能被GA监控管制，再者说证明截图啥的，也需要时间的。</p>
+

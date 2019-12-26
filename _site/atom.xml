@@ -1,4 +1,152 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.5.2">Jekyll</generator><link href="http://localhost:4000/atom.xml" rel="self" type="application/atom+xml" /><link href="http://localhost:4000/" rel="alternate" type="text/html" /><updated>2019-11-23T23:29:25+08:00</updated><id>http://localhost:4000/</id><title type="html">HellSec</title><subtitle>原创网络安全博客&lt;-|-&gt;匠心独运，做有深度的良品。</subtitle><author><name>HellSec</name></author><entry><title type="html">Wordpress插件漏洞的攻防浅析</title><link href="http://localhost:4000/vuln/2019/10/23/wordpress-adsec/" rel="alternate" type="text/html" title="Wordpress插件漏洞的攻防浅析" /><published>2019-10-23T23:40:00+08:00</published><updated>2019-10-23T23:40:00+08:00</updated><id>http://localhost:4000/vuln/2019/10/23/wordpress-adsec</id><content type="html" xml:base="http://localhost:4000/vuln/2019/10/23/wordpress-adsec/">&lt;p&gt;
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.5.2">Jekyll</generator><link href="http://localhost:4000/atom.xml" rel="self" type="application/atom+xml" /><link href="http://localhost:4000/" rel="alternate" type="text/html" /><updated>2019-12-26T23:13:44+08:00</updated><id>http://localhost:4000/</id><title type="html">HellSec</title><subtitle>原创网络安全博客&lt;-|-&gt;匠心独运，做有深度的良品。</subtitle><author><name>HellSec</name></author><entry><title type="html">漏洞扫描：从fuzz到payload</title><link href="http://localhost:4000/scanner/2019/11/19/from-fuzz-to-payload/" rel="alternate" type="text/html" title="漏洞扫描：从fuzz到payload" /><published>2019-11-19T15:53:00+08:00</published><updated>2019-11-19T15:53:00+08:00</updated><id>http://localhost:4000/scanner/2019/11/19/from-fuzz-to-payload</id><content type="html" xml:base="http://localhost:4000/scanner/2019/11/19/from-fuzz-to-payload/">&lt;p&gt;
+	&lt;span style=&quot;color:#00B050;&quot;&gt;&lt;strong&gt;在实现漏洞扫描的时候，部分开发者会使用payload直接进行fuzz，而且并没有对server端的拦截和过滤，有相对智能的反馈，这对扫描效率和成功率是影响比较大的。&lt;/strong&gt;&lt;/span&gt;
+&lt;/p&gt;
+
+&lt;p&gt;那么，我们该如何去实现精细化定制呢？&lt;/p&gt;
+
+&lt;h3 id=&quot;字符fuzz&quot;&gt;字符fuzz&lt;/h3&gt;
+
+&lt;p&gt;另外，在存在waf的时候，我们发送payload过多，可能直接会触发server端的拒绝服务或者ban ip的操作，所以要在保持一定的发包频率的情况下，尽可能少触发waf的规则。
+另外，web系统本身可能自带了过滤，如果无脑发payload，可能fuzz了半天都是白费功夫。
+在字符形态的时候，如果能直接过滤掉一批有害或者无效字符，能较大程度上提升扫描器的效率。&lt;/p&gt;
+
+&lt;h3 id=&quot;字符规则过滤&quot;&gt;字符规则过滤&lt;/h3&gt;
+
+&lt;p&gt;在检测时，先通过&lt;strong&gt;字符键值对&lt;/strong&gt;进行探测，如果不通过，则在黑名单库里加上该&lt;strong&gt;字符键值对&lt;/strong&gt;。然后，我们再接着尝试&lt;strong&gt;单边字符&lt;/strong&gt;是否被过滤，过滤了再把&lt;strong&gt;单边字符&lt;/strong&gt;加入黑名单，这样能在一定程度上提升检测效率。&lt;/p&gt;
+
+&lt;p&gt;校验存在键值对的流程：
+&lt;img src=&quot;https://s2.ax1x.com/2019/12/26/lEax00.png&quot; alt=&quot;lEax00.png&quot; /&gt;&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;graph LR
+字符键值对--&amp;gt;payload流程
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;需要注意的是，我们在进行字符fuzz的时候，别忘了加入定位的keyword，不然在复杂的response响应中，不太容易匹配到。&lt;/p&gt;
+
+&lt;p&gt;键值对举例如下：&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;payload&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;
+&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;--&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;
+&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;&amp;lt;payload&amp;gt;&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;
+&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;payload&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;
+&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;(payload)&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;
+&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;||&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;
+&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;&amp;amp;&amp;amp;&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;
+&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;/*payload*/&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;校验不存在键值对的流程：&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;https://s2.ax1x.com/2019/12/26/lEavmq.png&quot; alt=&quot;lEavmq.png&quot; /&gt;&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;graph LR
+字符键值对--&amp;gt;单个字符
+单个字符--&amp;gt;payload流程
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;单个字符举例如下：&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;?
+'
+&quot;
++
+#
+;
+,
+～
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;p&gt;当然，有人会问是不是每种漏洞类型的检测，都需要按照上述list。&lt;/p&gt;
+
+&lt;p&gt;很明显不是啊，每种漏洞检测需要用到的字符集是不一样的，所以需要根据实际检测的情况，以及所使用的payload库进行分类处理。&lt;/p&gt;
+
+&lt;p&gt;最后，我们可以根据需要，生成&lt;strong&gt;字符（键值对）&lt;/strong&gt; 到黑名单库，从而转到&lt;strong&gt;payload流程&lt;/strong&gt;进行下一步判断。&lt;/p&gt;
+
+&lt;h3 id=&quot;从fuzz到payload&quot;&gt;从fuzz到payload&lt;/h3&gt;
+
+&lt;p&gt;那么我们已经获取到黑名单&lt;strong&gt;字符（键值对）&lt;/strong&gt;以后，该如何去尝试fuzz payload呢？&lt;/p&gt;
+
+&lt;p&gt;每个人习惯不一样，这里可以直接提取黑名单里的内容作为list，接着挨个对payload进行对比尝试，如果满足黑名单条件，则从fuzz列表里去除掉。&lt;/p&gt;
+
+&lt;p&gt;这样一来，能在一定程度上减少fuzz发包数，简易代码示例：&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;# /usr/bin/python2.X
+...
+...
+
+#init payload list
+fuzz_payload = orig_payload
+
+for y in orig_payload:
+    for x in char_blacklist:
+        #x may be: '(.*?)'
+        if re.match(x, y):
+            fuzz_payload.remove(x)
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h3 id=&quot;手工简化payload&quot;&gt;手工简化payload&lt;/h3&gt;
+
+&lt;p&gt;拿刷众测举例，我们常常需要在短时间内定位到一个参数是否含有漏洞，配合自动化提交快人一步。&lt;/p&gt;
+
+&lt;p&gt;就sql注入而言，某某曾说过一个参数发两个包就能确认是否含有注入，发四个包就能确定是什么数据库。&lt;/p&gt;
+
+&lt;p&gt;当然可能讲的稍微夸张，但理确实是这个理。&lt;/p&gt;
+
+&lt;p&gt;我们先需要通过fuzz点，来确认单参数是否含有sql注入。这里可以提下，一旦结束单参数fuzz，我们可以直接结束掉该url所有参数的fuzz。&lt;/p&gt;
+
+&lt;p&gt;另外，不少厂商是是接受多点同类漏洞的，这意思是拿到某个或者某类参数，我们可以去尝试自动化类比fuzz其他地方，是否也存在相似问题。&lt;/p&gt;
+
+&lt;p&gt;过滤掉前面的的黑名单字符集，把poc打散然后闭合和注释，再通过判断content-length差距、页面hash变化、时间延时变化，分两步检测快速fuzz出初步结果。&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;or 8 &amp;lt; 9
+or 0 between 8 and 9
+and 8 &amp;gt; 9
+xor 8 &amp;gt; 9
+xor 0 between 8 and 9
+or sleep(8)
+and sleep(8)
+xor sleep(8)
+;select sleep(8)
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;接着，我们可以通过主流数据库的&lt;strong&gt;单个甄别性&lt;/strong&gt;查询语句（比如mssql/oracle/mysql/…），分独立的包发送进行探测，这样能很快的作出判断。&lt;/p&gt;
+
+&lt;p&gt;可能有人会说，这样可能会漏掉部分特殊的点。&lt;/p&gt;
+
+&lt;p&gt;拜托，众测的时候就是比手快的，你说一个url所有参数都跑一遍的话，就拿sqlmap举例，如果某个点稍微有点特殊，可能几分钟都过去了，才能判断那个点是不是有注入。&lt;/p&gt;
+
+&lt;p&gt;如果你在半小时后找到个注入，人家已经在十来分钟的时候提交了，不把人气的吐血三升？&lt;/p&gt;
+
+&lt;p&gt;而且，并不是说我们就不关注细节。只不过是做深入fuzz的优先级是相对的，我们需要优先关注cover的广度，而不是cover的深度。&lt;/p&gt;
+
+&lt;p&gt;最后，我们可以最快速度得出结果后，再后续使用专用fuzz工具进行二段攻击。&lt;/p&gt;
+
+&lt;h3 id=&quot;分级fuzz&quot;&gt;分级fuzz&lt;/h3&gt;
+
+&lt;p&gt;另外，在发送payload之前，我们能够检测到系统框架的类型，是一个比较有利的起手，这代表我们可以不用盲目尝试payload。&lt;/p&gt;
+
+&lt;p&gt;在使用网上的payload的同时，我们也需要去尽可能的去分级和简化。大家要相信，这玩意儿是给自己或者团队用的，不是用来忽悠客户的。&lt;/p&gt;
+
+&lt;p&gt;搞一堆华丽丽的东西，最后自己吃没吃饱，只有自家的肚子知道。&lt;/p&gt;
+
+&lt;p&gt;分级和简化payload后的结果就是，比如在使用传统扫描器（含接口）如sqlmap和awvs的时候，大家可能永远会觉得机器会帮你扫出来，永远有惰性不会去精简poc，别人一键化拿shell的时候，你可能才刚刚确认cms框架类型。&lt;/p&gt;
+
+&lt;p&gt;最终，我们根据测试的场景，可以将手中的扫描器按测试需求，分级别去发送payload：&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;level1: 最简单可以获取基础反馈的poc。&lt;/li&gt;
+  &lt;li&gt;level2: 直接可以获取数据和证明危害的payload。&lt;/li&gt;
+  &lt;li&gt;level3: 直接可以获取shell，或者证明rce/上传漏洞存在的txt文件。&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;当然，如果这里调的level比较高的话，低级别的poc检测成功后，是可以向上跃迁检测的。&lt;/p&gt;
+
+&lt;p&gt;另外，这里不建议优先采用公共dns平台，因为即使是使用了api交互，公共dns平台也一般会有延时的风险，更别提可能被GA监控管制，再者说证明截图啥的，也需要时间的。&lt;/p&gt;</content><author><name>HellSec</name></author><category term="scanner" /><summary type="html">在实现漏洞扫描的时候，部分开发者会使用payload直接进行fuzz，而且并没有对server端的拦截和过滤，有相对智能的反馈，这对扫描效率和成功率是影响比较大的。</summary></entry><entry><title type="html">Wordpress插件漏洞的攻防浅析</title><link href="http://localhost:4000/vuln/2019/10/23/wordpress-adsec/" rel="alternate" type="text/html" title="Wordpress插件漏洞的攻防浅析" /><published>2019-10-23T23:40:00+08:00</published><updated>2019-10-23T23:40:00+08:00</updated><id>http://localhost:4000/vuln/2019/10/23/wordpress-adsec</id><content type="html" xml:base="http://localhost:4000/vuln/2019/10/23/wordpress-adsec/">&lt;p&gt;
 	&lt;span style=&quot;color:#DAA520;&quot;&gt;&lt;strong&gt;一般出名点的开源软件，比如wordpress的核心高危漏洞是比较难挖的。但其附属的高用户量的插件漏洞也是具有一定的价值的，而挖掘起来相对容易些，这里就来简单谈谈wordpress插件漏洞的挖掘和修复。&lt;/strong&gt;&lt;/span&gt;
 &lt;/p&gt;
 
@@ -1619,185 +1767,4 @@ $result = $wpdb-&amp;gt;update( $wpdb-&amp;gt;options, $update_args, array( 'opt
 
 &lt;p&gt;引用文章：&lt;/p&gt;
 
-&lt;p&gt;&lt;a href=&quot;https://blog.nintechnet.com/critical-0day-vulnerability-fixed-in-wordpress-easy-wp-smtp-plugin/&quot;&gt;Critical zero-day vulnerability fixed in WordPress Easy WP SMTP plugin.&lt;/a&gt;&lt;/p&gt;</content><author><name>HellSec</name></author><category term="bug" /><summary type="html">Wordpress插件Easy WP SMTP最近新出了个漏洞，以前有关注过，好像新的代码变化有点大，所以这里花了点时间简单分析下。</summary></entry><entry><title type="html">分布式扫描填坑杂谈</title><link href="http://localhost:4000/scanner/2019/01/15/talk-about-scanner-settings/" rel="alternate" type="text/html" title="分布式扫描填坑杂谈" /><published>2019-01-15T15:49:21+08:00</published><updated>2019-01-15T15:49:21+08:00</updated><id>http://localhost:4000/scanner/2019/01/15/talk-about-scanner-settings</id><content type="html" xml:base="http://localhost:4000/scanner/2019/01/15/talk-about-scanner-settings/">&lt;p&gt;
-	&lt;span style=&quot;color:#00B050;&quot;&gt;&lt;strong&gt;前段时间团队新加了几台服务器，因为现行的扫描器是支持分布式的，所以及时进行了分布式部署。结果在调试分布式配置时，还是遇到许多坑，忙完一阵子闲下来了，正好整理下记录。&lt;/strong&gt;&lt;/span&gt;
-&lt;/p&gt;
-
-&lt;p&gt;在本文中，将简单谈谈我这边采用的技术栈，有关对分布式填坑的经历，大家注意这里依旧是采用的python code。&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;celery库版本&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;以root权限启动root的问题，低版本不识别，会报错，这里使用的是celery==3.1.2x。&lt;/p&gt;
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;from celery import Celery, platforms
-platforms.C_FORCE_ROOT = True
-
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;redis库版本&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;版本不合适，或者worker和server版本不对等的话，可能出现celery worker 开启不久就offline的问题，或者redis会不时的掉线重连。&lt;/p&gt;
-
-&lt;p&gt;这里把redis库的版本，从原来的redis==3.0.x降级到redis==2.10.x，基本解决了上述bug。&lt;/p&gt;
-
-&lt;p&gt;需要注意的是，在celery高版本的时候（比如4.x），可能会需要匹配3.x的redis库，大家看情况而定。&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;重连机制&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;我们这里在后端存储结果，考虑到复杂sql交叉调用，还是采用的关系数据库mysql。&lt;/p&gt;
-
-&lt;p&gt;局域网中数据库写入，需要考虑重连机制，常用的如MySQLdb库，原生无重连机制，需要自己重写。&lt;/p&gt;
-
-&lt;p&gt;这里推荐两个模块，都支持重连：&lt;/p&gt;
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;torndb
-facebook开源的一个基于MySQLdb二次封装的一个mysql模块。
-pymysql
-比较常用，需要python3。
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;加强存取稳定性&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;如果想要加强局域网数据存取的稳定性，除了把上述的超时和重连配置好以外，暂时有两个办法：&lt;/p&gt;
-
-&lt;blockquote&gt;
-  &lt;p&gt;第一：可以将存入局域网数据库服务器失败的数据，暂存本地关系数据库。采用定时调度器，或者监控网络空闲时，再进行同步
-。&lt;/p&gt;
-&lt;/blockquote&gt;
-
-&lt;blockquote&gt;
-  &lt;p&gt;第二：可以将命令或者数据直接写入本地中间件，当监控到网络空闲时间，自动同步。&lt;/p&gt;
-&lt;/blockquote&gt;
-
-&lt;p&gt;另外，笔者这方面经验比较浅，欢迎运维大佬和coding大佬多多指教下这一块儿有没有其他可优化的点。&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;局域网调试&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;检测网络状态，可以看出ping其他worker是通的：&lt;/p&gt;
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&amp;gt;&amp;gt;&amp;gt; app = Celery('test', backend='redis://random_host:6379/0', broker='redis://random_host:6379/0')
-&amp;gt;&amp;gt;&amp;gt; app.control.ping(timeout=0.5)
-
-[{'worker1.example.com': 'pong'},
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;查看时区差异:&lt;/p&gt;
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&amp;gt;&amp;gt;&amp;gt; from celery.utils.timeutils import utcoffset
-&amp;gt;&amp;gt;&amp;gt; utcoffset()
-
-0
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-&lt;p&gt;库版本不同步等原因，可能造成worker和server的时间不同步。而且时间不同步，似乎会导致celery的超时机制不可用。&lt;/p&gt;
-
-&lt;p&gt;我们可以安装ntp服务，自动更新时间，同步server和worker的指定python库版本，示例命令如下【每个系统情况不一定适用】：&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;apt-get install ntp
-service ntp start
-#手动更新时间
-date -R
-
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;监控woker状态的一些点，可以参考这篇文章：&lt;/p&gt;
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;https://fangchichen.github.io/fangchichen.github.io/2018/08/08/celery%E5%87%BA%E7%8E%B0worker%E5%BC%82%E5%B8%B8offline%E6%83%85%E5%86%B5/
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;celery关键配置&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;还是那句话，各系统情况不同，
-这里仅仅贴出几个关键点,大家觉得可以优化的地方可以讨论下：&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;#任务预取功能，就是每个工作的进程／线程在获取任务的时候，会尽量多拿 n 个，以保证获取的通讯成本可以压缩。
-CELERYD_PREFETCH_MULTIPLIER = 1
-
-#这个表示每个工作的进程／线程 在执行 n 次任务后，主动销毁，之后会起一个新的，主要解决一些资源释放的问题。
-CELERYD_MAX_TASKS_PER_CHILD = 1
-
-#不存取返回结果，加快响应速度。
-CELERY_IGNORE_RESULT=False
-
-#该配置可以保证task不丢失，中断的task在下次启动时将会重新执行。
-TASK_REJECT_ON_WORKER_LOST = True
-#不会多拿任务，只有当worker完成了这个task时，任务才被标记为ack状态。
-#只有当worker完成了这个task时，任务才被标记为ack状态
-CELERY_ACKS_LATE = True
-
-#解决时区同步问题
-CELERY_TIMEZONE = 'Asia/Shanghai'
-CELERY_ENABLE_UTC = True
-USE_TZ = True
-
-#broker的连接超时时间。
-BROKER_CONNECTION_TIMEOUT = 20
-
-#如果确认是因为当前worker的并发是prefork（多进程）,并且可能是由于死锁原因造成，4.0之后的版本不支持。
-CELERYD_FORCE = True
-
-#任务超时会分配给其他worker
-BROKER_TRANSPORT_OPTIONS = {'visibility_timeout': 3600}
-
-#禁用所有速度限制，如果网络资源有限，不建议开足马力。
-#CELERY_DISABLE_RATE_LIMITS = True
-#CELERY_ACKS_LATE = True
-#CELERY_IGNORE_RESULT = True
-
-#这个表示保存任务结果的时长，这个时间会被设置到 backend 里面
-#CELERY_TASK_RESULT_EXPIRES = 3600
-
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;celery命令行参数&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;Queue还是建议启用的，方便清空，也方便指定queuename运行特定任务。
-比如配置文件里这么写:&lt;/p&gt;
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;CELERY_QUEUES = (
-            Queue('default', Exchange('default'), routing_key='default'),
-            Queue('wakaka', Exchange('wakaka'), routing_key='wakaka'),
-            )
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;那么，命令行可以这么输入：&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;celery -A test worker -E -l INFO -n workername -Q wakaka --concurrency=4
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;注意，–concurrency的值是并发进程数，这是由你的CPU个数决定性能的，不要设太高。&lt;/p&gt;
-
-&lt;p&gt;win下的话，在高版本celery 4.x，默认的是prefork，报错解决方法如下：&lt;/p&gt;
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;pip install eventlet
-celery -A proj worker -l info -P eventlet
-
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;最后，建议大家不要在win下运行celery，似乎4.x以后某个版本已经放弃支持，而且win下有很多坑没法填。&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;任务调度框架&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;关于任务调度这一块儿，除了celery，感觉dramatiq和rq的坑会少些，以后会抽空来谈谈。&lt;/p&gt;
-
-&lt;h3 id=&quot;结语&quot;&gt;结语&lt;/h3&gt;
-
-&lt;p&gt;以上配置和分析内容，是摸索和查资料得来的，感谢前辈们的开源共享。&lt;/p&gt;</content><author><name>HellSec</name></author><category term="scanner" /><summary type="html">前段时间团队新加了几台服务器，因为现行的扫描器是支持分布式的，所以及时进行了分布式部署。结果在调试分布式配置时，还是遇到许多坑，忙完一阵子闲下来了，正好整理下记录。</summary></entry></feed>
+&lt;p&gt;&lt;a href=&quot;https://blog.nintechnet.com/critical-0day-vulnerability-fixed-in-wordpress-easy-wp-smtp-plugin/&quot;&gt;Critical zero-day vulnerability fixed in WordPress Easy WP SMTP plugin.&lt;/a&gt;&lt;/p&gt;</content><author><name>HellSec</name></author><category term="bug" /><summary type="html">Wordpress插件Easy WP SMTP最近新出了个漏洞，以前有关注过，好像新的代码变化有点大，所以这里花了点时间简单分析下。</summary></entry></feed>

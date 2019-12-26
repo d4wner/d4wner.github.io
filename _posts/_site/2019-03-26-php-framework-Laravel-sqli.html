@@ -1,0 +1,100 @@
+<p>
+	<span style="color:#00B050;"><strong>PHP开发框架Laravel，前几天在官方博客通报了一个SQL注入漏洞，这里简单分析下。</strong></span>
+</p>
+
+<p>首先，这个漏洞属于网站coding写法不规范，官方给了提示：</p>
+
+<p><img src="http://ww1.sinaimg.cn/large/697f6f27ly1g1gby7vp5qj20hx03ht8x.jpg" alt="" /></p>
+
+<p>但官方还是做了修补，升级最新版本V5.8.7可修复。</p>
+
+<p>我们先定位下这里：</p>
+<div class="highlighter-rouge"><pre class="highlight"><code>Illuminate\Validation\Rule
+</code></pre>
+</div>
+<p>官方推荐的写法是：</p>
+<div class="highlighter-rouge"><pre class="highlight"><code>Rule::unique('users')-&gt;ignore($id),
+</code></pre>
+</div>
+<p>但如果网站没有预先对$id的值做处理时，用户可以传递恶意数据给ignore函数，就会导致SQL注入。</p>
+
+<p>我们来跟一下函数：</p>
+<div class="highlighter-rouge"><pre class="highlight"><code>\Illuminate\Validation\Rules\Unique.php
+
+class Unique
+{
+...
+public function ignore($id, $idColumn = null)
+    {
+        if ($id instanceof Model) {
+            return $this-&gt;ignoreModel($id, $idColumn);
+        }
+
+        $this-&gt;ignore = $id;
+        $this-&gt;idColumn = $idColumn ?? 'id';
+
+        return $this;
+    }
+
+</code></pre>
+</div>
+<p>这里我们不考虑把$id写成实例的情况，$id是用户可控的话，$idColumn直接写为空即可，最后赋值情况如下：</p>
+<div class="highlighter-rouge"><pre class="highlight"><code>$this-&gt;ignore = $id;
+$this-&gt;idColumn = 'id';
+</code></pre>
+</div>
+
+<p>如果网站代码类似这样构造的话，黑客输入的值就属于可控状态：</p>
+<div class="highlighter-rouge"><pre class="highlight"><code>$id = $request-&gt;input('id');
+</code></pre>
+</div>
+<p>最后我们会走到这儿：</p>
+<div class="highlighter-rouge"><pre class="highlight"><code>Illuminate\Validation\Rules\Unique.php
+
+    public function __toString()
+    {
+        ...
+        ...
+    }
+</code></pre>
+</div>
+
+<p>我们看下关键的代码变更：</p>
+<div class="highlighter-rouge"><pre class="highlight"><code>Illuminate\Validation\Rules\Unique.php
+
+V5.8.7【最新版】
+    public function __toString()
+    {
+            $this-&gt;ignore ? '"'.addslashes($this-&gt;ignore).'"' : 'NULL',
+    }
+</code></pre>
+</div>
+<div class="highlighter-rouge"><pre class="highlight"><code>Illuminate\Validation\Rules\Unique.php
+
+V5.8.4
+    public function __toString()
+    {
+
+            $this-&gt;ignore ? '"'.$this-&gt;ignore.'"' : 'NULL',
+
+    }
+</code></pre>
+</div>
+<p>这里最新的代码v5.8.7，把$this-&gt;ignore直接给addslashes了，以前这里是没有防护的。</p>
+
+<p>有趣的是，笔者对比了下diff，期间官方还试图对其他引用的地方进行了过滤。最后还是改成了__toString处，进行统一过滤的方式。</p>
+
+<p>最后提一句，后面的代码会进入DatabaseRule，进行后续SQL规则匹配。</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>Illuminate\Validation\Rules\DatabaseRule.php
+</code></pre>
+</div>
+
+<p>这之后就没有再进一步处理，接着形成了SQL注入。</p>
+
+<p>参考链接：</p>
+
+<p><a href="https://blog.laravel.com/unique-rule-sql-injection-warning?fbclid=IwAR26Cs1Ewh983UxSF5fNO8Xr0hUnwSO_Ikbr08Adi20m5h5llP0WhNDmgRg">官方通告</a></p>
+
+<p><a href="https://laravel.com/docs/5.8/validation#rule-unique">说明文档</a></p>
+
