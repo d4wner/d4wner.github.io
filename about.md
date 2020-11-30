@@ -1,8 +1,7 @@
-### 《别赋》
+<p>《别赋》</p>
 
 -----
 
-<blockquote>
 <p style="text-align: center;">
 冷月缺，
 稀星残，
@@ -18,4 +17,3 @@
 浊酒填壑，
 醉里泣离颜。
 </p>
-</blockquote>
