@@ -1,4 +1,389 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.5.2">Jekyll</generator><link href="http://localhost:4000/atom.xml" rel="self" type="application/atom+xml" /><link href="http://localhost:4000/" rel="alternate" type="text/html" /><updated>2020-12-01T01:21:13+08:00</updated><id>http://localhost:4000/</id><title type="html">HellSec</title><subtitle>原创网络安全博客&lt;-|-&gt;匠心独运，做有深度的良品。</subtitle><author><name>HellSec</name></author><entry><title type="html">漏洞POC验证系统实践</title><link href="http://localhost:4000/scanner/2020/08/11/all-info-scan/" rel="alternate" type="text/html" title="漏洞POC验证系统实践" /><published>2020-08-11T20:46:00+08:00</published><updated>2020-08-11T20:46:00+08:00</updated><id>http://localhost:4000/scanner/2020/08/11/all-info-scan</id><content type="html" xml:base="http://localhost:4000/scanner/2020/08/11/all-info-scan/">&lt;p&gt;
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.5.2">Jekyll</generator><link href="http://0.0.0.0:4000/atom.xml" rel="self" type="application/atom+xml" /><link href="http://0.0.0.0:4000/" rel="alternate" type="text/html" /><updated>2020-12-08T23:49:17+08:00</updated><id>http://0.0.0.0:4000/</id><title type="html">HellSec</title><subtitle>原创网络安全博客&lt;-|-&gt;匠心独运，做有深度的良品。</subtitle><author><name>HellSec</name></author><entry><title type="html">私有云安全-容器安全设计实践</title><link href="http://0.0.0.0:4000/vuln/2020/12/08/container-sec-design/" rel="alternate" type="text/html" title="私有云安全-容器安全设计实践" /><published>2020-12-08T21:40:00+08:00</published><updated>2020-12-08T21:40:00+08:00</updated><id>http://0.0.0.0:4000/vuln/2020/12/08/container-sec-design</id><content type="html" xml:base="http://0.0.0.0:4000/vuln/2020/12/08/container-sec-design/">&lt;p&gt;
+	&lt;span style=&quot;color:#DAA520;&quot;&gt;&lt;strong&gt;私有云安全由于其合规性和独立性，不同于公有云和混合云，需要单独定制落地的流程和规划，这里跟大家简单聊聊关于容器安全设计的相关问题。&lt;/strong&gt;&lt;/span&gt;
+&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;https://gitee.com/hellsec/ppp/raw/master/2020-9-26/1601107557741-容器安全-0926.jpg&quot; alt=&quot;容器安全概述&quot; /&gt;&lt;/p&gt;
+
+&lt;h3 id=&quot;容器安全综述&quot;&gt;容器安全综述&lt;/h3&gt;
+
+&lt;p&gt;容器安全架构设计，可以在其三大关键生命周期阶段进行实施，其中包括镜像安全、配置安全、运行安全。&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;镜像安全：&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;在初始阶段对镜像本身做把控，从供应链进行核查，在日常会对镜像做验证和校验，最后会在构建时进行阻断或者检测。&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;配置安全：&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;对于构建好的初始镜像，需要遵从行CIS、NIST最佳安全实践。在构建好系统后，需要检查相应的Docker配置、Kubernetes配置、以及操作系统本身。&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;运行安全：&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;在容器运行的时候，我们会对里面的系统运行状态进行监控，还会对CMDB资产图谱状态进行对比核查。&lt;/p&gt;
+
+&lt;h3 id=&quot;镜像安全&quot;&gt;镜像安全&lt;/h3&gt;
+
+&lt;h4 id=&quot;嵌入流程检测&quot;&gt;嵌入流程检测&lt;/h4&gt;
+
+&lt;p&gt;这部分工作可以结合CICD流水线进行，一般有两种建议。&lt;/p&gt;
+
+&lt;p&gt;&lt;em&gt;CI构建阻断：&lt;/em&gt;&lt;/p&gt;
+
+&lt;p&gt;日常构建新镜像时，接入配置扫描和白盒扫描流程，如果核查出错会直接阻断，这种做法稍显粗暴，而且会影响业务，但这样可以减少镜像出现风险的可能性，后续重构建的工作也会相应减少。&lt;/p&gt;
+
+&lt;p&gt;&lt;em&gt;旁路分析：&lt;/em&gt;&lt;/p&gt;
+
+&lt;p&gt;复制需要检测的镜像，进行模拟构建，出问题直接阻断。这样的好处是不会影响业务进程，但脆弱的镜像可能会被构建到生产环境，存在潜在风险。&lt;/p&gt;
+
+&lt;p&gt;出现问题后，研发运维人员需要根据镜像标签去做追踪，剔除脆弱镜像或者排期重新构建。&lt;/p&gt;
+
+&lt;p&gt;这种一般是在构建时，不会直接阻断流程，而是旁路提供鉴定报告，后续再供给安全运维人员进行分析。&lt;/p&gt;
+
+&lt;p&gt;当然如果需要得到即时结果，则构建扫描可以提供API攻击给Docker CI平台，作为结果自动化处理的参考。&lt;/p&gt;
+
+&lt;h4 id=&quot;镜像初始安全&quot;&gt;镜像初始安全&lt;/h4&gt;
+
+&lt;h5 id=&quot;镜像库内控&quot;&gt;&lt;em&gt;镜像库内控&lt;/em&gt;&lt;/h5&gt;
+
+&lt;p&gt;首先，对于镜像本身，由于企业自用的镜像大部分是规范定制化的，纯私有云落地的话不建议使用公网镜像库，可以看看harbor之类的，这也是为保障供应链风险可控。&lt;/p&gt;
+
+&lt;p&gt;由于私有云合规性的特殊要求，一般是要求不能接入专线（与混合云不同），这样能在减少诸如水坑攻击，或者防止被黑客大规模挂马之类攻击误伤。&lt;/p&gt;
+
+&lt;h5 id=&quot;镜像仓库核查&quot;&gt;&lt;em&gt;镜像仓库核查&lt;/em&gt;&lt;/h5&gt;
+
+&lt;p&gt;对于初始镜像，需要定期核查软件镜像库，查看镜像是否被植入木马。如果私有镜像仓库由于配置不当而开启了2357端口，将会导致私有仓库暴露在公网中。&lt;/p&gt;
+
+&lt;p&gt;这样的话，攻击者可以直接访问私有仓库并篡改镜像内容，存在仓库镜像被污染的隐患。&lt;/p&gt;
+
+&lt;h5 id=&quot;镜像扫描核查&quot;&gt;&lt;em&gt;镜像扫描核查&lt;/em&gt;&lt;/h5&gt;
+
+&lt;p&gt;镜像核查，主要会做两方面的工作：&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;
+    &lt;p&gt;第一，是进行常规漏洞检测，根据CVE漏洞库进行清单核查式扫描。&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;第二，是对系统进行基线检查，把潜在的风险扼杀在摇篮里。&lt;/p&gt;
+  &lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;这部分核查结果，需要分布走进行治理，首先更新初始镜像，把相关镜像的缺陷统一修复。
+然后，会根据线上业务和系统本身的稳定性和适配度，在测试环境调试回归并灰度完毕，再统一进行替换。&lt;/p&gt;
+
+&lt;h5 id=&quot;镜像数字签名&quot;&gt;&lt;em&gt;镜像数字签名&lt;/em&gt;&lt;/h5&gt;
+
+&lt;p&gt;Docker的内容信任（Content Trust）机制，可保护镜像在镜像仓库与用户之间传输过程中的完整性。目前。目前Docker的内容信任机制是默认关闭的，需要手动开启。&lt;/p&gt;
+
+&lt;p&gt;内容信任机制启用后，镜像发布者可对镜像进行签名，而镜像使用者可以对镜像签名进行验证。&lt;/p&gt;
+
+&lt;p&gt;镜像构建者在通过docker build命令运行Dockerfile文件前，需要通过手动或脚本方式将DOCKER_CONTENT_TRUST环境变量置为1进行启用。&lt;/p&gt;
+
+&lt;p&gt;在内容信任机制开启后，push、build、create、pull、run等命令均与内容信任机制绑定，只有通过内容信任验证的镜像才可成功运行这些操作。例如，Dockerfile中如果包含未签名的基础镜像，将无法成功通过docker  build进行镜像构建。&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;（命令示例：export DOCKER_CONTENT_TRUST = 1）
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h5 id=&quot;供应链核查&quot;&gt;&lt;em&gt;供应链核查&lt;/em&gt;&lt;/h5&gt;
+
+&lt;p&gt;对于代码中使用的公共组件包，需要对来源进行核查。在私有云的落地实践中，最好是建立私有包的仓库，这样即使镜像被进行植入性攻击，也在可溯源和可控制的范围内。&lt;/p&gt;
+
+&lt;p&gt;顺便提一下，企业日常使用的代码编译器，也需要在企业核准控制范围内。最好通过统一采购源，在内网提供正版的下载，以及提供内网激活API等方式。&lt;/p&gt;
+
+&lt;p&gt;但是，在目前大环境下，由于版权和虚拟资产购置价格过高的问题，不少互联网大厂也很难统一解决这一点。&lt;/p&gt;
+
+&lt;h3 id=&quot;配置安全&quot;&gt;配置安全&lt;/h3&gt;
+
+&lt;h4 id=&quot;内部核查&quot;&gt;内部核查&lt;/h4&gt;
+
+&lt;h5 id=&quot;dockerfile核查&quot;&gt;&lt;em&gt;Dockerfile核查&lt;/em&gt;&lt;/h5&gt;
+
+&lt;p&gt;如果Dockerfile存在漏洞或被插入恶意脚本，那么生成的容器也可能产生漏洞或被恶意利用。例如，攻击者可构造特殊的Dockerfile压缩文件，在编译时触发漏洞获取执行任意代码的权限。&lt;/p&gt;
+
+&lt;p&gt;如果在Dockerfile中没有指定USER，Docker将默认以root用户的身份运行该Dockerfile创建的容器，如果该容器遭到攻击，那么宿主机的root访问权限也可能会被获取。&lt;/p&gt;
+
+&lt;p&gt;如果在Dockerfile文件中存储了固定密码等敏感信息，并对外进行发布，则可能导致数据泄露的风险。&lt;/p&gt;
+
+&lt;p&gt;如果在Dockerfile的编写中添加了不必要的应用，如SSH、Telnet等，则会产生攻击面扩大的风险。&lt;/p&gt;
+
+&lt;h5 id=&quot;metadata安全监控&quot;&gt;&lt;em&gt;Metadata安全监控&lt;/em&gt;&lt;/h5&gt;
+
+&lt;p&gt;本身私有云环境是相对隔离的，但如果其中的数据访问鉴权方式不当，或者意外造成了安全密钥泄露的话，黑客可以比较容易的获取到敏感元数据。&lt;/p&gt;
+
+&lt;p&gt;所以在安全配置和访问控制上，我们仍旧需要在日常做好监控工作。&lt;/p&gt;
+
+&lt;h4 id=&quot;攻击面核查&quot;&gt;攻击面核查&lt;/h4&gt;
+
+&lt;h5 id=&quot;强制访问控制&quot;&gt;&lt;em&gt;强制访问控制&lt;/em&gt;&lt;/h5&gt;
+
+&lt;p&gt;强制访问控制（Mandatory Access Control, MAC）是指每一个主体（包括用户和程序）和客体都拥有固定的安全标记，主体能否对客体进行相关操作，取决于主体和客体所拥有安全标记的关系。&lt;/p&gt;
+
+&lt;p&gt;在Docker容器应用环境下，可通过强制访问控制机制限制容器的访问资源。Linux内核的强制访问控制机制包括SELinux、AppArmor等。&lt;/p&gt;
+
+&lt;h5 id=&quot;内容信任机制&quot;&gt;&lt;em&gt;内容信任机制&lt;/em&gt;&lt;/h5&gt;
+
+&lt;p&gt;Linux内核能力表示进程所拥有的系统调用权限，决定了程序的系统调用能力。&lt;/p&gt;
+
+&lt;p&gt;因此，不当的容器能力配置可能会扩大攻击面，增加容器与宿主机面临的安全风险。&lt;/p&gt;
+
+&lt;p&gt;在执行docker run命令运行Docker容器时可根据实际需求通过–cap-add或–cap-drop配置接口对容器的能力进行增删，或者尝试通过配置文件进行统一调整。&lt;/p&gt;
+
+&lt;h5 id=&quot;构建资管图谱&quot;&gt;&lt;em&gt;构建资管图谱&lt;/em&gt;&lt;/h5&gt;
+
+&lt;p&gt;枚举初始镜像内的软件包、端口、服务，构建初始清单列表。&lt;/p&gt;
+
+&lt;p&gt;如果私有云安全架构体系中，本身可以考虑构建类似于CMDB资产管理的系统，也可以考虑搭配像Dependency-track等工具，核查对于第三方的依赖。&lt;/p&gt;
+
+&lt;p&gt;否则的话，可以通过灰盒扫描和流量agent方式，对资产数据库进行补充检查。&lt;/p&gt;
+
+&lt;p&gt;同时，一旦出现异常，通过自动化对比初始状态数据，我们也能较快地发现风险。&lt;/p&gt;
+
+&lt;h3 id=&quot;运行安全&quot;&gt;运行安全&lt;/h3&gt;
+
+&lt;h5 id=&quot;敏感信息检查&quot;&gt;&lt;em&gt;敏感信息检查&lt;/em&gt;&lt;/h5&gt;
+
+&lt;p&gt;核查运行的镜像系统的代码中，是否存在敏感信息泄露：密码、秘钥、token等。&lt;/p&gt;
+
+&lt;p&gt;这个问题比较微妙，可能更偏向普适性的安全问题，但作为系统运行时安全，还是要提一下的。&lt;/p&gt;
+
+&lt;h5 id=&quot;黑盒扫描&quot;&gt;&lt;em&gt;黑盒扫描&lt;/em&gt;&lt;/h5&gt;
+
+&lt;p&gt;在容器中系统的运行时，可能会无意中暴露一些攻击面，因此我们需要选择适当的扫描器进行定期核查。&lt;/p&gt;
+
+&lt;p&gt;这里简单例举几个黑盒扫描引擎：&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;nessus（网络主机漏洞扫描器）&lt;/li&gt;
+  &lt;li&gt;awvs（web爬虫扫描器）&lt;/li&gt;
+  &lt;li&gt;appscan（IBM重量级web扫描器）&lt;/li&gt;
+  &lt;li&gt;dirscan（web路径扫描器）&lt;/li&gt;
+  &lt;li&gt;docker-bench-security（官方基线核查脚本）&lt;/li&gt;
+  &lt;li&gt;anchore（针对容器Docker的CVE扫描）&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h5 id=&quot;白盒扫描&quot;&gt;&lt;em&gt;白盒扫描&lt;/em&gt;&lt;/h5&gt;
+
+&lt;p&gt;白盒扫描的话，同样也可以嵌入CICD流水线进行检查，如果出现问题，对比实际情况（比如命中率）进行阻断和漏洞上报。&lt;/p&gt;
+
+&lt;p&gt;当然，如果误报率较高的话，可以仅从旁路记录，等待安全人员审核漏洞是否存在后，再督促业务方修复迭代。&lt;/p&gt;
+
+&lt;p&gt;如果扫描规则有更新，也可以日常对代码库进行扫描，匹配筛选出可能存在缺陷的分支进行告警，以便及时更新镜像系统中的代码。&lt;/p&gt;
+
+&lt;p&gt;简单例举几类白盒扫描引擎：&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;SonarQube（定制安全规则）&lt;/li&gt;
+  &lt;li&gt;BlackDuck（开源组件检查）&lt;/li&gt;
+  &lt;li&gt;Findsecbug（开源的findbug安全插件，可作用于编译器和平台）&lt;/li&gt;
+  &lt;li&gt;Coverity（可以定制安全规则）&lt;/li&gt;
+  &lt;li&gt;Fortify（误报较多，但覆盖面较全，pj版本多）&lt;/li&gt;
+  &lt;li&gt;Semmle QL（官方有分析平台lgtm.com）&lt;/li&gt;
+  &lt;li&gt;KunLun-M（404实验室的开源产品）&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h4 id=&quot;安全监控&quot;&gt;安全监控&lt;/h4&gt;
+
+&lt;h5 id=&quot;资产图谱核查&quot;&gt;&lt;em&gt;资产图谱核查&lt;/em&gt;&lt;/h5&gt;
+
+&lt;p&gt;对于在配置阶段获取的清单图谱，需要在系统运行阶段，进行资产定期巡检对比核查。&lt;/p&gt;
+
+&lt;p&gt;如果容器中的系统，开放了异常端口和服务，或者安装了异常的软件包，应该对该镜像构建的相关容器系统，通过核实后尽快进行冻结处理。&lt;/p&gt;
+
+&lt;h5 id=&quot;hids监控&quot;&gt;&lt;em&gt;HIDS监控&lt;/em&gt;&lt;/h5&gt;
+
+&lt;p&gt;在容器系统运行的过程中，如果出现被入侵或者污染的情况，仅凭日常的扫描和事前事中检查，不一定能及时精确的定位溯源。&lt;/p&gt;
+
+&lt;p&gt;这时就需要对文件变更进行监控，以及对异常进程及时发现，还有记录异常行为和疑似的后门留存等等。&lt;/p&gt;
+
+&lt;p&gt;云厂商们的技术各有千秋，无论是宿主机级别，还是能植入容器的HIDS，都能一定程度上提升容器的安全兜底能力。&lt;/p&gt;
+
+&lt;h5 id=&quot;容器进程安全审计&quot;&gt;&lt;em&gt;容器进程安全审计&lt;/em&gt;&lt;/h5&gt;
+
+&lt;p&gt;在安全审计方面，对于运行Docker容器的宿主机而言，除需对主机Linux文件系统等进行审计外，还需对Docker守护进程的活动进行审计。&lt;/p&gt;
+
+&lt;p&gt;由于系统默认不会对Docker守护进程进行审计，需要通过主动添加审计规则或修改规则文件进行。&lt;/p&gt;
+
+&lt;p&gt;除Docker守护进程之外，还需对与Docker的运行相关的文件和目录进行审计，同时需要配置审计规则文件（/etc/audit/audit.rules）。&lt;/p&gt;
+
+&lt;p&gt;命令示例：&lt;/p&gt;
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;auditctl -w /usr/bin/docker -k docker
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h5 id=&quot;容器网络安全&quot;&gt;&lt;em&gt;容器网络安全&lt;/em&gt;&lt;/h5&gt;
+
+&lt;p&gt;由于Docker容器默认的网桥模式，不会对网络流量进行控制和限制。所以为了防止网络被DoS攻击的风险，需要根据实际需求对网络流量进行相应的控制。&lt;/p&gt;
+
+&lt;p&gt;&lt;em&gt;针对openstack的网络&lt;/em&gt;：&lt;/p&gt;
+
+&lt;p&gt;在&lt;strong&gt;同一主机内相同子网中的不同容器之间&lt;/strong&gt;，可以通过建立的虚拟化集群，通过vlan对不同租户进行子网隔离不同，基于overlay网络的容器集群，默认可以直接访问。&lt;/p&gt;
+
+&lt;p&gt;如需控制&lt;strong&gt;宿主机外部到内部容器应用的访问&lt;/strong&gt;，可通过在宿主机iptables中的DOCKER-INGRESS链，手动添加ACL访问控制规则，以控制宿主机的eth0到容器的访问，或者在宿主机外部部署防火墙等方法实现。&lt;/p&gt;
+
+&lt;p&gt;&lt;em&gt;针对k8s的网络：&lt;/em&gt;&lt;/p&gt;
+
+&lt;p&gt;策略可以应用于通过常用标签标识的pod组。然后，可以使用标签来模拟传统的分段网络，这些网络通常用于在多层应用程序中隔离层：例如，您可以通过特定的“段”标签来标识前端和后端pod。策略控制这些段之间的流量，甚至控制来自外部源的流量。&lt;/p&gt;
+
+&lt;p&gt;由于存在频繁的微服务动态变化更新，通过手动的方式配置iptables或更新防火墙是不现实的。因此，可通过微分段（Micro-Segmentation）实现面向容器云环境中的容器防火墙。&lt;/p&gt;
+
+&lt;p&gt;微分段是一种细粒度的网络分段隔离机制，与传统的以网络地址为基本单位的网络分段机制不同，微分段可以以单个容器、同网段容器、容器应用为粒度实现分段隔离，并通过容器防火墙对实现微分段间的网络访问控制。&lt;/p&gt;
+
+&lt;h5 id=&quot;容器认证安全&quot;&gt;&lt;em&gt;容器认证安全&lt;/em&gt;&lt;/h5&gt;
+
+&lt;p&gt;我们在进行集群的控制时，需要注意做好访问控制，而k8s恰好自带了一套完整的认证授权机制。&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;
+    &lt;p&gt;基于属性的访问控制(ABAC)，基于属性的访问控制(ABAC)定义了一种访问控制范式，通过将属性组合在一起的策略将访问权限授予用户。策略可以使用任何类型的属性(用户属性、资源属性、对象、环境属性等)。&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;基于角色的访问控制(RBAC)是一种基于企业中单个用户的角色来调节对计算机或网络资源的访问的方法。在此上下文中，访问是单个用户执行特定任务的能力，例如查看、创建或修改文件。&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;NODE 授权——一个特殊用途的授权器，根据调度到kubelet所在节点的pod向kubelet授予权限。有关使用节点授权模式的更多信息，请参见节点授权。&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;WEBHOOK 授权——WebHook是当某个事件发生时触发一个HTTP POST的回调;实现webhook的web应用程序将向URL发送一条消息。有关使用Webhook模式的更多信息，请参见Webhook模式。&lt;/p&gt;
+  &lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;在进行访问控制时，k8s采用的是链式认证, 每个请求被认证插件验证时，插件会试图将请求与以下属性进行关联：&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;api server 认证方式(k8s 的所有访问都是通过 api server)&lt;/li&gt;
+  &lt;li&gt;https 证书认证: 基于CA根证书签名的双向数字证书认证方式&lt;/li&gt;
+  &lt;li&gt;http token 认证: 通过一个token来识别合法用户&lt;/li&gt;
+  &lt;li&gt;http basic 认证: 通过用户名密码的方式认证&lt;/li&gt;
+  &lt;li&gt;authenticating proxy: 第三方授权协议&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;当启用多个验证器模块时，第一个模块将成功地验证 “请求短路评估” (request short-circuits evaluation)，如果验证失败，则进行断路操作，api服务器不保证运行验证器的执行顺序。&lt;/p&gt;
+
+&lt;p&gt;所有通过验证的用户都会被添加进system:authenticated组。&lt;/p&gt;
+
+&lt;p&gt;可以使用authenticating proxy 或authentication webhook与其他身份验证协议(LDAP、SAML、Kerberos、备用x509方案等)集成。&lt;/p&gt;
+
+&lt;h5 id=&quot;容器及平台日志分析&quot;&gt;&lt;em&gt;容器及平台日志分析&lt;/em&gt;&lt;/h5&gt;
+
+&lt;p&gt;Kubernetes本身没有提供集群级别的日志管理功能，如想实现集群级别的日志管理有三种方案：&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;在每个Node中运行日志采集代理，将日志收集到集中的日志管理平台。这种方案对应用没有侵入性，是优选方案。&lt;/li&gt;
+  &lt;li&gt;在前一种方案的基础上，在每个应用Pod中增加Sidecar容器来实现日志的分离。&lt;/li&gt;
+  &lt;li&gt;应用直接将日志输出到统一的日志管理平台，不在本地落地，这种方案对于应用的侵入性较大。&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;实践过的方式是第一种，一般k8s集群的容器日志都存储在/var/lib/docker/。所以简单来说，本方式就是在每个node上各运行一个日志代理容器，对各个节点/var/log和/var/lib/docker/containers/两个目录下的日志进行采集，然后汇总到elasticsearch集群，最后通过kibana展示。&lt;/p&gt;
+
+&lt;p&gt;至于中间流程的规则筛选和检测策略，可以借助自定义或者Sisdig之类工具的规则来配置。&lt;/p&gt;
+
+&lt;h3 id=&quot;市场方案调研&quot;&gt;市场方案调研&lt;/h3&gt;
+
+&lt;p&gt;当然，大家如果预算足够的话，可以直接采购整套云管平台和配套资源。
+我前面所描述的东西，在大点的云服务厂商那里，基本是都可以满足的。&lt;/p&gt;
+
+&lt;h4 id=&quot;国内厂商部署方案&quot;&gt;国内厂商部署方案&lt;/h4&gt;
+
+&lt;p&gt;近期由于接洽项目的需要，对接触过的几家国内的厂商容器安全方案进行过调研。&lt;/p&gt;
+
+&lt;p&gt;其中包含云厂商，也有传统安全厂商，笔者对其中部分指标进行了简要统计，这里暂不讨论未接触过的其他优秀厂商。&lt;/p&gt;
+
+&lt;p&gt;这里仅针对公开信息披露进行展示，不做具体的优劣评价，可能存在错漏和沟通失误的情况，欢迎各路大佬斧正。&lt;/p&gt;
+
+&lt;p&gt;另外，这里给个小建议，如果公司预算比较充裕，可以入手头部云厂商的产品进行环境自建。否则可以考虑采购二线云厂商+传统安全厂商，也能达到既定的大部分效果。&lt;/p&gt;
+
+&lt;p&gt;如果收尾的架构设计中，还剩下一些低性价比，但是不得不上的资源。届时手中的业务方研发能力足够作为补充的话，可以二改和对接开源的系统，逐步推进实施落地。&lt;/p&gt;
+
+&lt;p&gt;另外，需要特别注意业务方的需求，云环境的要求是否必须纯粹，是否需要等保等级规划，不同的需求成本差别可能会很大。&lt;/p&gt;
+
+&lt;p&gt;这里附上调研过的几家厂商能力矩阵，不代表本人观点，如有错漏欢迎指出：&lt;/p&gt;
+
+&lt;table&gt;
+  &lt;thead&gt;
+    &lt;tr&gt;
+      &lt;th&gt;安全能力&lt;/th&gt;
+      &lt;th&gt;阿里&lt;/th&gt;
+      &lt;th&gt;腾讯&lt;/th&gt;
+      &lt;th&gt;华为&lt;/th&gt;
+      &lt;th&gt;深信服&lt;/th&gt;
+    &lt;/tr&gt;
+  &lt;/thead&gt;
+  &lt;tbody&gt;
+    &lt;tr&gt;
+      &lt;td&gt;隔离沙箱&lt;/td&gt;
+      &lt;td&gt;ACK安全隔离沙箱&lt;/td&gt;
+      &lt;td&gt;未知&lt;/td&gt;
+      &lt;td&gt;仅数据沙箱&lt;/td&gt;
+      &lt;td&gt;未知&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;基线检查&lt;/td&gt;
+      &lt;td&gt;安骑士&lt;/td&gt;
+      &lt;td&gt;未知&lt;/td&gt;
+      &lt;td&gt;HSS&lt;/td&gt;
+      &lt;td&gt;BVT&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;漏洞检查&lt;/td&gt;
+      &lt;td&gt;CSS&lt;/td&gt;
+      &lt;td&gt;VSS&lt;/td&gt;
+      &lt;td&gt;VSS&lt;/td&gt;
+      &lt;td&gt;传统漏扫&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;资产核查&lt;/td&gt;
+      &lt;td&gt;资产管理（专有云）+指纹核查（企业版）&lt;/td&gt;
+      &lt;td&gt;云资产管理中心&lt;/td&gt;
+      &lt;td&gt;ROMA资产中心&lt;/td&gt;
+      &lt;td&gt;未知&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;主机安全&lt;/td&gt;
+      &lt;td&gt;安骑士&lt;/td&gt;
+      &lt;td&gt;CWP&lt;/td&gt;
+      &lt;td&gt;HSS&lt;/td&gt;
+      &lt;td&gt;EDR&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;密钥管理KMS&lt;/td&gt;
+      &lt;td&gt;KMS&lt;/td&gt;
+      &lt;td&gt;HSM&lt;/td&gt;
+      &lt;td&gt;HSM&lt;/td&gt;
+      &lt;td&gt;未知&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;是否支持纯私有云&lt;/td&gt;
+      &lt;td&gt;不支持&lt;/td&gt;
+      &lt;td&gt;支持&lt;/td&gt;
+      &lt;td&gt;不支持&lt;/td&gt;
+      &lt;td&gt;可配合采购&lt;/td&gt;
+    &lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;h3 id=&quot;参考文章&quot;&gt;参考文章&lt;/h3&gt;
+
+&lt;p&gt;&lt;a href=&quot;https://www.freebuf.com/column/173989.html&quot;&gt;Docker容器安全最佳实践白皮书V1.0&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&quot;https://www.cnblogs.com/ajianboke/p/10917776.html&quot;&gt;Kubernetes集群安全配置案例&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&quot;https://www.aliyun.com/solution/security/containersecurity&quot;&gt;阿里云容器安全解决方案&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&quot;http://weekly.dockerone.com/article/10098&quot;&gt;容器安全在证券行业的最佳实践&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&quot;https://blog.csdn.net/squirrelanimal0922/article/details/82492557&quot;&gt;10个确保微服务与容器安全的最佳实践&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&quot;https://www.freebuf.com/articles/es/239266.html&quot;&gt;使用Anchore Engine来完善DevSecOps工具链&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&quot;https://www.freebuf.com/articles/system/221319.html&quot;&gt;Docker容器安全性分析&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&quot;https://juejin.im/entry/577083fd5bbb5000596a1528&quot;&gt;Docker 安全&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&quot;https://blog.csdn.net/java_zyq/article/details/82179175&quot;&gt;从零开始搭建K8S–如何监控K8S集群日志&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/43671511&quot;&gt;Docker安全入门与实战：Sysdig&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&quot;https://baijiahao.baidu.com/s?id=1610191436506146444&quot;&gt;谈一下Docker与Kubernetes集群的日志和日志管理&lt;/a&gt;&lt;/p&gt;</content><author><name>HellSec</name></author><category term="vuln" /><summary type="html">私有云安全由于其合规性和独立性，不同于公有云和混合云，需要单独定制落地的流程和规划，这里跟大家简单聊聊关于容器安全设计的相关问题。</summary></entry><entry><title type="html">漏洞POC验证系统实践</title><link href="http://0.0.0.0:4000/scanner/2020/08/11/all-info-scan/" rel="alternate" type="text/html" title="漏洞POC验证系统实践" /><published>2020-08-11T20:46:00+08:00</published><updated>2020-08-11T20:46:00+08:00</updated><id>http://0.0.0.0:4000/scanner/2020/08/11/all-info-scan</id><content type="html" xml:base="http://0.0.0.0:4000/scanner/2020/08/11/all-info-scan/">&lt;p&gt;
 	&lt;span style=&quot;color:#00B050;&quot;&gt;&lt;strong&gt;在渗透过程中，我们针对特定的系统，在通过插件识别类型后，可以利用漏洞脚本进行fuzz。&lt;/strong&gt;&lt;/span&gt;
 &lt;/p&gt;
 
@@ -72,7 +457,7 @@
   &lt;li&gt;云环境利用：对于云环境漏洞目前没有poc，后面会考虑添加。&lt;/li&gt;
   &lt;li&gt;安全设备利用：对于目前流行的对于安全设备的反攻，后面会考虑专门添加插件。&lt;/li&gt;
   &lt;li&gt;WAF、蜜罐探测：对于WAF类和蜜罐环境，以前只是封装了辅助类的函数，后面也会提供专门的插件进行探测。&lt;/li&gt;
-&lt;/ul&gt;</content><author><name>HellSec</name></author><category term="scanner" /><summary type="html">在渗透过程中，我们针对特定的系统，在通过插件识别类型后，可以利用漏洞脚本进行fuzz。</summary></entry><entry><title type="html">分布式资产扫描平台实践</title><link href="http://localhost:4000/scanner/2020/07/29/poc-scan/" rel="alternate" type="text/html" title="分布式资产扫描平台实践" /><published>2020-07-29T21:28:00+08:00</published><updated>2020-07-29T21:28:00+08:00</updated><id>http://localhost:4000/scanner/2020/07/29/poc-scan</id><content type="html" xml:base="http://localhost:4000/scanner/2020/07/29/poc-scan/">&lt;p&gt;
+&lt;/ul&gt;</content><author><name>HellSec</name></author><category term="scanner" /><summary type="html">在渗透过程中，我们针对特定的系统，在通过插件识别类型后，可以利用漏洞脚本进行fuzz。</summary></entry><entry><title type="html">分布式资产扫描平台实践</title><link href="http://0.0.0.0:4000/scanner/2020/07/29/poc-scan/" rel="alternate" type="text/html" title="分布式资产扫描平台实践" /><published>2020-07-29T21:28:00+08:00</published><updated>2020-07-29T21:28:00+08:00</updated><id>http://0.0.0.0:4000/scanner/2020/07/29/poc-scan</id><content type="html" xml:base="http://0.0.0.0:4000/scanner/2020/07/29/poc-scan/">&lt;p&gt;
 	&lt;span style=&quot;color:#DAA520;&quot;&gt;&lt;strong&gt;以前在乙方干活的时候，对于黑盒扫描的内容研究的比较多也早。此前做了一些内部项目，但没有走涉密。本来还想出来做做开源，不过后来看着不挣钱，加上代码水准有限，也就作罢了。&lt;/strong&gt;&lt;/span&gt;
 &lt;/p&gt;
 
@@ -168,7 +553,7 @@
 
 &lt;h3 id=&quot;后话&quot;&gt;后话&lt;/h3&gt;
 
-&lt;p&gt;本文大概介绍了对于平台架构、资产收集结果的方案设计要略，后面会单独分析几个对接服务的细节，以及一些新的想法。&lt;/p&gt;</content><author><name>HellSec</name></author><category term="scanner" /><summary type="html">以前在乙方干活的时候，对于黑盒扫描的内容研究的比较多也早。此前做了一些内部项目，但没有走涉密。本来还想出来做做开源，不过后来看着不挣钱，加上代码水准有限，也就作罢了。</summary></entry><entry><title type="html">漏洞扫描：从fuzz到payload</title><link href="http://localhost:4000/scanner/2019/11/19/from-fuzz-to-payload/" rel="alternate" type="text/html" title="漏洞扫描：从fuzz到payload" /><published>2019-11-19T15:53:00+08:00</published><updated>2019-11-19T15:53:00+08:00</updated><id>http://localhost:4000/scanner/2019/11/19/from-fuzz-to-payload</id><content type="html" xml:base="http://localhost:4000/scanner/2019/11/19/from-fuzz-to-payload/">&lt;p&gt;
+&lt;p&gt;本文大概介绍了对于平台架构、资产收集结果的方案设计要略，后面会单独分析几个对接服务的细节，以及一些新的想法。&lt;/p&gt;</content><author><name>HellSec</name></author><category term="scanner" /><summary type="html">以前在乙方干活的时候，对于黑盒扫描的内容研究的比较多也早。此前做了一些内部项目，但没有走涉密。本来还想出来做做开源，不过后来看着不挣钱，加上代码水准有限，也就作罢了。</summary></entry><entry><title type="html">漏洞扫描：从fuzz到payload</title><link href="http://0.0.0.0:4000/scanner/2019/11/19/from-fuzz-to-payload/" rel="alternate" type="text/html" title="漏洞扫描：从fuzz到payload" /><published>2019-11-19T15:53:00+08:00</published><updated>2019-11-19T15:53:00+08:00</updated><id>http://0.0.0.0:4000/scanner/2019/11/19/from-fuzz-to-payload</id><content type="html" xml:base="http://0.0.0.0:4000/scanner/2019/11/19/from-fuzz-to-payload/">&lt;p&gt;
 	&lt;span style=&quot;color:#00B050;&quot;&gt;&lt;strong&gt;在实现漏洞扫描的时候，部分开发者会使用payload直接进行fuzz，而且并没有对server端的拦截和过滤，有相对智能的反馈，这对扫描效率和成功率是影响比较大的。&lt;/strong&gt;&lt;/span&gt;
 &lt;/p&gt;
 
@@ -316,7 +701,7 @@ xor sleep(8)
 
 &lt;p&gt;当然，如果这里调的level比较高的话，低级别的poc检测成功后，是可以向上跃迁检测的。&lt;/p&gt;
 
-&lt;p&gt;另外，这里不建议优先采用公共dns平台，因为即使是使用了api交互，公共dns平台也一般会有延时的风险，更别提可能被GA监控管制，再者说证明截图啥的，也需要时间的。&lt;/p&gt;</content><author><name>HellSec</name></author><category term="scanner" /><summary type="html">在实现漏洞扫描的时候，部分开发者会使用payload直接进行fuzz，而且并没有对server端的拦截和过滤，有相对智能的反馈，这对扫描效率和成功率是影响比较大的。</summary></entry><entry><title type="html">Wordpress插件漏洞的攻防浅析</title><link href="http://localhost:4000/vuln/2019/10/23/wordpress-adsec/" rel="alternate" type="text/html" title="Wordpress插件漏洞的攻防浅析" /><published>2019-10-23T23:40:00+08:00</published><updated>2019-10-23T23:40:00+08:00</updated><id>http://localhost:4000/vuln/2019/10/23/wordpress-adsec</id><content type="html" xml:base="http://localhost:4000/vuln/2019/10/23/wordpress-adsec/">&lt;p&gt;
+&lt;p&gt;另外，这里不建议优先采用公共dns平台，因为即使是使用了api交互，公共dns平台也一般会有延时的风险，更别提可能被GA监控管制，再者说证明截图啥的，也需要时间的。&lt;/p&gt;</content><author><name>HellSec</name></author><category term="scanner" /><summary type="html">在实现漏洞扫描的时候，部分开发者会使用payload直接进行fuzz，而且并没有对server端的拦截和过滤，有相对智能的反馈，这对扫描效率和成功率是影响比较大的。</summary></entry><entry><title type="html">Wordpress插件漏洞的攻防浅析</title><link href="http://0.0.0.0:4000/vuln/2019/10/23/wordpress-adsec/" rel="alternate" type="text/html" title="Wordpress插件漏洞的攻防浅析" /><published>2019-10-23T23:40:00+08:00</published><updated>2019-10-23T23:40:00+08:00</updated><id>http://0.0.0.0:4000/vuln/2019/10/23/wordpress-adsec</id><content type="html" xml:base="http://0.0.0.0:4000/vuln/2019/10/23/wordpress-adsec/">&lt;p&gt;
 	&lt;span style=&quot;color:#DAA520;&quot;&gt;&lt;strong&gt;一般出名点的开源软件，比如wordpress的核心高危漏洞是比较难挖的。但其附属的高用户量的插件漏洞也是具有一定的价值的，而挖掘起来相对容易些，这里就来简单谈谈wordpress插件漏洞的挖掘和修复。&lt;/strong&gt;&lt;/span&gt;
 &lt;/p&gt;
 
@@ -744,7 +1129,7 @@ class PHP_Object_Injection {
   &lt;li&gt;&lt;a href=&quot;https://xz.aliyun.com/t/1482&quot;&gt;$wpdb-&amp;gt;prepare的修复和正确使用&lt;/a&gt;&lt;/li&gt;
   &lt;li&gt;&lt;a href=&quot;https://xz.aliyun.com/t/2150&quot;&gt;PHP反序列化与Wordpress一些意外Bug的有趣结合&lt;/a&gt;&lt;/li&gt;
   &lt;li&gt;&lt;a href=&quot;https://github.com/ethicalhack3r/wordpress_plugin_security_testing_cheat_sheet&quot;&gt;wordpress插件安全文档&lt;/a&gt;&lt;/li&gt;
-&lt;/ul&gt;</content><author><name>HellSec</name></author><category term="vuln" /><summary type="html">一般出名点的开源软件，比如wordpress的核心高危漏洞是比较难挖的。但其附属的高用户量的插件漏洞也是具有一定的价值的，而挖掘起来相对容易些，这里就来简单谈谈wordpress插件漏洞的挖掘和修复。</summary></entry><entry><title type="html">xdebug+phpstorm+phpstudy本地调试踩坑</title><link href="http://localhost:4000/vuln/2019/10/10/xdebug-phpstorm-phpstudy/" rel="alternate" type="text/html" title="xdebug+phpstorm+phpstudy本地调试踩坑" /><published>2019-10-10T21:13:00+08:00</published><updated>2019-10-10T21:13:00+08:00</updated><id>http://localhost:4000/vuln/2019/10/10/xdebug-phpstorm-phpstudy</id><content type="html" xml:base="http://localhost:4000/vuln/2019/10/10/xdebug-phpstorm-phpstudy/">&lt;p&gt;
+&lt;/ul&gt;</content><author><name>HellSec</name></author><category term="vuln" /><summary type="html">一般出名点的开源软件，比如wordpress的核心高危漏洞是比较难挖的。但其附属的高用户量的插件漏洞也是具有一定的价值的，而挖掘起来相对容易些，这里就来简单谈谈wordpress插件漏洞的挖掘和修复。</summary></entry><entry><title type="html">xdebug+phpstorm+phpstudy本地调试踩坑</title><link href="http://0.0.0.0:4000/vuln/2019/10/10/xdebug-phpstorm-phpstudy/" rel="alternate" type="text/html" title="xdebug+phpstorm+phpstudy本地调试踩坑" /><published>2019-10-10T21:13:00+08:00</published><updated>2019-10-10T21:13:00+08:00</updated><id>http://0.0.0.0:4000/vuln/2019/10/10/xdebug-phpstorm-phpstudy</id><content type="html" xml:base="http://0.0.0.0:4000/vuln/2019/10/10/xdebug-phpstorm-phpstudy/">&lt;p&gt;
 	&lt;span style=&quot;color:#00B050;&quot;&gt;&lt;strong&gt;这两天用idea审java比较顺手，顺便也迁移了下php调试环境，从vscode迁移到jetbrains家的phpstorm。以前习惯了纯搜索字符串，通过打印调试，没有动态hook变量看起来比较费劲。迁移过程中遇到一些坑，故此记录一下。
 &lt;/strong&gt;&lt;/span&gt;
 &lt;/p&gt;
@@ -874,7 +1259,7 @@ xdebug.remote_host = &quot;127.0.0.1&quot;
 
 &lt;p&gt;&lt;a href=&quot;https://blog.csdn.net/universee/article/details/74516250&quot;&gt;《PhpStorm和WAMP配置调试参数，问题描述Error. Interpreter is not specified or invalid. Press “Fix” to edit your pro》&lt;/a&gt;&lt;/p&gt;
 
-&lt;p&gt;&lt;a href=&quot;https://www.cnblogs.com/yjken/p/6555438.html&quot;&gt;《phpstorm中配置真正的远程调试(xdebug)》&lt;/a&gt;&lt;/p&gt;</content><author><name>HellSec</name></author><category term="vuln" /><summary type="html">这两天用idea审java比较顺手，顺便也迁移了下php调试环境，从vscode迁移到jetbrains家的phpstorm。以前习惯了纯搜索字符串，通过打印调试，没有动态hook变量看起来比较费劲。迁移过程中遇到一些坑，故此记录一下。</summary></entry><entry><title type="html">celery超时机制小结</title><link href="http://localhost:4000/coding/2019/10/08/celery-timeout-tips/" rel="alternate" type="text/html" title="celery超时机制小结" /><published>2019-10-08T11:35:00+08:00</published><updated>2019-10-08T11:35:00+08:00</updated><id>http://localhost:4000/coding/2019/10/08/celery-timeout-tips</id><content type="html" xml:base="http://localhost:4000/coding/2019/10/08/celery-timeout-tips/">&lt;p&gt;
+&lt;p&gt;&lt;a href=&quot;https://www.cnblogs.com/yjken/p/6555438.html&quot;&gt;《phpstorm中配置真正的远程调试(xdebug)》&lt;/a&gt;&lt;/p&gt;</content><author><name>HellSec</name></author><category term="vuln" /><summary type="html">这两天用idea审java比较顺手，顺便也迁移了下php调试环境，从vscode迁移到jetbrains家的phpstorm。以前习惯了纯搜索字符串，通过打印调试，没有动态hook变量看起来比较费劲。迁移过程中遇到一些坑，故此记录一下。</summary></entry><entry><title type="html">celery超时机制小结</title><link href="http://0.0.0.0:4000/coding/2019/10/08/celery-timeout-tips/" rel="alternate" type="text/html" title="celery超时机制小结" /><published>2019-10-08T11:35:00+08:00</published><updated>2019-10-08T11:35:00+08:00</updated><id>http://0.0.0.0:4000/coding/2019/10/08/celery-timeout-tips</id><content type="html" xml:base="http://0.0.0.0:4000/coding/2019/10/08/celery-timeout-tips/">&lt;p&gt;
 	&lt;span style=&quot;color:#DAA520;&quot;&gt;&lt;strong&gt;以前在使用celery任务时，老是被其超时机制不奏效所困扰，没有一个比较完美的解决方案。前两天琢磨出新的方案，故此借机梳理下过往细节。&lt;/strong&gt;&lt;/span&gt;
 &lt;/p&gt;
 
@@ -1009,7 +1394,7 @@ if __name__ == '__main__':
 
 &lt;p&gt;&lt;a href=&quot;https://www.jianshu.com/p/5a969b067ce6&quot;&gt;《hard杀死soft》&lt;/a&gt;&lt;/p&gt;
 
-&lt;p&gt;&lt;a href=&quot;http://blog.sina.com.cn/s/blog_63041bb80102uy5o.html&quot;&gt;《Python设置函数调用超时》&lt;/a&gt;&lt;/p&gt;</content><author><name>HellSec</name></author><category term="coding" /><summary type="html">以前在使用celery任务时，老是被其超时机制不奏效所困扰，没有一个比较完美的解决方案。前两天琢磨出新的方案，故此借机梳理下过往细节。</summary></entry><entry><title type="html">cors漏洞之123</title><link href="http://localhost:4000/vuln/2019/09/28/cors-tips/" rel="alternate" type="text/html" title="cors漏洞之123" /><published>2019-09-28T21:13:00+08:00</published><updated>2019-09-28T21:13:00+08:00</updated><id>http://localhost:4000/vuln/2019/09/28/cors-tips</id><content type="html" xml:base="http://localhost:4000/vuln/2019/09/28/cors-tips/">&lt;p&gt;
+&lt;p&gt;&lt;a href=&quot;http://blog.sina.com.cn/s/blog_63041bb80102uy5o.html&quot;&gt;《Python设置函数调用超时》&lt;/a&gt;&lt;/p&gt;</content><author><name>HellSec</name></author><category term="coding" /><summary type="html">以前在使用celery任务时，老是被其超时机制不奏效所困扰，没有一个比较完美的解决方案。前两天琢磨出新的方案，故此借机梳理下过往细节。</summary></entry><entry><title type="html">cors漏洞之123</title><link href="http://0.0.0.0:4000/vuln/2019/09/28/cors-tips/" rel="alternate" type="text/html" title="cors漏洞之123" /><published>2019-09-28T21:13:00+08:00</published><updated>2019-09-28T21:13:00+08:00</updated><id>http://0.0.0.0:4000/vuln/2019/09/28/cors-tips</id><content type="html" xml:base="http://0.0.0.0:4000/vuln/2019/09/28/cors-tips/">&lt;p&gt;
 	&lt;span style=&quot;color:#00B050;&quot;&gt;&lt;strong&gt;cors漏洞相信大家已经很熟悉了，一般会用于配合csrf漏洞对用户进行攻击。这里就遇到的一些case，简单讲讲可能漏报误报的点，以及相应的修复方案。
 &lt;/strong&gt;&lt;/span&gt;
 &lt;/p&gt;
@@ -1163,7 +1548,7 @@ res.send({ code: -2, msg: '非法请求' });
 
 });
 &lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;</content><author><name>HellSec</name></author><category term="vuln" /><summary type="html">cors漏洞相信大家已经很熟悉了，一般会用于配合csrf漏洞对用户进行攻击。这里就遇到的一些case，简单讲讲可能漏报误报的点，以及相应的修复方案。</summary></entry><entry><title type="html">浅谈被动漏扫思路</title><link href="http://localhost:4000/scanner/2019/08/15/axe-scanner-design/" rel="alternate" type="text/html" title="浅谈被动漏扫思路" /><published>2019-08-15T21:13:00+08:00</published><updated>2019-08-15T21:13:00+08:00</updated><id>http://localhost:4000/scanner/2019/08/15/axe-scanner-design</id><content type="html" xml:base="http://localhost:4000/scanner/2019/08/15/axe-scanner-design/">&lt;p&gt;
+&lt;/div&gt;</content><author><name>HellSec</name></author><category term="vuln" /><summary type="html">cors漏洞相信大家已经很熟悉了，一般会用于配合csrf漏洞对用户进行攻击。这里就遇到的一些case，简单讲讲可能漏报误报的点，以及相应的修复方案。</summary></entry><entry><title type="html">浅谈被动漏扫思路</title><link href="http://0.0.0.0:4000/scanner/2019/08/15/axe-scanner-design/" rel="alternate" type="text/html" title="浅谈被动漏扫思路" /><published>2019-08-15T21:13:00+08:00</published><updated>2019-08-15T21:13:00+08:00</updated><id>http://0.0.0.0:4000/scanner/2019/08/15/axe-scanner-design</id><content type="html" xml:base="http://0.0.0.0:4000/scanner/2019/08/15/axe-scanner-design/">&lt;p&gt;
 	&lt;span style=&quot;color:#DAA520;&quot;&gt;&lt;strong&gt;本文中的规则分析，大部分来自于以前被动漏扫研发的实践，以后会再接触更多业务后，会继续进行更新。其中如有纰漏或者差错，希望诸位给出修正意见。
 &lt;/strong&gt;&lt;/span&gt;
 &lt;/p&gt;
@@ -1520,7 +1905,7 @@ Content-Type: xxxxx
 
 &lt;p&gt;如果黑盒测试，只能根据常用上传目录去爆破shell文件名，以获取到shell标识为成功。&lt;/p&gt;
 
-&lt;p&gt;否则的话，需要结合白盒定位，手动配置好路径，估算生成的文件名，去进行黑盒探测。&lt;/p&gt;</content><author><name>HellSec</name></author><category term="scanner" /><summary type="html">本文中的规则分析，大部分来自于以前被动漏扫研发的实践，以后会再接触更多业务后，会继续进行更新。其中如有纰漏或者差错，希望诸位给出修正意见。</summary></entry><entry><title type="html">Git监控小议</title><link href="http://localhost:4000/operation/2019/07/28/sec-git-monitor/" rel="alternate" type="text/html" title="Git监控小议" /><published>2019-07-28T18:00:00+08:00</published><updated>2019-07-28T18:00:00+08:00</updated><id>http://localhost:4000/operation/2019/07/28/sec-git-monitor</id><content type="html" xml:base="http://localhost:4000/operation/2019/07/28/sec-git-monitor/">&lt;p&gt;
+&lt;p&gt;否则的话，需要结合白盒定位，手动配置好路径，估算生成的文件名，去进行黑盒探测。&lt;/p&gt;</content><author><name>HellSec</name></author><category term="scanner" /><summary type="html">本文中的规则分析，大部分来自于以前被动漏扫研发的实践，以后会再接触更多业务后，会继续进行更新。其中如有纰漏或者差错，希望诸位给出修正意见。</summary></entry><entry><title type="html">Git监控小议</title><link href="http://0.0.0.0:4000/operation/2019/07/28/sec-git-monitor/" rel="alternate" type="text/html" title="Git监控小议" /><published>2019-07-28T18:00:00+08:00</published><updated>2019-07-28T18:00:00+08:00</updated><id>http://0.0.0.0:4000/operation/2019/07/28/sec-git-monitor</id><content type="html" xml:base="http://0.0.0.0:4000/operation/2019/07/28/sec-git-monitor/">&lt;p&gt;
 	&lt;span style=&quot;color:#00B050;&quot;&gt;&lt;strong&gt;笔者原来在涉猎git监控产品时，就只做了敏感关键词监控。后来在工作中逐渐发现，对于一般量级的企业单位，其实复合型的监控平台更符合这类企业的需求。&lt;/strong&gt;&lt;/span&gt;
 &lt;/p&gt;
 
@@ -1649,67 +2034,4 @@ UA池
 
 &lt;p&gt;&lt;a href=&quot;https://www.freebuf.com/sectool/114017.html&quot;&gt;基于Github的源码白盒扫描工具Raptor&lt;/a&gt;&lt;/p&gt;
 
-&lt;p&gt;&lt;a href=&quot;https://www.freebuf.com/column/178342.html&quot;&gt;Github信息泄露专项&lt;/a&gt;&lt;/p&gt;</content><author><name>HellSec</name></author><category term="operation" /><summary type="html">笔者原来在涉猎git监控产品时，就只做了敏感关键词监控。后来在工作中逐渐发现，对于一般量级的企业单位，其实复合型的监控平台更符合这类企业的需求。</summary></entry><entry><title type="html">安全运维优化思考</title><link href="http://localhost:4000/operation/2019/07/13/sec-operation/" rel="alternate" type="text/html" title="安全运维优化思考" /><published>2019-07-13T23:40:00+08:00</published><updated>2019-07-13T23:40:00+08:00</updated><id>http://localhost:4000/operation/2019/07/13/sec-operation</id><content type="html" xml:base="http://localhost:4000/operation/2019/07/13/sec-operation/">&lt;p&gt;
-	&lt;span style=&quot;color:#DAA520;&quot;&gt;&lt;strong&gt;近期由乙方安服实验室，转入了甲方的业务安全部门。在接触了一部分业务安全的运维工作后，也做了些对于自身工作的优化方向的思考。&lt;/strong&gt;&lt;/span&gt;
-&lt;/p&gt;
-
-&lt;h4 id=&quot;资产统计与变更&quot;&gt;资产统计与变更&lt;/h4&gt;
-&lt;p&gt;这段时间正好碰上了FastJson漏洞爆发。由于笔者所在的甲方，属于有一定规模的互联网公司，所以近期也在连夜配合各业务部门进行漏洞修补。&lt;/p&gt;
-
-&lt;p&gt;虽然公司本身具有强大的统计平台，也具有较为成熟的资产规范，但还是花了大量时间去统计、升级那些受影响的资产。&lt;/p&gt;
-
-&lt;p&gt;举个例子，自家公司的It资产已经接入了自动化运维，采用了基于的ES集群的平台。资产的变更能够及时以*key为基准，计入全局搜索，方便以后搜索和资产统计，以及后续的自动化升级和部署。&lt;/p&gt;
-
-&lt;p&gt;但这种统一部署变更的法子，也存在部分痛点。其中的一个就是，一旦基于ES部署平台和Agent自身存在问题，如果没有得到及时修复的话，其自身不小的体量，可能会影响全局资产的修复进度。&lt;/p&gt;
-
-&lt;p&gt;因此，拥有多份资产升级/变更/检测方案，能做到轻量/重量级方案互相制约，窃以为还是有必要的。&lt;/p&gt;
-
-&lt;p&gt;另外，如果做好了内网Git资产梳理，通过代码扫描定位可能存在的漏洞和服务，也是能辅助统计受影响的资产的。&lt;/p&gt;
-
-&lt;h4 id=&quot;自动化检测认证&quot;&gt;自动化检测认证&lt;/h4&gt;
-&lt;p&gt;对于大型甲方，如果安全团队在研究好新出的漏洞Poc，对IT资产安全进行自检的时候，如果按正常流程去做，可能首先应该是先进行任务申请上报，然后向全集团发邮件，最后再进行扫描。&lt;/p&gt;
-
-&lt;p&gt;不过，在碰上比较紧急的漏洞应急时，在跨部门协作的情况下，经常会来不及走完所有流程。&lt;/p&gt;
-
-&lt;p&gt;笔者也曾见过研发、运维等部门，因为突然查到攻击Log，半夜一惊一乍的，去找安全部门验证攻击来源是否属于内部自检。&lt;/p&gt;
-
-&lt;p&gt;那么针对这一点，如何做去做优化呢？&lt;/p&gt;
-
-&lt;p&gt;不少大型企业，有时会采用统一的签名和加密机制，或者直接构建单独的平台，用于保证传输加密的可信认证。&lt;/p&gt;
-
-&lt;p&gt;笔者窃以为，这点是可以借鉴的。如果能做好一定范围内的成本控制，在每次做自动化安全检测的时候，将加密认证信息加入检测数据包头部，以用作内部安全检测的授信，各个BU会更加轻松的识别出真实的攻击事件。&lt;/p&gt;
-
-&lt;h4 id=&quot;敏感数据泄漏控制&quot;&gt;敏感数据泄漏控制&lt;/h4&gt;
-&lt;p&gt;防止敏感数据的泄漏，以及进行事后的责任追溯，一直是甲方比较重视的点，据悉大致有这样几种方案：&lt;/p&gt;
-
-&lt;p&gt;1.DLP数据防泄漏&lt;/p&gt;
-
-&lt;p&gt;DLP软件一般是为了定位公司敏感数据外发行为，对于数据流量内容进行监控审计，现在市面上也有了不少成熟的合规产品。&lt;/p&gt;
-
-&lt;p&gt;2.堡垒机&lt;/p&gt;
-
-&lt;p&gt;堡垒机上具有监控，限制数据传输和全程录屏等功能，配合查询系统的水印功能，也能在一定程度上防止数据泄漏，以及对泄漏源进行追溯。&lt;/p&gt;
-
-&lt;p&gt;3.数据脱敏&lt;/p&gt;
-
-&lt;p&gt;在存储和展示敏感数据的时候，本身应该做好脱敏操作，对于数据进行加密存储和非完全展示，防止内鬼和意外泄漏事件发生。&lt;/p&gt;
-
-&lt;p&gt;4.数据监控&lt;/p&gt;
-
-&lt;p&gt;虽然如同Github监控和舆情监控一般的产品，并不能有效抑制数据泄漏。但在防止数据扩散，以及追溯数据泄漏来源的层面来看，还是比较有用的。&lt;/p&gt;
-
-&lt;p&gt;如果能综合利用多类产品，再加上企业本身的安全管理规范，应该是能够在一定程度上保证数据安全的。&lt;/p&gt;
-
-&lt;h4 id=&quot;产品检测流程&quot;&gt;产品检测流程&lt;/h4&gt;
-&lt;p&gt;在原来的乙方安全测试岗位，如果需要对产品做安检的时候，随便去咨询个资深的相关产品、售前或者研发，基本上都能问出个所以然来。&lt;/p&gt;
-
-&lt;p&gt;然而到了现在的甲方安全运维岗，可就厉害了。在工作流程细化和文档化以后，需要做安全检测时，得挨个询问多个QA/RD/PM，一点一点把他们的需求和设计方案抠出来，最后还得去找API文档自己做补充和完善，才能进行下一步的操作。&lt;/p&gt;
-
-&lt;p&gt;笔者这两天还去拜访了一家非互联网甲方，跟那边负责安全的Leader朋友聊了下，产品上线合规的紧要性，确实是远优先于安全合规的，当然这个也是不得已而为之。&lt;/p&gt;
-
-&lt;p&gt;总的来说，合规化有益于流程梳理，简化有益于加速产品上线，也算各有各的好处吧。&lt;/p&gt;
-
-&lt;p&gt;当然笔者见识有限，窥一斑而不得见全豹。但总的来说，确实可以根据不同产品的实际情况，去对流程进行一些灵活变通。&lt;/p&gt;
-
-&lt;h4 id=&quot;后记&quot;&gt;后记&lt;/h4&gt;
-&lt;p&gt;以上只是简单谈了一些感受，这方面的工作资历尚浅，期待各路读者斧正和指教。&lt;/p&gt;</content><author><name>HellSec</name></author><category term="operation" /><summary type="html">近期由乙方安服实验室，转入了甲方的业务安全部门。在接触了一部分业务安全的运维工作后，也做了些对于自身工作的优化方向的思考。</summary></entry></feed>
+&lt;p&gt;&lt;a href=&quot;https://www.freebuf.com/column/178342.html&quot;&gt;Github信息泄露专项&lt;/a&gt;&lt;/p&gt;</content><author><name>HellSec</name></author><category term="operation" /><summary type="html">笔者原来在涉猎git监控产品时，就只做了敏感关键词监控。后来在工作中逐渐发现，对于一般量级的企业单位，其实复合型的监控平台更符合这类企业的需求。</summary></entry></feed>
