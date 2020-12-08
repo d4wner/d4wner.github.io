@@ -3,7 +3,7 @@
   
     <entry>
       <title><![CDATA[私有云安全-容器安全设计实践]]></title>
-      <url>/vuln/2020/12/08/container-sec-design/</url>
+      <url>/cloud/2020/12/08/container-sec-design/</url>
       <content type="html"><![CDATA[<p>
 	<span style="color:#DAA520;"><strong>私有云安全由于其合规性和独立性，不同于公有云和混合云，需要单独定制落地的流程和规划，这里跟大家简单聊聊关于容器安全设计的相关问题。</strong></span>
 </p>
@@ -393,7 +393,7 @@
 ]]></content>
       <categories>
         
-          <category> vuln </category>
+          <category> cloud </category>
         
       </categories>
       <tags>

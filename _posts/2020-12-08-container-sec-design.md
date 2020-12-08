@@ -2,8 +2,8 @@
 layout: post
 title:  "私有云安全-容器安全设计实践"
 date:   2020-12-08 21:40 +0800
-categories: vuln
-category: vuln
+categories: cloud
+category: cloud
 ---
 
 <p>
