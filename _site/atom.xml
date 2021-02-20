@@ -1,4 +1,488 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.5.2">Jekyll</generator><link href="http://0.0.0.0:4000/atom.xml" rel="self" type="application/atom+xml" /><link href="http://0.0.0.0:4000/" rel="alternate" type="text/html" /><updated>2020-12-09T00:00:46+08:00</updated><id>http://0.0.0.0:4000/</id><title type="html">HellSec</title><subtitle>原创网络安全博客&lt;-|-&gt;匠心独运，做有深度的良品。</subtitle><author><name>HellSec</name></author><entry><title type="html">私有云安全-容器安全设计实践</title><link href="http://0.0.0.0:4000/cloud/2020/12/08/container-sec-design/" rel="alternate" type="text/html" title="私有云安全-容器安全设计实践" /><published>2020-12-08T21:40:00+08:00</published><updated>2020-12-08T21:40:00+08:00</updated><id>http://0.0.0.0:4000/cloud/2020/12/08/container-sec-design</id><content type="html" xml:base="http://0.0.0.0:4000/cloud/2020/12/08/container-sec-design/">&lt;p&gt;
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.5.2">Jekyll</generator><link href="http://localhost:4000/atom.xml" rel="self" type="application/atom+xml" /><link href="http://localhost:4000/" rel="alternate" type="text/html" /><updated>2021-02-20T21:30:11+08:00</updated><id>http://localhost:4000/</id><title type="html">HellSec</title><subtitle>原创网络安全博客&lt;-|-&gt;匠心独运，做有深度的良品。</subtitle><author><name>HellSec</name></author><entry><title type="html">被动漏扫系统实践</title><link href="http://localhost:4000/scanner/2021/02/05/axe-scan/" rel="alternate" type="text/html" title="被动漏扫系统实践" /><published>2021-02-05T20:46:00+08:00</published><updated>2021-02-05T20:46:00+08:00</updated><id>http://localhost:4000/scanner/2021/02/05/axe-scan</id><content type="html" xml:base="http://localhost:4000/scanner/2021/02/05/axe-scan/">&lt;p&gt;
+	&lt;span style=&quot;color:#00B050;&quot;&gt;&lt;strong&gt;做被动漏扫也有很长一段时间了，期间自用的版本和企业公用的版本，各单独起分支做持续迭代。目前市面上优秀的轮子已经不少，所以这里只简单讲讲企业内部漏扫设计的思路。&lt;/strong&gt;&lt;/span&gt;
+&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;https://gitee.com/hellsec/ppp/raw/master/2020-12-9/1607503446666-%E8%A2%AB%E5%8A%A8%E6%BC%8F%E6%89%AB%20(1).jpg&quot; alt=&quot;被动漏扫全景图&quot; /&gt;&lt;/p&gt;
+
+&lt;h3 id=&quot;流量来源&quot;&gt;流量来源&lt;/h3&gt;
+
+&lt;p&gt;在平时的漏扫使用中，代理流量来源大概有这么几个：&lt;/p&gt;
+
+&lt;h4 id=&quot;browser_plugin&quot;&gt;&lt;em&gt;Browser_Plugin&lt;/em&gt;&lt;/h4&gt;
+
+&lt;p&gt;主要代表有chrome插件，对测试环境进行访问时，会把PC端流量传输到流量center。&lt;/p&gt;
+
+&lt;h4 id=&quot;类burp插件&quot;&gt;&lt;em&gt;类Burp插件&lt;/em&gt;&lt;/h4&gt;
+
+&lt;p&gt;在进行测试的过程中，我们需要设置多层代理。&lt;/p&gt;
+
+&lt;p&gt;将通过类burp软件的流量，通过代理agent中转，再传输到流量center。&lt;/p&gt;
+
+&lt;h4 id=&quot;nids&quot;&gt;&lt;em&gt;Nids&lt;/em&gt;&lt;/h4&gt;
+
+&lt;p&gt;针对节点主机部署agent，包含蜜罐、节点网关等等，通过流量收集转发到流量center。&lt;/p&gt;
+
+&lt;h4 id=&quot;ngnix&quot;&gt;&lt;em&gt;Ngnix&lt;/em&gt;&lt;/h4&gt;
+
+&lt;p&gt;在ngnix代理层面，通过镜像旁路流量收集，转发到流量center。&lt;/p&gt;
+
+&lt;p&gt;最后，我们在流量center处理流量格式后，再经过中间件（kafka），传输到数据库es存储起来，这样既可以用于被动漏扫进行流量复刻，也可以用于后面kibana（或者二改的）前端进行查询。&lt;/p&gt;
+
+&lt;h3 id=&quot;扫描调度&quot;&gt;扫描调度&lt;/h3&gt;
+
+&lt;p&gt;在我们覆盖到足够多的流量后，会通过任务调度对存储的流量进行fuzz，这里先假一些基础条件：&lt;/p&gt;
+
+&lt;h4 id=&quot;强制线下环境&quot;&gt;&lt;em&gt;强制线下环境&lt;/em&gt;&lt;/h4&gt;
+
+&lt;p&gt;如果是线上流量测试，敏感线上接口需要打标签和加白名单，也会涉及https和qps控制速率的问题，比较麻烦。&lt;/p&gt;
+
+&lt;h4 id=&quot;token或者session池&quot;&gt;&lt;em&gt;token或者session池&lt;/em&gt;&lt;/h4&gt;
+
+&lt;p&gt;除非线下环境本身设置的是登录态能够长期保持的，我们需要单独维护一套token或者session池，通过不同业务线和权限级别分类，方便在测试时做对比替换。&lt;/p&gt;
+
+&lt;h4 id=&quot;线下环境保持稳定&quot;&gt;&lt;em&gt;线下环境保持稳定&lt;/em&gt;&lt;/h4&gt;
+
+&lt;p&gt;由于公用的资源有限，在测试完毕后，质量人员一般会把资源给下掉，这样时间一长我们收集到的流量会失效。&lt;/p&gt;
+
+&lt;p&gt;做好准备工作，我们就可以进行扫描调度了，我们这里采用的是下发任务给多个扫描agent的方式。任务会存在中间件redis管道里，等待各个agent读取之后，然发送fuzz请求包。&lt;/p&gt;
+
+&lt;p&gt;这样虽然扫描进度不一样，但是配置和命令是统一在控制台下发的。保障在启动扫描时各方的统一可控，出现问题也能及时关停止损。&lt;/p&gt;
+
+&lt;p&gt;在扫描完成后，我们会把结果传输到数据库中台，再通过人工review进行确认，但这属于漏洞sdl闭环的事儿，这里就不多提了。&lt;/p&gt;
+
+&lt;h3 id=&quot;漏扫模块&quot;&gt;漏扫模块&lt;/h3&gt;
+
+&lt;p&gt;漏扫模块的话，我们主要考虑检测下面几个方面：&lt;/p&gt;
+
+&lt;h4 id=&quot;owasp-top-10&quot;&gt;&lt;em&gt;OWASP TOP 10&lt;/em&gt;&lt;/h4&gt;
+
+&lt;p&gt;对于常规漏洞的检测是需要的，涉及一些延时的漏洞（比如前端渲染、ssrf），我们主要依靠第三方平台比如类ceye的内网版本，通过标签的形式进行延时漏洞确认。&lt;/p&gt;
+
+&lt;h4 id=&quot;owasp-api-top-10&quot;&gt;&lt;em&gt;OWASP API TOP 10&lt;/em&gt;&lt;/h4&gt;
+
+&lt;p&gt;其实自动化只能覆盖部分检测，还有部分需要人工辅助评估。&lt;/p&gt;
+
+&lt;p&gt;只能说api检测这块儿，我们可以做的探索还比较多。&lt;/p&gt;
+
+&lt;h4 id=&quot;poc探测&quot;&gt;&lt;em&gt;POC探测&lt;/em&gt;&lt;/h4&gt;
+
+&lt;p&gt;主要针对可能出现的服务和cms类漏洞进行poc探测，对主动扫描能力进行补充。&lt;/p&gt;
+
+&lt;p&gt;很明显，部分poc通过流量复刻进行fuzz，会比主动扫描准确的多。&lt;/p&gt;
+
+&lt;h4 id=&quot;fuzz检测&quot;&gt;&lt;em&gt;FUZZ检测&lt;/em&gt;&lt;/h4&gt;
+
+&lt;p&gt;这块儿的话，是我们根据安全团队的测试经验和业务方的特性，进行fuzz字典定制的，主要用于发现一些意外绕过和泄露的情况。&lt;/p&gt;
+
+&lt;p&gt;我们使用流量复刻的手段进行fuzz，能在权限认证可控的情况下，针对正常的返回进行对比，去除掉一些误报，提升检测的准确性。&lt;/p&gt;</content><author><name>HellSec</name></author><category term="scanner" /><summary type="html">做被动漏扫也有很长一段时间了，期间自用的版本和企业公用的版本，各单独起分支做持续迭代。目前市面上优秀的轮子已经不少，所以这里只简单讲讲企业内部漏扫设计的思路。</summary></entry><entry><title type="html">私有云安全-纵深防御设计实践</title><link href="http://localhost:4000/cloud/2021/01/30/strategic-depth-sec-design/" rel="alternate" type="text/html" title="私有云安全-纵深防御设计实践" /><published>2021-01-30T23:40:00+08:00</published><updated>2021-01-30T23:40:00+08:00</updated><id>http://localhost:4000/cloud/2021/01/30/strategic-depth-sec-design</id><content type="html" xml:base="http://localhost:4000/cloud/2021/01/30/strategic-depth-sec-design/">&lt;p&gt;
+	&lt;span style=&quot;color:#DAA520;&quot;&gt;&lt;strong&gt;在对于私有云安全落地的实践中，如果我们已经有了一定的安全基础，对于后期架构策略的设计，需要花更多的精力在纵深防御和整体联动之上。&lt;/strong&gt;&lt;/span&gt;
+&lt;/p&gt;
+
+&lt;p&gt;下面笔者会从多个维度，分析下能在私有云进行建设的纵深防御工作。&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;https://gitee.com/hellsec/ppp/raw/master/2020-11-17/1605596169406-%E7%BA%B5%E6%B7%B1%E9%98%B2%E5%BE%A1.jpeg&quot; alt=&quot;纵深防御&quot; /&gt;&lt;/p&gt;
+
+&lt;h3 id=&quot;安全产品矩阵&quot;&gt;安全产品矩阵&lt;/h3&gt;
+
+&lt;p&gt;在私有云的纵深防御中，有些同学可能觉得安全产品堆叠实际不会产生很好的效果，更大的价值上只是为了把每年采购的预算给花出去。&lt;/p&gt;
+
+&lt;p&gt;但其实，如果我们合理安排对于各项领域安全产品的组合，在一定程度上也能为我们的系统迁移上云，提供更加可靠的保障。&lt;/p&gt;
+
+&lt;p&gt;下面笔者会简单聊下各个领域的产品，为私有云安全架构的建设工作提供参考。&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;https://gitee.com/hellsec/ppp/raw/master/2020-11-16/1605518469119-%E4%BA%A7%E5%93%81%E7%BA%B5%E6%B7%B1.jpeg&quot; alt=&quot;产品纵深&quot; /&gt;&lt;/p&gt;
+
+&lt;h4 id=&quot;通信安全&quot;&gt;&lt;em&gt;通信安全&lt;/em&gt;&lt;/h4&gt;
+
+&lt;p&gt;在通信流量的安全控制上，通常我们会对边界进行阻断，再通过节点部署安全产品，逐步进行流量监控的补充。&lt;/p&gt;
+
+&lt;p&gt;对于堡垒机，我们可以通过4A认证，结合IAM和VPN对出入的流量进行细粒度管控。&lt;/p&gt;
+
+&lt;p&gt;边界防火墙，则可以对私有云出入口，以及不同安全域之间的流量进行拦截。&lt;/p&gt;
+
+&lt;p&gt;至于NIDS，则是部署在节点之后，利用高吞吐量和对内网流量协议的高切合度的分析规则，对防火墙没能拦截的内容做补充分析。&lt;/p&gt;
+
+&lt;h4 id=&quot;主机安全&quot;&gt;&lt;em&gt;主机安全&lt;/em&gt;&lt;/h4&gt;
+
+&lt;p&gt;在主机系统安全上，其实也存在很多竞品，功能有不少重合之处。&lt;/p&gt;
+
+&lt;p&gt;比较常用的就是HIDS，它会监控主机的事件和系统调用的监控，但对系统做适配和定制化。&lt;/p&gt;
+
+&lt;p&gt;而EDR作为终端安全产品概念，也被一些厂商概念混用，拿去做IDC（或者容器）安全监控了，这个不做过多的讨论。&lt;/p&gt;
+
+&lt;p&gt;此外，我们针对WebServer层面，是可以考虑嵌入RASP，做运行时安全监控的。
+但是这个相对来讲，对业务性能影响也会更多，所以需要做审慎启用。&lt;/p&gt;
+
+&lt;p&gt;在私有云的容器群中，我们也可以考虑部署蜜罐。&lt;/p&gt;
+
+&lt;p&gt;业务方一般不会主动去访问蜜罐主机，所以当它们意外收到访问流量时，就可以在不动声色的情况下，被动监控黑客的横向拓展动作。&lt;/p&gt;
+
+&lt;h4 id=&quot;数据安全&quot;&gt;&lt;em&gt;数据安全&lt;/em&gt;&lt;/h4&gt;
+
+&lt;p&gt;我们的系统在上云时，除了要考虑数据库访问的稳定性和资源分配合理性，也需要对数据库访问的SQL进行行为分析。&lt;/p&gt;
+
+&lt;p&gt;或者，我们也可以直接针对单条恶意SQL进行阻断，或通过链式SQL分析进行告警，这就涉及到数据安全审计（数据库防火墙）了。&lt;/p&gt;
+
+&lt;p&gt;与此同时，我们在对外展示数据和存数据入库时，也可能涉及到加解密和脱敏问题，尤其是第三方人员账号介入，公共的云加解密（脱敏）平台能很好的缓释相关风险。&lt;/p&gt;
+
+&lt;p&gt;另外，对于我们通常讲的硬编码问题，云管平台也一般会配上KMS密钥管理功能，通过线上线下分离，也能缓释内部Git库对第三方开放的风险。&lt;/p&gt;
+
+&lt;h4 id=&quot;应用安全&quot;&gt;&lt;em&gt;应用安全&lt;/em&gt;&lt;/h4&gt;
+
+&lt;p&gt;在针对应用的保护上，从粗粒度来看，我们可以通过添WAF（主机层面和代理层面）、添加网页防窜改（植入文件监控）、添加反爬机制（做好验证和混淆策略，然后接入风控）。&lt;/p&gt;
+
+&lt;p&gt;同时，我们在考虑外部风险点时，防DDOS和CC也会是个重点治理方案，这个在前面的《私有云安全-边界安全设计实践》已经提到过。&lt;/p&gt;
+
+&lt;p&gt;最后，我们需要特别关注下，云管平台自带的（或者另行搭建）API安全网关，是否能完美支持我们私有云服务间接口的协议。&lt;/p&gt;
+
+&lt;h4 id=&quot;态势感知sa&quot;&gt;&lt;em&gt;态势感知SA&lt;/em&gt;&lt;/h4&gt;
+
+&lt;p&gt;安全态势感知产品的类别也很多，比如SIEM就是软件和服务的组合，通过对各类告警信息的整合，提升私有云整体审计溯源、应急响应的能。&lt;/p&gt;
+
+&lt;p&gt;而SOC其实跟前者有些类似，但更趋向于以资产为核心，以安全事件管理为关键流程，采用安全域划分的思想，建立一套实时的资产风险模型进行集中式管理。&lt;/p&gt;
+
+&lt;p&gt;至于Gartner之后力推的SOAR，个人觉得比较难去适配各家的产品。
+上云的系统在针对各类标准不同的API进行自动化编排时，会对研发成本消耗加剧，应当有待观察后续的发展情况。&lt;/p&gt;
+
+&lt;h3 id=&quot;鉴权防护&quot;&gt;鉴权防护&lt;/h3&gt;
+
+&lt;p&gt;在私有云的接口调用和角色操作行为方面，有很多地方涉及到细粒度鉴权。&lt;/p&gt;
+
+&lt;p&gt;我们可能不一定有机会，在代码层面去附加设计鉴权策略，但是可以借助云管平台和PaaS资源，根据现有的基础做一些配置优化。&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;https://gitee.com/hellsec/ppp/raw/master/2020-11-17/1605596905800-%E9%89%B4%E6%9D%83%E4%BD%93%E7%B3%BB.png&quot; alt=&quot;鉴权体系&quot; /&gt;&lt;/p&gt;
+
+&lt;h4 id=&quot;中间件鉴权&quot;&gt;&lt;em&gt;中间件鉴权&lt;/em&gt;&lt;/h4&gt;
+
+&lt;p&gt;在私有云架构里使用中间件时，由于采用的大规模集群管理，不可能单独做配置，所以一般会有两种基础鉴权方式：&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;
+    &lt;p&gt;第一，我们可以使用Security插件，这类是附带的中间件管理机制，但缺点是无法统一做管控溯源。&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;第二，我们可以在Nginx层面做反向代理，然后在此层面提高吞吐量，通过第三方接口回调或者代理配置进行认证。&lt;/p&gt;
+  &lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h4 id=&quot;api鉴权&quot;&gt;&lt;em&gt;API鉴权&lt;/em&gt;&lt;/h4&gt;
+
+&lt;p&gt;至于API鉴权，在可信域范围之内，我们可以通过注册信息，直接进行通信交互。
+否则的话，我们需要借助签名信息，与KMS密钥管理平台协作，完成交互认证闭环。&lt;/p&gt;
+
+&lt;h4 id=&quot;cdn鉴权&quot;&gt;&lt;em&gt;CDN鉴权&lt;/em&gt;&lt;/h4&gt;
+
+&lt;p&gt;由于私有云上存储的文件，其访问和外发都是比较敏感的。&lt;/p&gt;
+
+&lt;p&gt;因此，除了要对文件本身做好加密，我们还需要在访问控制做好鉴权。&lt;/p&gt;
+
+&lt;p&gt;在访问URL时，我们可以通过带上私钥和时间戳的加密组合，结合身份来验证是否盗链访问，同时这样也能限制文件访问的过期时间。&lt;/p&gt;
+
+&lt;p&gt;此外，我们可以通过IP白名单的方式做辅助验证，系统发现更改来源IP（或者直接进行内网IP绑定）后，会直接拒绝访问。&lt;/p&gt;
+
+&lt;h4 id=&quot;微服务鉴权&quot;&gt;&lt;em&gt;微服务鉴权&lt;/em&gt;&lt;/h4&gt;
+
+&lt;p&gt;这里讨论的其实不属于资源层面的，而是属于架构层面的认证鉴权。&lt;/p&gt;
+
+&lt;p&gt;微服务鉴权目前的做法，使用全局Token+API网关鉴权会多一些。&lt;/p&gt;
+
+&lt;p&gt;在这种形式下微服务是透明化的，通过网关时会把原始的用户令牌，转换为内部会话ID令牌，单方面注销相对来说也精准一些。&lt;/p&gt;
+
+&lt;h4 id=&quot;元素基准鉴权&quot;&gt;&lt;em&gt;元素基准鉴权&lt;/em&gt;&lt;/h4&gt;
+
+&lt;p&gt;元素基准鉴权的问题，在前面的系列文章《私有云安全-边界安全设计实践》也简单提到过。&lt;/p&gt;
+
+&lt;p&gt;我们通过对角色、资源、服务等多个维度，构建对应的复杂关系网络，其中再以某个元素为基准点，进行XABC类型的鉴权，实际应用可以参考IAM访问控制模型。&lt;/p&gt;
+
+&lt;h4 id=&quot;多因素鉴权&quot;&gt;多因素鉴权&lt;/h4&gt;
+
+&lt;p&gt;我们统一认证入口处，为了鉴别登入人的身份，通常会采用多因素认证。
+比如短信+密码，或者令牌+密码，有时候还可能加上硬件KEY、指纹、虹膜识别等等技术手段。&lt;/p&gt;
+
+&lt;p&gt;在这里需要注意的是，由于私有云环境是相对固定的运维人员做操作，也希望减少对外的交互，最好采用在断网情况下也能进行认证的方式。&lt;/p&gt;
+
+&lt;h3 id=&quot;人为监督&quot;&gt;人为监督&lt;/h3&gt;
+
+&lt;p&gt;&lt;img src=&quot;https://gitee.com/hellsec/ppp/raw/master/2020-11-17/1605596995987-%E4%BA%BA%E4%B8%BA%E7%9B%91%E7%9D%A3.png&quot; alt=&quot;人为监督&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;在私有云复杂环境下，如果出现问题，我们需要对资产进行细分，建立相应资产责任人制度。&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;落地一级责任人自查，针对资源设置直接责任人，方便出问题时进行溯源和告警。&lt;/li&gt;
+  &lt;li&gt;实行多人Backup机制，针对资源进行归类划分，一个资源群有2-3人递归负责。&lt;/li&gt;
+  &lt;li&gt;推广支撑部门互相监督，在业务中如果出现了异常调用的流量，支撑部门需要对可能出现问题的一方进行监督提醒。&lt;/li&gt;
+  &lt;li&gt;制定分级上报流程，在上报期间，如果出现延期响应和业务方推诿后，可以分期逐级再向上推送。&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&quot;分级隔离&quot;&gt;分级隔离&lt;/h3&gt;
+
+&lt;p&gt;在针对私有云内的安全隔离上，主要分多个层面逐级进行隔离，建立纵深防御的隔离体系。&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;https://gitee.com/hellsec/ppp/raw/master/2020-11-17/1605597244651-%E5%8C%BA%E5%9F%9F%E9%9A%94%E7%A6%BB.png&quot; alt=&quot;分级隔离&quot; /&gt;&lt;/p&gt;
+
+&lt;h4 id=&quot;acl隔离&quot;&gt;ACL隔离&lt;/h4&gt;
+
+&lt;p&gt;ACL一般是在防火墙或者交换机上实现的，是基于IP地址的控制策略。&lt;/p&gt;
+
+&lt;p&gt;在此基础上，我们通过IP地址段和端口列表的形式进行控制，但其控制粒度相对较粗，这种适合对应用层访问控制进行补充。&lt;/p&gt;
+
+&lt;h4 id=&quot;vpc区域隔离&quot;&gt;VPC区域隔离&lt;/h4&gt;
+
+&lt;p&gt;专有网络VPC属于第二层的隔离，可以为每个用户创建多个子网。&lt;/p&gt;
+
+&lt;p&gt;VPC代表了不同的租户，以它为限制区域隔离出了租户，每个租户的子网之间也是可以继续隔离的。&lt;/p&gt;
+
+&lt;p&gt;部分云厂商由于拓展偏好，借鉴了AWS的Vxlan协议，对每个VPC网络进行隔离。&lt;/p&gt;
+
+&lt;p&gt;但其实传统的Vlan隔离出来的数量，也是够用的。&lt;/p&gt;
+
+&lt;p&gt;另外，在每个云租户内部，如果隔离要求比较严格，其实也可以借用VPC进行安全隔离。&lt;/p&gt;
+
+&lt;h4 id=&quot;安全组隔离&quot;&gt;安全组隔离&lt;/h4&gt;
+
+&lt;p&gt;在云租户内部的VPC内，如果还想尝试更细粒度的划分，可以尝试安全组形式的隔离。&lt;/p&gt;
+
+&lt;p&gt;安全组用于设置多台云服务器的网络访问控制，是重要的网络安全隔离手段，用于在云端划分安全域。&lt;/p&gt;
+
+&lt;p&gt;安全组是一个逻辑上的划分，这个分组由同一个地域内具有相同安全保护需求，并相互信任的实例组成。&lt;/p&gt;
+
+&lt;p&gt;它在不同的云厂商实现中，叫法和实现方式可能也有差异，比如将VPC内的隔离成为Subnet（子网），意思应该与安全组一样。&lt;/p&gt;
+
+&lt;h4 id=&quot;容器层隔离&quot;&gt;容器层隔离&lt;/h4&gt;
+
+&lt;p&gt;这个概念是用虚拟化技术来作为容器（确切地说是 Kubernetes Pod）的沙箱，目前主流的开源安全容器项目是Kata、Gvisor，各大互联网厂商应用的也比较多。&lt;/p&gt;
+
+&lt;p&gt;虽然作为安全容器项目，Kata和Gvisor目前在业务稳定性和兼容性上，比起Docker还有待优化，但毕竟是未来替代发展的大趋势。&lt;/p&gt;
+
+&lt;p&gt;它们能提供虚拟机级别的隔离性，这个安全级别是在过去数年以来的云服务中，是被广泛接受的。&lt;/p&gt;
+
+&lt;p&gt;新型的安全容器不再共享内核，而是利用Hypervisor等技术进行加固和隔离。&lt;/p&gt;
+
+&lt;p&gt;它们对Linux依赖都是比较固定，而且能在每个阶段做到安全审计，降低被攻破的风险，是我们对于容器研究里程碑的较大的突破。&lt;/p&gt;
+
+&lt;h3 id=&quot;参考文档&quot;&gt;参考文档&lt;/h3&gt;
+
+&lt;p&gt;&lt;a href=&quot;https://www.cnblogs.com/ExMan/p/12125640.html&quot;&gt;微服务认证鉴权的四种方案&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&quot;https://developer.aliyun.com/ask/214321?spm=a2c6h.13524658&quot;&gt;CDN 如何实现鉴权配置&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&quot;https://cloud.tencent.com/developer/article/1628386&quot;&gt;关于网络安全域隔离问题的研究与思考&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&quot;https://developer.aliyun.com/article/738934&quot;&gt;安全容器：开启云原生沙箱技术的未来&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&quot;https://www.freebuf.com/articles/others-articles/228615.html&quot;&gt;云原生之容器安全实践&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&quot;https://baijiahao.baidu.com/s?id=1630404422879648523&amp;amp;wfr=spider&amp;amp;for=pc&quot;&gt;全景解析5种云安全技术方案&lt;/a&gt;&lt;/p&gt;</content><author><name>HellSec</name></author><category term="cloud" /><summary type="html">在对于私有云安全落地的实践中，如果我们已经有了一定的安全基础，对于后期架构策略的设计，需要花更多的精力在纵深防御和整体联动之上。</summary></entry><entry><title type="html">私有云安全-边界安全设计实践</title><link href="http://localhost:4000/cloud/2021/01/15/boundary-sec-design/" rel="alternate" type="text/html" title="私有云安全-边界安全设计实践" /><published>2021-01-15T23:40:00+08:00</published><updated>2021-01-15T23:40:00+08:00</updated><id>http://localhost:4000/cloud/2021/01/15/boundary-sec-design</id><content type="html" xml:base="http://localhost:4000/cloud/2021/01/15/boundary-sec-design/">&lt;p&gt;
+	&lt;span style=&quot;color:#00B050;&quot;&gt;&lt;strong&gt;对于私有云环境的安全建设工作中，需要做的事务繁杂而冗长。但我们在梳理要点后，会发现非传统边界的加固工作，也是我们应该重点关注的。&lt;/strong&gt;&lt;/span&gt;
+&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;https://gitee.com/hellsec/ppp/raw/master/2020-11-26/1606397128210-%E8%BE%B9%E7%95%8C%E5%AE%89%E5%85%A8.jpg&quot; alt=&quot;边界安全概述&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;首先，我们需要关注私有云环境的&lt;strong&gt;访问控制&lt;/strong&gt;问题，在实现一定程度的可信准入后，对各层次的边界进行鉴权和认证；另外，我们需要针对潜在外部的大流量，以及容器间的流量风暴，通过代理集群和容灾多活的方式，进行&lt;strong&gt;分流防御&lt;/strong&gt;处理；当然，无论是IDC资源还是容器资源，我们都务必要做好&lt;strong&gt;主机加固&lt;/strong&gt;的工作，阻止黑客进行权限提升和横向扩散。&lt;/p&gt;
+
+&lt;h3 id=&quot;主机加固&quot;&gt;主机加固&lt;/h3&gt;
+
+&lt;h4 id=&quot;端口策略&quot;&gt;端口策略&lt;/h4&gt;
+
+&lt;p&gt;&lt;strong&gt;出入策略&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;在对网络边界的安全进行设计时，我们需要对出入端口的访问控制策略，进行精细化的控制。&lt;/p&gt;
+
+&lt;p&gt;&lt;em&gt;云环境边界：&lt;/em&gt;&lt;/p&gt;
+
+&lt;p&gt;对于云环境边界的宿主机和IDC来说，端口开放的越多，意味着攻击面会扩大。而它们被黑客尝试或者存在风险的可能性，也会越大。&lt;/p&gt;
+
+&lt;p&gt;所以在此逻辑基础上，这些主机需要依赖云容器管理平台和人工配置，借助类iptables的系统工具，对开放的端口实行最小化原则，同时也要对所有的端口进行严格的认证控制，保障基础的传统边界控制。&lt;/p&gt;
+
+&lt;p&gt;&lt;em&gt;安全域隔离边界：&lt;/em&gt;&lt;/p&gt;
+
+&lt;p&gt;至于云环境网络隔离区，则相对来说没有没那么严格。在不同的服务之间，本身可能会存在流量交互，所以进出口规则会比较复杂，变动也会相对来说更多，如果同样采用最小化策略，可能会对业务带来比较多的困扰。&lt;/p&gt;
+
+&lt;p&gt;但是，对于网络隔离区的出入策略，对于端口控制，也是需要做好认证和鉴权的，这块儿的内容也需要云管平台去做统一的配置管理。&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;&lt;em&gt;流量监控&lt;/em&gt;&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;对于端口出入的流量，我们除了做好异常流控，保证网络稳定以外，也需要对其中的流量进行监控检测。&lt;/p&gt;
+
+&lt;p&gt;在黑客通过手段获取了云环境内主机的临时权限后，可能会尝试横向移动或者后门反弹，抑或直接进行数据拖取。在这种情况下，对于端口流量的监控就显得尤为重要了。&lt;/p&gt;
+
+&lt;p&gt;在监控到端口流量异常后，安全运营中心（SOC）可以通过行为联动进行分析告警，及时阻断隔离可能沦陷的机器的访问控制。&lt;/p&gt;
+
+&lt;h4 id=&quot;攻击阻断&quot;&gt;攻击阻断&lt;/h4&gt;
+
+&lt;p&gt;&lt;strong&gt;&lt;em&gt;边界WAF&lt;/em&gt;&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;在私有云环境提供对外的WEB服务时，对于外部用户可触达的范围，是需要提供WAF保护的。&lt;/p&gt;
+
+&lt;p&gt;在针对这部分内容的防御上，主要是针对传统URI进行访问核查，以及对API的访问控制。&lt;/p&gt;
+
+&lt;p&gt;其中对于接口的访问频次和流量内容，是否存在异常，都是边界WAF需要关注的。&lt;/p&gt;
+
+&lt;p&gt;这里显然不建议在安全域隔离边界进行WAF部署，我们应该专注对云环境边界的主机（如Nginx层）进行流量收口阻断控制，这样是相对合适的做法。&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;&lt;em&gt;边界防火墙&lt;/em&gt;&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;对于边界防火墙的话，可以对私有云网络的内外流量进行交互限制，限制异常流量的出入。&lt;/p&gt;
+
+&lt;p&gt;就部署的优先级来看，是私有云边界优先于安全域隔离边界。&lt;/p&gt;
+
+&lt;p&gt;我们也可以在云环境边界，尝试部署硬件防火墙，再在安全域边界通过软件防火墙的形式进行补充，当然具体实施要看情况而定。&lt;/p&gt;
+
+&lt;p&gt;在实际部署的过程中，我们可能会遇到预算有限、业务复杂性较高、网络稳定性要求高等多重问题困扰。&lt;/p&gt;
+
+&lt;p&gt;所以我们需要在保障最低安全标准的情况下，对相关安全能力逐步进行建设和方案优化。&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;&lt;em&gt;HIDS&lt;/em&gt;&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;在边界主机上，我们部署HIDS的同时，进行日志的留存分析也是很有必要的。&lt;/p&gt;
+
+&lt;p&gt;在入侵事件发生的事前和事中，我们可以通过内网态势感知（日志流量的监控联动），对攻击进行拦截阻断。&lt;/p&gt;
+
+&lt;p&gt;而边界主机上的HIDS的监控告警和相关安全日志，能帮助安全运维人员更好的治病于腠理。&lt;/p&gt;
+
+&lt;p&gt;另外需要强调的一点，日志最好统一上传到日志分析中心（比如ELK或者Splunk），以免被拿到权限的黑客清除入侵痕迹。&lt;/p&gt;
+
+&lt;h3 id=&quot;分流防御&quot;&gt;分流防御&lt;/h3&gt;
+
+&lt;p&gt;对于进入私有云环境的流量，我们首先需要做好流量控制，防止内部脆弱的网络出现稳定性故障。&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;&lt;em&gt;负载均衡SLB：&lt;/em&gt;&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;负载均衡（Server Load Balancer）是将访问流量根据转发策略，分发到后端多台机器的流量分发控制服务，这是在流量出入口实施分流控制的常见做法。&lt;/p&gt;
+
+&lt;p&gt;比如在云环境边界的Nginx集群接受了用户的访问请求后，经过流量控制检测，如果没有问题会继续向后分发到真实主机，经过逻辑处理后跟数据主机集群进行交互，最后把结果再反馈给Nginx集群，形成完整的访问闭环。&lt;/p&gt;
+
+&lt;p&gt;这个问题其实更偏向于运维的内容，而非安全主要关注的点。但它又在对外防御流量攻击（Dos和CC）上，会起到不可或缺的作用。&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;&lt;em&gt;CDN防护和流量清洗：&lt;/em&gt;&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;CDN防护和流量清洗（类比云堤的黑洞），这些概念其实应该归类于混合云的范畴了。&lt;/p&gt;
+
+&lt;p&gt;如果想要在私有云环境里完成独立的防护和清洗，先不论实现效果的差异，我们需要注意下面几点：&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;
+    &lt;p&gt;静态服务器集群：主要功能是静态资源托管，这是完成内网CDN替代的关键。不过混合云使用的CDN本身是可以隐藏真实IP的，这能在一定流量上限范围内，防止外部流量打穿从而泄露真实主机。&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;高防硬件防火墙清洗：如果不能把流量导向到各大云厂商进行清洗后回流，那高标准的硬件边界防火墙是必要的。否则极端情况下，会直接导致业务瘫痪。&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;高吞吐量的带宽：这也是高稳定性业务必须要具备的基础，它能支持我们在对入口流量进行清洗的同时，还能稳定的对外提供访问。&lt;/p&gt;
+  &lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&quot;访问控制&quot;&gt;访问控制&lt;/h3&gt;
+
+&lt;p&gt;在私有云环境里的边界，通过多维度进行准入访问控制，也是我们需要重点关注的内容。&lt;/p&gt;
+
+&lt;h4 id=&quot;iam认证&quot;&gt;IAM认证&lt;/h4&gt;
+
+&lt;p&gt;IAM（身份和访问管理）通常负责用户需要访问的各种系统中的身份生命周期管理。简单来说，分为身份、认证、授权三个大模块。这个无论在边界访问控制，还是在纵深防御的建设上，我们都会重点提及。&lt;/p&gt;
+
+&lt;p&gt;在私有云边界入口，有试图对内部发起访问的行为时时，我们需要对其属性和角色进行合法性校验，再对其进行细致的访问控制。&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;&lt;em&gt;身份（身份生命周期管理）：&lt;/em&gt;&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;这块儿的内容是企业关注的重点之一，在员工入职、角色变更、离职等单一流程线之外，其实也涉及到了复杂的关联变化。&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;&lt;em&gt;认证（身份认证）：&lt;/em&gt;&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;这点我们可以采用多种方式进行，比如token、签名秘钥、或者多因子认证等等。&lt;/p&gt;
+
+&lt;p&gt;而针对用户身份进行鉴别准入时，我们可能会考虑到多维度的内容，比如IP、用户指纹、设备指纹等等。&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;&lt;em&gt;授权（权限分配）：&lt;/em&gt;&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;这是IAM安全管控的核心，确保正确的人在正确的时间，动态地获得正确的访问权。&lt;/p&gt;
+
+&lt;p&gt;从概念上来讲，PBAC是当前和未来的IAM最佳授权方法，因为PBAC结合了RBAC和ABAC的最佳特性。&lt;/p&gt;
+
+&lt;p&gt;&lt;em&gt;落地补充：&lt;/em&gt;&lt;/p&gt;
+
+&lt;p&gt;对于私有云落地实施来讲，部分云厂商给的采购解决方案里，管控平台统一为未来接入的系统，预留了IAM管控方案，我们可以少操一点心。&lt;/p&gt;
+
+&lt;p&gt;但如果如果在中后期独立研发、采购的系统，或者本身就是自己组建的私有云环境，则需要通过设计接口和相关改造方案，尽快接入统一的IAM体系。&lt;/p&gt;
+
+&lt;p&gt;我们在私有云网络组建前期，需要定制和遵循基础的安全原则和方针路线，这能在一定程度上，减少后期改造和维护的成本。&lt;/p&gt;
+
+&lt;h4 id=&quot;api网关&quot;&gt;API网关&lt;/h4&gt;
+
+&lt;p&gt;针对API的细粒度访问控制来讲，我们可能会借助平台，在其间扮演网关的角色进行管控，我们主要关注下面几点：&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;&lt;em&gt;API全生命周期管理：&lt;/em&gt;&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;涵盖API的完整生命周期管理功能，可随时回滚指定环境到特定版本。&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;&lt;em&gt;API流量控制：&lt;/em&gt;&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;细致精确的流量控制，用户可根据自身业务对API服务进行流量配置，精确到秒级请求过滤和控制，避免突发高流量，导致后端服务出现过载。&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;&lt;em&gt;API认证安全：&lt;/em&gt;&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;在API访问时进行代理认证，保障不出现横向和纵向的越权访问。&lt;/p&gt;
+
+&lt;p&gt;&lt;em&gt;落地总结：&lt;/em&gt;&lt;/p&gt;
+
+&lt;p&gt;这些工作的进行，一般是基于平台进行第三方管控的。&lt;/p&gt;
+
+&lt;p&gt;但实际情况是，我们的系统代码里可能为了调试和兼容，不用强行要求认证也能进行访问。所以针对这些情况的治理，也是我们需要特别思考的。&lt;/p&gt;
+
+&lt;h4 id=&quot;可信原则&quot;&gt;可信原则&lt;/h4&gt;
+
+&lt;p&gt;在私有云建设中，由于我们需要遵循政策，做到IaaS和PaaS层面的安全合规，实现一定程度可信链路。&lt;/p&gt;
+
+&lt;p&gt;而不是一味追求零信任，从而真实的优化我们的安全管理工作。&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;&lt;em&gt;流量可信：&lt;/em&gt;&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;首先在日常的私有云管理中，每日管理员操作的时段是有限的，操作行为也是有限的，所以剩下的都是自动化运维的行为。&lt;/p&gt;
+
+&lt;p&gt;剔除这部分流量后，剩下的异常流量行为审计，可以在自动化的分析下比较明显的突显出来，最终将减少我们溯源和应急所耗费的精力。&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;&lt;em&gt;账号可信：&lt;/em&gt;&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;在接入的账号里，管理级别权限的账号数量和操作行为应该做到最小化，细节操作应该更多的去依赖子账号。&lt;/p&gt;
+
+&lt;p&gt;另外，针对租户内子账号的具体角色绑定，也需要进行细致配置核查，坚持实现权限最小化，防止错误配置导致事故的发生。&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;&lt;em&gt;边界隔绝：&lt;/em&gt;&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;私有云由于其合规的特殊性，一般要求不能直接接入互联网边界。在这种情况下，我们对于私有云IDC数据流量是可控的，进出的数据可以做旁路和代理前置监控。&lt;/p&gt;
+
+&lt;p&gt;另外，这种情况下一般也不能接入VPN和外部专线，即使需要实现异地多活进行容灾，可能也需要独立运维进行支持，不可一概而论。&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;&lt;em&gt;终端可信：&lt;/em&gt;&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;在我们在接入平台进行运维的时候，需要尝试遵循一致性原则，通过EUC（终端用户上下文）ticket，多维度证明初始请求者（original requester）的身份。&lt;/p&gt;
+
+&lt;p&gt;我们在实践中颁发凭证时，可以尝试把设备和服务请求进行分别绑定，使得服务间授权后能完成互相信任。&lt;/p&gt;
+
+&lt;p&gt;这样一来，即使出现了事故我们需要溯源，定位也会更加精确迅速。&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;&lt;em&gt;服务可信：&lt;/em&gt;&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;当不同的服务间进行RPC通信时，本身应该遵从Service Access Policy（服务访问策略），Service Mesh服务网格技术（比如Istio）能帮我们做好这点。&lt;/p&gt;
+
+&lt;p&gt;在实际应用中，即使在同一租户内的不同微服务之间，默认不应该保持信任，需要其他的安全控制：例如认证和加密。&lt;/p&gt;
+
+&lt;p&gt;同时，向微服务的转变，给我们提供了一个对传统安全模型进行重新思考的机会。&lt;/p&gt;
+
+&lt;h3 id=&quot;参考文章&quot;&gt;参考文章&lt;/h3&gt;
+
+&lt;p&gt;&lt;a href=&quot;https://help.aliyun.com/document_detail/101318.html&quot;&gt;互联网边界防火墙
+&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&quot;https://blog.csdn.net/linjpg/article/details/98481182&quot;&gt;阿里云负载均衡SLB 详解&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&quot;https://mp.weixin.qq.com/s/64ynVhD9jnMh0LTqAuXqQA&quot;&gt;网络安全架构 | IAM（身份访问与管理）架构的现代化
+&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&quot;https://www.dbappsecurity.com.cn/show-43-220-1.html&quot;&gt;某医院智慧医疗网络安全项目案例（DMZ区域建设解决方案）
+&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&quot;http://arthurchiao.art/blog/google-beyondprod-zh/&quot;&gt;[译] BeyondProd：云原生安全的一种新方法（Google, 2019）
+&lt;/a&gt;&lt;/p&gt;</content><author><name>HellSec</name></author><category term="cloud" /><summary type="html">对于私有云环境的安全建设工作中，需要做的事务繁杂而冗长。但我们在梳理要点后，会发现非传统边界的加固工作，也是我们应该重点关注的。</summary></entry><entry><title type="html">私有云安全-容器安全设计实践</title><link href="http://localhost:4000/cloud/2020/12/08/container-sec-design/" rel="alternate" type="text/html" title="私有云安全-容器安全设计实践" /><published>2020-12-08T21:40:00+08:00</published><updated>2020-12-08T21:40:00+08:00</updated><id>http://localhost:4000/cloud/2020/12/08/container-sec-design</id><content type="html" xml:base="http://localhost:4000/cloud/2020/12/08/container-sec-design/">&lt;p&gt;
 	&lt;span style=&quot;color:#DAA520;&quot;&gt;&lt;strong&gt;私有云安全由于其合规性和独立性，不同于公有云和混合云，需要单独定制落地的流程和规划，这里跟大家简单聊聊关于容器安全设计的相关问题。&lt;/strong&gt;&lt;/span&gt;
 &lt;/p&gt;
 
@@ -383,7 +867,7 @@
 
 &lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/43671511&quot;&gt;Docker安全入门与实战：Sysdig&lt;/a&gt;&lt;/p&gt;
 
-&lt;p&gt;&lt;a href=&quot;https://baijiahao.baidu.com/s?id=1610191436506146444&quot;&gt;谈一下Docker与Kubernetes集群的日志和日志管理&lt;/a&gt;&lt;/p&gt;</content><author><name>HellSec</name></author><category term="cloud" /><summary type="html">私有云安全由于其合规性和独立性，不同于公有云和混合云，需要单独定制落地的流程和规划，这里跟大家简单聊聊关于容器安全设计的相关问题。</summary></entry><entry><title type="html">漏洞POC验证系统实践</title><link href="http://0.0.0.0:4000/scanner/2020/08/11/all-info-scan/" rel="alternate" type="text/html" title="漏洞POC验证系统实践" /><published>2020-08-11T20:46:00+08:00</published><updated>2020-08-11T20:46:00+08:00</updated><id>http://0.0.0.0:4000/scanner/2020/08/11/all-info-scan</id><content type="html" xml:base="http://0.0.0.0:4000/scanner/2020/08/11/all-info-scan/">&lt;p&gt;
+&lt;p&gt;&lt;a href=&quot;https://baijiahao.baidu.com/s?id=1610191436506146444&quot;&gt;谈一下Docker与Kubernetes集群的日志和日志管理&lt;/a&gt;&lt;/p&gt;</content><author><name>HellSec</name></author><category term="cloud" /><summary type="html">私有云安全由于其合规性和独立性，不同于公有云和混合云，需要单独定制落地的流程和规划，这里跟大家简单聊聊关于容器安全设计的相关问题。</summary></entry><entry><title type="html">漏洞POC验证系统实践</title><link href="http://localhost:4000/scanner/2020/08/11/all-info-scan/" rel="alternate" type="text/html" title="漏洞POC验证系统实践" /><published>2020-08-11T20:46:00+08:00</published><updated>2020-08-11T20:46:00+08:00</updated><id>http://localhost:4000/scanner/2020/08/11/all-info-scan</id><content type="html" xml:base="http://localhost:4000/scanner/2020/08/11/all-info-scan/">&lt;p&gt;
 	&lt;span style=&quot;color:#00B050;&quot;&gt;&lt;strong&gt;在渗透过程中，我们针对特定的系统，在通过插件识别类型后，可以利用漏洞脚本进行fuzz。&lt;/strong&gt;&lt;/span&gt;
 &lt;/p&gt;
 
@@ -457,7 +941,7 @@
   &lt;li&gt;云环境利用：对于云环境漏洞目前没有poc，后面会考虑添加。&lt;/li&gt;
   &lt;li&gt;安全设备利用：对于目前流行的对于安全设备的反攻，后面会考虑专门添加插件。&lt;/li&gt;
   &lt;li&gt;WAF、蜜罐探测：对于WAF类和蜜罐环境，以前只是封装了辅助类的函数，后面也会提供专门的插件进行探测。&lt;/li&gt;
-&lt;/ul&gt;</content><author><name>HellSec</name></author><category term="scanner" /><summary type="html">在渗透过程中，我们针对特定的系统，在通过插件识别类型后，可以利用漏洞脚本进行fuzz。</summary></entry><entry><title type="html">分布式资产扫描平台实践</title><link href="http://0.0.0.0:4000/scanner/2020/07/29/poc-scan/" rel="alternate" type="text/html" title="分布式资产扫描平台实践" /><published>2020-07-29T21:28:00+08:00</published><updated>2020-07-29T21:28:00+08:00</updated><id>http://0.0.0.0:4000/scanner/2020/07/29/poc-scan</id><content type="html" xml:base="http://0.0.0.0:4000/scanner/2020/07/29/poc-scan/">&lt;p&gt;
+&lt;/ul&gt;</content><author><name>HellSec</name></author><category term="scanner" /><summary type="html">在渗透过程中，我们针对特定的系统，在通过插件识别类型后，可以利用漏洞脚本进行fuzz。</summary></entry><entry><title type="html">分布式资产扫描平台实践</title><link href="http://localhost:4000/scanner/2020/07/29/poc-scan/" rel="alternate" type="text/html" title="分布式资产扫描平台实践" /><published>2020-07-29T21:28:00+08:00</published><updated>2020-07-29T21:28:00+08:00</updated><id>http://localhost:4000/scanner/2020/07/29/poc-scan</id><content type="html" xml:base="http://localhost:4000/scanner/2020/07/29/poc-scan/">&lt;p&gt;
 	&lt;span style=&quot;color:#DAA520;&quot;&gt;&lt;strong&gt;以前在乙方干活的时候，对于黑盒扫描的内容研究的比较多也早。此前做了一些内部项目，但没有走涉密。本来还想出来做做开源，不过后来看着不挣钱，加上代码水准有限，也就作罢了。&lt;/strong&gt;&lt;/span&gt;
 &lt;/p&gt;
 
@@ -553,7 +1037,7 @@
 
 &lt;h3 id=&quot;后话&quot;&gt;后话&lt;/h3&gt;
 
-&lt;p&gt;本文大概介绍了对于平台架构、资产收集结果的方案设计要略，后面会单独分析几个对接服务的细节，以及一些新的想法。&lt;/p&gt;</content><author><name>HellSec</name></author><category term="scanner" /><summary type="html">以前在乙方干活的时候，对于黑盒扫描的内容研究的比较多也早。此前做了一些内部项目，但没有走涉密。本来还想出来做做开源，不过后来看着不挣钱，加上代码水准有限，也就作罢了。</summary></entry><entry><title type="html">漏洞扫描：从fuzz到payload</title><link href="http://0.0.0.0:4000/scanner/2019/11/19/from-fuzz-to-payload/" rel="alternate" type="text/html" title="漏洞扫描：从fuzz到payload" /><published>2019-11-19T15:53:00+08:00</published><updated>2019-11-19T15:53:00+08:00</updated><id>http://0.0.0.0:4000/scanner/2019/11/19/from-fuzz-to-payload</id><content type="html" xml:base="http://0.0.0.0:4000/scanner/2019/11/19/from-fuzz-to-payload/">&lt;p&gt;
+&lt;p&gt;本文大概介绍了对于平台架构、资产收集结果的方案设计要略，后面会单独分析几个对接服务的细节，以及一些新的想法。&lt;/p&gt;</content><author><name>HellSec</name></author><category term="scanner" /><summary type="html">以前在乙方干活的时候，对于黑盒扫描的内容研究的比较多也早。此前做了一些内部项目，但没有走涉密。本来还想出来做做开源，不过后来看着不挣钱，加上代码水准有限，也就作罢了。</summary></entry><entry><title type="html">漏洞扫描：从fuzz到payload</title><link href="http://localhost:4000/scanner/2019/11/19/from-fuzz-to-payload/" rel="alternate" type="text/html" title="漏洞扫描：从fuzz到payload" /><published>2019-11-19T15:53:00+08:00</published><updated>2019-11-19T15:53:00+08:00</updated><id>http://localhost:4000/scanner/2019/11/19/from-fuzz-to-payload</id><content type="html" xml:base="http://localhost:4000/scanner/2019/11/19/from-fuzz-to-payload/">&lt;p&gt;
 	&lt;span style=&quot;color:#00B050;&quot;&gt;&lt;strong&gt;在实现漏洞扫描的时候，部分开发者会使用payload直接进行fuzz，而且并没有对server端的拦截和过滤，有相对智能的反馈，这对扫描效率和成功率是影响比较大的。&lt;/strong&gt;&lt;/span&gt;
 &lt;/p&gt;
 
@@ -701,7 +1185,7 @@ xor sleep(8)
 
 &lt;p&gt;当然，如果这里调的level比较高的话，低级别的poc检测成功后，是可以向上跃迁检测的。&lt;/p&gt;
 
-&lt;p&gt;另外，这里不建议优先采用公共dns平台，因为即使是使用了api交互，公共dns平台也一般会有延时的风险，更别提可能被GA监控管制，再者说证明截图啥的，也需要时间的。&lt;/p&gt;</content><author><name>HellSec</name></author><category term="scanner" /><summary type="html">在实现漏洞扫描的时候，部分开发者会使用payload直接进行fuzz，而且并没有对server端的拦截和过滤，有相对智能的反馈，这对扫描效率和成功率是影响比较大的。</summary></entry><entry><title type="html">Wordpress插件漏洞的攻防浅析</title><link href="http://0.0.0.0:4000/vuln/2019/10/23/wordpress-adsec/" rel="alternate" type="text/html" title="Wordpress插件漏洞的攻防浅析" /><published>2019-10-23T23:40:00+08:00</published><updated>2019-10-23T23:40:00+08:00</updated><id>http://0.0.0.0:4000/vuln/2019/10/23/wordpress-adsec</id><content type="html" xml:base="http://0.0.0.0:4000/vuln/2019/10/23/wordpress-adsec/">&lt;p&gt;
+&lt;p&gt;另外，这里不建议优先采用公共dns平台，因为即使是使用了api交互，公共dns平台也一般会有延时的风险，更别提可能被GA监控管制，再者说证明截图啥的，也需要时间的。&lt;/p&gt;</content><author><name>HellSec</name></author><category term="scanner" /><summary type="html">在实现漏洞扫描的时候，部分开发者会使用payload直接进行fuzz，而且并没有对server端的拦截和过滤，有相对智能的反馈，这对扫描效率和成功率是影响比较大的。</summary></entry><entry><title type="html">Wordpress插件漏洞的攻防浅析</title><link href="http://localhost:4000/vuln/2019/10/23/wordpress-adsec/" rel="alternate" type="text/html" title="Wordpress插件漏洞的攻防浅析" /><published>2019-10-23T23:40:00+08:00</published><updated>2019-10-23T23:40:00+08:00</updated><id>http://localhost:4000/vuln/2019/10/23/wordpress-adsec</id><content type="html" xml:base="http://localhost:4000/vuln/2019/10/23/wordpress-adsec/">&lt;p&gt;
 	&lt;span style=&quot;color:#DAA520;&quot;&gt;&lt;strong&gt;一般出名点的开源软件，比如wordpress的核心高危漏洞是比较难挖的。但其附属的高用户量的插件漏洞也是具有一定的价值的，而挖掘起来相对容易些，这里就来简单谈谈wordpress插件漏洞的挖掘和修复。&lt;/strong&gt;&lt;/span&gt;
 &lt;/p&gt;
 
@@ -1129,7 +1613,7 @@ class PHP_Object_Injection {
   &lt;li&gt;&lt;a href=&quot;https://xz.aliyun.com/t/1482&quot;&gt;$wpdb-&amp;gt;prepare的修复和正确使用&lt;/a&gt;&lt;/li&gt;
   &lt;li&gt;&lt;a href=&quot;https://xz.aliyun.com/t/2150&quot;&gt;PHP反序列化与Wordpress一些意外Bug的有趣结合&lt;/a&gt;&lt;/li&gt;
   &lt;li&gt;&lt;a href=&quot;https://github.com/ethicalhack3r/wordpress_plugin_security_testing_cheat_sheet&quot;&gt;wordpress插件安全文档&lt;/a&gt;&lt;/li&gt;
-&lt;/ul&gt;</content><author><name>HellSec</name></author><category term="vuln" /><summary type="html">一般出名点的开源软件，比如wordpress的核心高危漏洞是比较难挖的。但其附属的高用户量的插件漏洞也是具有一定的价值的，而挖掘起来相对容易些，这里就来简单谈谈wordpress插件漏洞的挖掘和修复。</summary></entry><entry><title type="html">xdebug+phpstorm+phpstudy本地调试踩坑</title><link href="http://0.0.0.0:4000/vuln/2019/10/10/xdebug-phpstorm-phpstudy/" rel="alternate" type="text/html" title="xdebug+phpstorm+phpstudy本地调试踩坑" /><published>2019-10-10T21:13:00+08:00</published><updated>2019-10-10T21:13:00+08:00</updated><id>http://0.0.0.0:4000/vuln/2019/10/10/xdebug-phpstorm-phpstudy</id><content type="html" xml:base="http://0.0.0.0:4000/vuln/2019/10/10/xdebug-phpstorm-phpstudy/">&lt;p&gt;
+&lt;/ul&gt;</content><author><name>HellSec</name></author><category term="vuln" /><summary type="html">一般出名点的开源软件，比如wordpress的核心高危漏洞是比较难挖的。但其附属的高用户量的插件漏洞也是具有一定的价值的，而挖掘起来相对容易些，这里就来简单谈谈wordpress插件漏洞的挖掘和修复。</summary></entry><entry><title type="html">xdebug+phpstorm+phpstudy本地调试踩坑</title><link href="http://localhost:4000/vuln/2019/10/10/xdebug-phpstorm-phpstudy/" rel="alternate" type="text/html" title="xdebug+phpstorm+phpstudy本地调试踩坑" /><published>2019-10-10T21:13:00+08:00</published><updated>2019-10-10T21:13:00+08:00</updated><id>http://localhost:4000/vuln/2019/10/10/xdebug-phpstorm-phpstudy</id><content type="html" xml:base="http://localhost:4000/vuln/2019/10/10/xdebug-phpstorm-phpstudy/">&lt;p&gt;
 	&lt;span style=&quot;color:#00B050;&quot;&gt;&lt;strong&gt;这两天用idea审java比较顺手，顺便也迁移了下php调试环境，从vscode迁移到jetbrains家的phpstorm。以前习惯了纯搜索字符串，通过打印调试，没有动态hook变量看起来比较费劲。迁移过程中遇到一些坑，故此记录一下。
 &lt;/strong&gt;&lt;/span&gt;
 &lt;/p&gt;
@@ -1259,7 +1743,7 @@ xdebug.remote_host = &quot;127.0.0.1&quot;
 
 &lt;p&gt;&lt;a href=&quot;https://blog.csdn.net/universee/article/details/74516250&quot;&gt;《PhpStorm和WAMP配置调试参数，问题描述Error. Interpreter is not specified or invalid. Press “Fix” to edit your pro》&lt;/a&gt;&lt;/p&gt;
 
-&lt;p&gt;&lt;a href=&quot;https://www.cnblogs.com/yjken/p/6555438.html&quot;&gt;《phpstorm中配置真正的远程调试(xdebug)》&lt;/a&gt;&lt;/p&gt;</content><author><name>HellSec</name></author><category term="vuln" /><summary type="html">这两天用idea审java比较顺手，顺便也迁移了下php调试环境，从vscode迁移到jetbrains家的phpstorm。以前习惯了纯搜索字符串，通过打印调试，没有动态hook变量看起来比较费劲。迁移过程中遇到一些坑，故此记录一下。</summary></entry><entry><title type="html">celery超时机制小结</title><link href="http://0.0.0.0:4000/coding/2019/10/08/celery-timeout-tips/" rel="alternate" type="text/html" title="celery超时机制小结" /><published>2019-10-08T11:35:00+08:00</published><updated>2019-10-08T11:35:00+08:00</updated><id>http://0.0.0.0:4000/coding/2019/10/08/celery-timeout-tips</id><content type="html" xml:base="http://0.0.0.0:4000/coding/2019/10/08/celery-timeout-tips/">&lt;p&gt;
+&lt;p&gt;&lt;a href=&quot;https://www.cnblogs.com/yjken/p/6555438.html&quot;&gt;《phpstorm中配置真正的远程调试(xdebug)》&lt;/a&gt;&lt;/p&gt;</content><author><name>HellSec</name></author><category term="vuln" /><summary type="html">这两天用idea审java比较顺手，顺便也迁移了下php调试环境，从vscode迁移到jetbrains家的phpstorm。以前习惯了纯搜索字符串，通过打印调试，没有动态hook变量看起来比较费劲。迁移过程中遇到一些坑，故此记录一下。</summary></entry><entry><title type="html">celery超时机制小结</title><link href="http://localhost:4000/coding/2019/10/08/celery-timeout-tips/" rel="alternate" type="text/html" title="celery超时机制小结" /><published>2019-10-08T11:35:00+08:00</published><updated>2019-10-08T11:35:00+08:00</updated><id>http://localhost:4000/coding/2019/10/08/celery-timeout-tips</id><content type="html" xml:base="http://localhost:4000/coding/2019/10/08/celery-timeout-tips/">&lt;p&gt;
 	&lt;span style=&quot;color:#DAA520;&quot;&gt;&lt;strong&gt;以前在使用celery任务时，老是被其超时机制不奏效所困扰，没有一个比较完美的解决方案。前两天琢磨出新的方案，故此借机梳理下过往细节。&lt;/strong&gt;&lt;/span&gt;
 &lt;/p&gt;
 
@@ -1394,644 +1878,4 @@ if __name__ == '__main__':
 
 &lt;p&gt;&lt;a href=&quot;https://www.jianshu.com/p/5a969b067ce6&quot;&gt;《hard杀死soft》&lt;/a&gt;&lt;/p&gt;
 
-&lt;p&gt;&lt;a href=&quot;http://blog.sina.com.cn/s/blog_63041bb80102uy5o.html&quot;&gt;《Python设置函数调用超时》&lt;/a&gt;&lt;/p&gt;</content><author><name>HellSec</name></author><category term="coding" /><summary type="html">以前在使用celery任务时，老是被其超时机制不奏效所困扰，没有一个比较完美的解决方案。前两天琢磨出新的方案，故此借机梳理下过往细节。</summary></entry><entry><title type="html">cors漏洞之123</title><link href="http://0.0.0.0:4000/vuln/2019/09/28/cors-tips/" rel="alternate" type="text/html" title="cors漏洞之123" /><published>2019-09-28T21:13:00+08:00</published><updated>2019-09-28T21:13:00+08:00</updated><id>http://0.0.0.0:4000/vuln/2019/09/28/cors-tips</id><content type="html" xml:base="http://0.0.0.0:4000/vuln/2019/09/28/cors-tips/">&lt;p&gt;
-	&lt;span style=&quot;color:#00B050;&quot;&gt;&lt;strong&gt;cors漏洞相信大家已经很熟悉了，一般会用于配合csrf漏洞对用户进行攻击。这里就遇到的一些case，简单讲讲可能漏报误报的点，以及相应的修复方案。
-&lt;/strong&gt;&lt;/span&gt;
-&lt;/p&gt;
-
-&lt;h3 id=&quot;cors漏洞要素&quot;&gt;cors漏洞要素&lt;/h3&gt;
-
-&lt;p&gt;cors漏洞成功主要需要两个点，&lt;/p&gt;
-
-&lt;p&gt;在Html Response头部里面：&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;Access-Control-Allow-Origin: http://www.whitedomain.com
-Access-Control-Allow-Origin: true or false
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-&lt;p&gt;或者同时具备：&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;Access-Control-Allow-Origin: *
-Access-Control-Allow-Credentials: false
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-&lt;p&gt;Credentials这里是比较容易被忽略的，Credentials为false的话，数据包是不会带上&lt;strong&gt;传统的认证信息&lt;/strong&gt;，你获取到的敏感内容也是相对有限的。&lt;/p&gt;
-
-&lt;p&gt;另外，cors漏洞也需要注意一点，你在构造测试点的时候，需要得到：&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;Origin: http://www.whitedomain.com
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-&lt;p&gt;这里的域名是不能带上目录的，因为你实际上构造钓鱼页面的时候，是无法构造畸形Origin的。&lt;/p&gt;
-
-&lt;p&gt;为啥呢，因为你从页面发送给后端的请求，浏览器会主动去解析过滤，如果在这里去构造畸形的域名，他会只取到host部分，不会处理目录，然后拿去给后端解析。&lt;/p&gt;
-
-&lt;p&gt;比如说，浏览器会像下面这样处理去取host，由于需要配合通用后端过滤设置，需要www.whitedomain.com结尾的绕过尝试：&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;http://www.evil.com/whitedomain.com ===&amp;gt; 
-www.evil.com
-http://www.evil.com\.whitedomain.com ===&amp;gt; 
-www.evil.com
-http://www.evil.com#www.whitedomain.com ===&amp;gt; 
-www.evil.com
-http://www.evil.com?www.whitedomain.com ===&amp;gt; 
-www.evil.com 
-
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-&lt;p&gt;大概举几个例子就行，反正我这边暂时没找到可以绕过的尝试，后缀whitedomain.com，搞出来基本上取出来的真正host，也只能是whitedomain.com。&lt;/p&gt;
-
-&lt;p&gt;这是啥意思呢？意思是你去构造畸形的域名，浏览器可能就直接过滤拦截了。
-传到后端的，基本就是你想要构造的恶意目的域名。这时候，后端做好相应的防跨域配置和服务器配置，基本就可以稳定拦截了。&lt;/p&gt;
-
-&lt;h3 id=&quot;修复方法&quot;&gt;修复方法&lt;/h3&gt;
-
-&lt;p&gt;java后端配置举例（jetty版本）：&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;public FilterRegistrationBean crossFilter()
-{
-FilterRegistrationBean registration = new FilterRegistrationBean();
-registration.setFilter(new org.eclipse.jetty.servlets.CrossOriginFilter() );
-registration.addInitParameter(name: &quot;allowOrigins&quot;, value: &quot;*.whitedomain.com&quot;);
-registration.addInitParameter(name: &quot;allowMethods&quot;, value: &quot;GET,POST,HEAD&quot;);
-registration.addInitParameter(name: &quot;allowHeaders&quot;, value: &quot;X-Requested-With,Content-Type,Accept,Origin&quot;);
-registration.addUrlPatterns(&quot;/*&quot;);
-registration.setName(&quot;cross-origin&quot;);
-return registration;
-}
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;需要在pom.xml里配置的话:&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&amp;lt;web-app&amp;gt;
-
-    &amp;lt;filter&amp;gt;
-        &amp;lt;filter-name&amp;gt;cross-origin&amp;lt;/filter-name&amp;gt;
-        &amp;lt;filter-class&amp;gt;org.eclipse.jetty.servlets.CrossOriginFilter&amp;lt;/filter-class&amp;gt;
-    &amp;lt;/filter&amp;gt;
-    &amp;lt;filter-mapping&amp;gt;
-        &amp;lt;filter-name&amp;gt;cross-origin&amp;lt;/filter-name&amp;gt;
-        &amp;lt;url-pattern&amp;gt;/*&amp;lt;/url-pattern&amp;gt;
-    &amp;lt;/filter-mapping&amp;gt;
-
-&amp;lt;/web-app&amp;gt;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;当然，如果遇到特殊情况，需要在前端直接配置，nodejs配置举例：&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;// 判断origin是否在域名白名单列表中
-
-function isOriginAllowed(origin, allowedOrigin) {
-
-if (_.isArray(allowedOrigin)) {
-
-for(let i = 0; i &amp;lt; allowedOrigin.length; i++) {
-
-if(isOriginAllowed(origin, allowedOrigin[i])) {
-
-return true;
-
-}
-
-}
-
-return false;
-
-} else if (_.isString(allowedOrigin)) {
-
-return origin === allowedOrigin;
-
-} else if (allowedOrigin instanceof RegExp) {
-
-return allowedOrigin.test(origin);
-
-} else {
-
-return !!allowedOrigin;
-
-}
-
-}
-
-const ALLOW_ORIGIN = [ // 域名白名单
-
-'*.whitedomain.com',
-
-];
-
-app.post('/formdata', function (req, res, next) {
-
-let reqOrigin = req.headers.origin; // request响应头的origin属性
-
-// 判断请求是否在域名白名单内
-
-if(isOriginAllowed(reqOrigin, ALLOW_ORIGIN)) {
-
-// 设置CORS为请求的Origin值
-
-res.header(&quot;Access-Control-Allow-Origin&quot;, reqOrigin);
-
-//个人觉得下面一句根据业务而定，可设定可不设定。
-res.header('Access-Control-Allow-Credentials', 'true');
-
-// 你的业务代码逻辑代码 ...
-
-// ...
-
-} else {
-
-res.send({ code: -2, msg: '非法请求' });
-
-}
-
-});
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;</content><author><name>HellSec</name></author><category term="vuln" /><summary type="html">cors漏洞相信大家已经很熟悉了，一般会用于配合csrf漏洞对用户进行攻击。这里就遇到的一些case，简单讲讲可能漏报误报的点，以及相应的修复方案。</summary></entry><entry><title type="html">浅谈被动漏扫思路</title><link href="http://0.0.0.0:4000/scanner/2019/08/15/axe-scanner-design/" rel="alternate" type="text/html" title="浅谈被动漏扫思路" /><published>2019-08-15T21:13:00+08:00</published><updated>2019-08-15T21:13:00+08:00</updated><id>http://0.0.0.0:4000/scanner/2019/08/15/axe-scanner-design</id><content type="html" xml:base="http://0.0.0.0:4000/scanner/2019/08/15/axe-scanner-design/">&lt;p&gt;
-	&lt;span style=&quot;color:#DAA520;&quot;&gt;&lt;strong&gt;本文中的规则分析，大部分来自于以前被动漏扫研发的实践，以后会再接触更多业务后，会继续进行更新。其中如有纰漏或者差错，希望诸位给出修正意见。
-&lt;/strong&gt;&lt;/span&gt;
-&lt;/p&gt;
-
-&lt;h3 id=&quot;sql注入&quot;&gt;SQL注入&lt;/h3&gt;
-&lt;p&gt;对于SQLI注入，可以使用sqlmapapi进行检测。&lt;/p&gt;
-
-&lt;p&gt;优点在于，对于一些带回显和延时注入，企业内部检测没有waf拦截，会较为准确的定位。&lt;/p&gt;
-
-&lt;p&gt;缺点在于，对于这类检测，由于属于大规模扫描，一般会采用level和risk为初级的检测。当注入所需条件比较苛刻时，可能会覆盖不全，造成遗漏。&lt;/p&gt;
-
-&lt;h3 id=&quot;xss&quot;&gt;XSS&lt;/h3&gt;
-&lt;p&gt;对于XSS的检测的话，已经解决的有两个点，是针对反射性XSS和DOM型XSS的检测。&lt;/p&gt;
-
-&lt;p&gt;以前对awvs一类的扫描器做过调研，通常是用变形的常用的payload去fuzz，检测效率是比较低的，也容易被拦截。&lt;/p&gt;
-
-&lt;p&gt;针对反射性XSS（包含POST型存储XSS），采用的是检测部分特殊字符，两两成对，如果未曾过滤再去借助专门的XSS扫描器进行扫描，可尝试的字符如下：&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;'
-&quot;
-&amp;lt; 
-&amp;gt; 
-/
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;其实还可以做二次复检，加入敏感html标签再次尝试。这样检测成本提高不多，但会更准确一些。&lt;/p&gt;
-
-&lt;p&gt;对于DOM型XSS检测，提供有两种方案：&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;采用守护进程的方式去利用headless浏览器来hook渲染，从而检测出漏洞。
-不过这种耗时比较长，有时候也因为浏览器渲染失败，以及同时发包量过大，导致内存崩溃漏掉部分漏洞。&lt;/li&gt;
-  &lt;li&gt;采用类phamtomjs的引擎，直接增改数据包参数，像检测反射性XSS那样加入特殊字符，通过Ajax方式发送数据包，挨个去检测对比返回值。&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;针对存储型XSS，主要存在一个痛点，返回的页面不一定是输出XSS的点，那我们应该怎么办呢？&lt;/p&gt;
-
-&lt;p&gt;个人有个想法，我们可以通过数据库临时表记录下每个打了暗桩的post数据包，通过md5生成的是随机的值，我们可以采用这两种写法：&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;A = payload+定位符+md5
-B = 特殊字符+定位符+md5
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;然后在抓到的后续访问数据包中，如果response含有完整的A或者B，我们可以通过标记去寻找回溯存储型XSS的源头。&lt;/p&gt;
-
-&lt;p&gt;但有人可能会说了，你这随意下暗桩，搞得满站都是垃圾数据怎么办？&lt;/p&gt;
-
-&lt;p&gt;以前笔者就遇到过几次众测，个别人坏了规矩，登录后拿着扫描器一顿扫，搞得每个页面都在弹窗。&lt;/p&gt;
-
-&lt;p&gt;当然这个问题sqlmap等工具也是存在的，但这跟工具本身没关系，是设计和用途的问题。&lt;/p&gt;
-
-&lt;p&gt;这就需要业务扫描平台去做去重规则和黑名单限制了。&lt;/p&gt;
-
-&lt;h3 id=&quot;越权漏洞&quot;&gt;越权漏洞&lt;/h3&gt;
-
-&lt;p&gt;越权漏洞本身是不太好全自动化检测的，但我们可以做一些半自动化的工作，比如：&lt;/p&gt;
-&lt;ul&gt;
-  &lt;li&gt;配置多组关键参数对，交替去替换原request中的参数对，看是否会有关键的差异response返回。&lt;/li&gt;
-  &lt;li&gt;采用混淆过的或者置空的cookie，看看返回数据是否与原response相同。&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h3 id=&quot;敏感文件泄露&quot;&gt;敏感文件泄露&lt;/h3&gt;
-
-&lt;p&gt;在web目录可能会存在敏感配置文件或者临时文件，我们需要去通过黑盒探测，做好防治工作。&lt;/p&gt;
-
-&lt;p&gt;我们可以采用关键词命中、状态码命中、header命中等方式，多维度进行判断和探测，正确率会相对较高。&lt;/p&gt;
-
-&lt;p&gt;目前已经有部分开源扫描器采用了这种方式，可以直接调用或者模拟使用它们的规则。&lt;/p&gt;
-
-&lt;h3 id=&quot;命令执行漏洞&quot;&gt;命令执行漏洞&lt;/h3&gt;
-
-&lt;p&gt;命令执行的判定主要是通过以下几种方式：&lt;/p&gt;
-&lt;ul&gt;
-  &lt;li&gt;通过回显，直接判断有没有读取到文件。&lt;/li&gt;
-  &lt;li&gt;通过dns服务器，判断有无读取到漏洞主机的请求。&lt;/li&gt;
-  &lt;li&gt;通过server反馈时差，判断是否执行了sleep。&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;但是一般命令执行会有一定的过滤和其他限制，我们需要通过拼接和替换参数值的方式，去构造执行命令的语句，这时候我们就需要用payload去fuzz了。&lt;/p&gt;
-
-&lt;h3 id=&quot;敏感信息泄露&quot;&gt;敏感信息泄露&lt;/h3&gt;
-
-&lt;p&gt;对于敏感信息检测，可以通过关键词进行定位，方式主要有以下几种：&lt;/p&gt;
-&lt;ul&gt;
-  &lt;li&gt;配置信息&lt;/li&gt;
-  &lt;li&gt;日志信息&lt;/li&gt;
-  &lt;li&gt;敏感api和路径&lt;/li&gt;
-  &lt;li&gt;cookie/token/明文密码/手机号等&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h3 id=&quot;crlf-注入&quot;&gt;CRLF 注入&lt;/h3&gt;
-
-&lt;p&gt;检测是否成功注入header，这里有两个点需要注意：&lt;/p&gt;
-&lt;ul&gt;
-  &lt;li&gt;不建议使用敏感的头部参数，可以生造一个set-header键值对，也方便检测。&lt;/li&gt;
-  &lt;li&gt;返回码需要为30x。&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;payload：
-%0aset-header：ceshi;%0a
-
-关键词：
-ceshi
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;h3 id=&quot;ssti-注入&quot;&gt;SSTI 注入&lt;/h3&gt;
-
-&lt;p&gt;我们可以通过对response中的回显进行关键词匹配：&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;$\{\{11 * 11\}\}
-
-121
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;h3 id=&quot;ssi-注入&quot;&gt;SSI 注入&lt;/h3&gt;
-
-&lt;p&gt;检测方式类似于命令执行漏洞，采用替换参数值的方式，换取回显关键词和dns请求匹配。&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&amp;lt;!--#exec cmd=&quot;cat /etc/passwd&quot;--&amp;gt;
-root
-
-&amp;lt;!--#exec cmd=&quot;type c:\windows\win.ini&quot;--&amp;gt;
-[extensions]
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;h3 id=&quot;cors漏洞&quot;&gt;CORS漏洞&lt;/h3&gt;
-
-&lt;p&gt;cors漏洞检测主要通过response中的header关键词，进行相应的定位匹配：&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;Origin: http://www.baidu.com
-
-Access-Control-Allow-Origin: http://www.baidu.com
-Access-Control-Allow-Origin: *
-Access-Control-Allow-Credentials: true
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;h3 id=&quot;jsonp漏洞检测&quot;&gt;JSONP漏洞检测&lt;/h3&gt;
-
-&lt;p&gt;jsonp漏洞需要依靠callback，利用场景简单提一下：&lt;/p&gt;
-
-&lt;p&gt;在响应中回调函数被硬编码：&lt;/p&gt;
-&lt;ul&gt;
-  &lt;li&gt;基础函数调用&lt;/li&gt;
-  &lt;li&gt;对象方法调用&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;动态调用回调函数：&lt;/p&gt;
-&lt;ul&gt;
-  &lt;li&gt;URL完全可控（GET变量）&lt;/li&gt;
-  &lt;li&gt;URL部分可控（GET变量），但是附加有一个数字&lt;/li&gt;
-  &lt;li&gt;URL可控，但最初不会显示在请求之中&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;那我们的检测方法可以这么做，先判断header是否存在：&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;Content-Type: application/json
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;再通过关键词定位json数据中，是否含有敏感数据。&lt;/p&gt;
-
-&lt;h3 id=&quot;websocket劫持检测&quot;&gt;WEBSOCKET劫持检测&lt;/h3&gt;
-
-&lt;p&gt;对于该漏洞，我们需要先检测header中是否含有Sec-WebSocket-Accept字段。&lt;/p&gt;
-
-&lt;p&gt;可以把Origin: https://www.baidu.com修改Origin: http://www.evil.com，若看到服务器端response status返回了 101，可以判定有漏洞。&lt;/p&gt;
-
-&lt;h3 id=&quot;url跳转漏洞&quot;&gt;URL跳转漏洞&lt;/h3&gt;
-
-&lt;p&gt;首先我们需要检测是否存在任意跳转漏洞，替换参数值为下面的内容：&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;www.evil.com
-@www.evil.com
-\www.evil.com
-\.www.evil.com
-#www.evil.com
-www.evil.com?vulnweb.cn
-http://www.evil.com
-http://www.evil.com?vulnweb.cn
-evil.com
-http://evil.com
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;然后，首先我们可以检测状态码为30x的response数据包里，是否Location解析出的域名为evil.com，亦或是定位evil.com特有可控的关键词。&lt;/p&gt;
-
-&lt;p&gt;其次，某些返回包可以能会通过中转页面，借助js进行跳转。&lt;/p&gt;
-
-&lt;p&gt;这时，我们可以选择去页面检测meta-refresh标签，以及检测以下标签：&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;第1种：
-&amp;lt;script language=&quot;javascript&quot; type=&quot;text/javascript&quot;&amp;gt;
-　　window.location.href=&quot;login.jsp?backurl=&quot;+window.location.href;
-　　&amp;lt;/script&amp;gt;
-第2种：
-&amp;lt;script language=&quot;javascript&quot;&amp;gt;
-　　alert(&quot;返回&quot;);
-　　window.history.back(-1);
-　　&amp;lt;/script&amp;gt;
-第3种：
-&amp;lt;script language=&quot;javascript&quot;&amp;gt;
-　　window.navigate(&quot;top.jsp&quot;);
-　　&amp;lt;/script&amp;gt;
-第4种：
-&amp;lt;script language=&quot;JavaScript&quot;&amp;gt;
-　　self.location=’top.htm’;
-　　&amp;lt;/script&amp;gt;
-第5种：
-&amp;lt;script language=&quot;javascript&quot;&amp;gt;
-　　alert(&quot;非法访问！&quot;);
-　　top.location=’xx.jsp’;
-　　&amp;lt;/script&amp;gt;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;再者，我们可以采用更耗资源的暴力做法，直接用headless浏览器去发包，看是否落地域名是否为evil.com。&lt;/p&gt;
-
-&lt;h3 id=&quot;文件读取漏洞lfi和rfi&quot;&gt;文件读取漏洞（LFI和RFI）&lt;/h3&gt;
-
-&lt;p&gt;如果我们需要检测是否存在LFI，替换参数值对为下面的内容：&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;追加：
-../../../../../../../../../../../etc/passwd
-%c0%ae%c0%ae/%c0%ae%c0%ae/%c0%ae%c0%ae/%c0%ae%c0%ae/%c0%ae%c0%ae/%c0%ae%c0%ae/%c0%ae%c0%ae/%c0%ae%c0%ae/%c0%ae%c0%ae/%c0%ae%c0%ae/etc/passwd
-../../../../../../../../../../windows/win.ini
-
-替换：
-c:\windows\win.ini
-/etc/passwd
-
-匹配关键词：
-root
-[extensions]
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-&lt;p&gt;至于RFI在放在下面一起讲。&lt;/p&gt;
-
-&lt;h3 id=&quot;ssrf漏洞&quot;&gt;SSRF漏洞&lt;/h3&gt;
-
-&lt;p&gt;本漏洞可以可以跟RFI采用类似的检测办法，采用DNS服务器来读取请求。&lt;/p&gt;
-
-&lt;p&gt;这里提一下，如果是内网搭建DNS服务器，我们可以规避不能外联和内网IP限制的问题，能更精确的去进行检测。&lt;/p&gt;
-
-&lt;p&gt;检测关键词如下：&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;http://vuln.evil.com/index.jsp
-http://127.0.0.1/index.jsp
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;发包之后，如果存在漏洞，可以去DNS服务接口去读取到匹配vuln.evil.com（内网DNS服务器为evil.com）的结果；
-又或是读取到的内容，是否已经匹配到index.jsp里的动态脚本标签。&lt;/p&gt;
-
-&lt;h3 id=&quot;文件下载漏洞&quot;&gt;文件下载漏洞&lt;/h3&gt;
-
-&lt;p&gt;这里用的payload是文件读取漏洞的那套，但是定位的返回关键词不同，我们可以定位response里的header：&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;Content-Type:application/octet-stream
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;h3 id=&quot;xxe漏洞&quot;&gt;XXE漏洞&lt;/h3&gt;
-
-&lt;p&gt;检测xxe漏洞的时候，有两种情况可以尝试fuzz。&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;post参数值里含有xml标签时，这种情况可能需要把xxe payload编码发送。&lt;/li&gt;
-  &lt;li&gt;直接post了整个xml区块到server端，这种情况可以直接将整块xml区块，替换为xxe payload。&lt;/li&gt;
-  &lt;li&gt;整块的xml标签就不写出来了，这里给出附加的payload对,，同样是关键词+DNS服务监听：&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;payload:
-file:///etc/passwd
-file:///c:/windows/win.ini
-http://xxx.evil.com
-
-匹配关键词：
-root
-[extensions]
-以及dns监听请求evil.com
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;h3 id=&quot;上传漏洞&quot;&gt;上传漏洞&lt;/h3&gt;
-
-&lt;p&gt;上传漏洞的可操作的地方比较多，目前公布出的payload中，暂时还没有能完全囊括所有hack点，下面我们会以java为例简单讲讲。&lt;/p&gt;
-
-&lt;h4 id=&quot;后缀&quot;&gt;后缀&lt;/h4&gt;
-&lt;p&gt;在对java应用后缀绕过的时候，我们可以尝试对下面这些后缀进行fuzz：&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;jjspsp
-jspx
-jspa
-jtml
-jsw
-jsv
-jspf
-jsp
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;h4 id=&quot;冗余绕过&quot;&gt;冗余绕过&lt;/h4&gt;
-&lt;p&gt;有些地方，我们进行了hack，但是却不影响数据包发送，比如：&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;Content-Disposition: form-data; name=&quot;myfile&quot;;;; filename=&quot;t3.jsp&quot;
-
-Content-Disposition2: form-data; name=&quot;Upload&quot;; filename=&quot;1.jsp&quot;
-
-合成一行：
-Content‐Disposition: form-data; name=&quot;img_crop_file&quot;; filename=&quot;1.jsp&quot;Content-Type: image/jpeg
-
-Content‐Disposition: form‐data; name=&quot;up_picture&quot;; filename=&quot;xss.js
-p&quot;
-
-boundary后面加空格：
-Content-Type: multipart/form-data; boundary= —————————47146314211411730218525550
-
-Content-Disposition: form-data; filename=&quot;xx.jsp&quot;; name=&quot;up_picture&quot;
-
-Content-Disposition: form-data; name=&quot;file_x&quot;; filename=&quot;test.jpg&quot;; filename=&quot;test.jsp&quot;
-
-Content-Disposition: form-data; name=&quot;Fhq&quot;; test=&quot;5W个字符&quot;; filename=&quot;test.jsp&quot;
-
-多个Content-Disposition可以用来绕过waf，一般server默认取的是第一个，但研究范围没有覆盖全java web server，有待验证。
-
-绕过文件类型的验证：
-Content-Type: image/jpeg
-
-或者直接删除文件类型的验证：
-Content-Type: xxxxx
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;检测上传文件有一个痛点，那就是不好自动化定位上传点。&lt;/p&gt;
-
-&lt;p&gt;对于&lt;strong&gt;有回显的情况&lt;/strong&gt;，暂时有以下的解决办法：&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;
-    &lt;p&gt;利用标签正则，手工定位返回的上传点，这种方法对于大规模扫描时不适用。&lt;/p&gt;
-  &lt;/li&gt;
-  &lt;li&gt;
-    &lt;p&gt;寻找同一批response包里带有shell后缀的路径，做好web url拼接，暂存后利用shell标识去挨个判断，是否上传成功shell。&lt;/p&gt;
-  &lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;对于&lt;strong&gt;无回显的情况&lt;/strong&gt;下：&lt;/p&gt;
-
-&lt;p&gt;如果黑盒测试，只能根据常用上传目录去爆破shell文件名，以获取到shell标识为成功。&lt;/p&gt;
-
-&lt;p&gt;否则的话，需要结合白盒定位，手动配置好路径，估算生成的文件名，去进行黑盒探测。&lt;/p&gt;</content><author><name>HellSec</name></author><category term="scanner" /><summary type="html">本文中的规则分析，大部分来自于以前被动漏扫研发的实践，以后会再接触更多业务后，会继续进行更新。其中如有纰漏或者差错，希望诸位给出修正意见。</summary></entry><entry><title type="html">Git监控小议</title><link href="http://0.0.0.0:4000/operation/2019/07/28/sec-git-monitor/" rel="alternate" type="text/html" title="Git监控小议" /><published>2019-07-28T18:00:00+08:00</published><updated>2019-07-28T18:00:00+08:00</updated><id>http://0.0.0.0:4000/operation/2019/07/28/sec-git-monitor</id><content type="html" xml:base="http://0.0.0.0:4000/operation/2019/07/28/sec-git-monitor/">&lt;p&gt;
-	&lt;span style=&quot;color:#00B050;&quot;&gt;&lt;strong&gt;笔者原来在涉猎git监控产品时，就只做了敏感关键词监控。后来在工作中逐渐发现，对于一般量级的企业单位，其实复合型的监控平台更符合这类企业的需求。&lt;/strong&gt;&lt;/span&gt;
-&lt;/p&gt;
-
-&lt;p&gt;那么，对于git方面的监控，我们应该做些什么呢？&lt;/p&gt;
-
-&lt;h3 id=&quot;复合型监控&quot;&gt;复合型监控&lt;/h3&gt;
-
-&lt;h4 id=&quot;敏感关键词监控&quot;&gt;敏感关键词监控&lt;/h4&gt;
-
-&lt;p&gt;对于类github监控，敏感关键词监控是基础，目前主要监控点有以下几种：&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;敏感email地址
-敏感多级子域名
-ssh key
-物理机key
-云平台key
-硬编码的pwd
-关键域名+敏感路径+敏感key的拼接
-（比如https://xxx/host/{ip}?key={YOUR_API_KEY}）
-组织单位标识
-关键数据库名、表格名、字段名、连接字符串
-vpn配置字符串
-smtp配置字符串
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;大部分类github平台，查询应该是需要登录的，这里以github举个例子。&lt;/p&gt;
-
-&lt;p&gt;我们可以用session认证，不过只有前100页的查询限制。&lt;/p&gt;
-
-&lt;p&gt;当然，大家也可以用key+api接口，个人没采用过这个接口，据说默认搜索前5000个项目。&lt;/p&gt;
-
-&lt;p&gt;所以利用好语法是很重要的，我们要精确地对需要监控的关键词，进行综合定位：&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;搜索路径中有nsa的代码或者文件中有nsa的代码
-nsa in:file,path
-
-搜索用php写的包含userid的代码,文件名为flag，扩展名为txt
-userid language:php filename:flag extension:txt
-
-匹配关键字nsa且搜索大小为100字节的xml代码
-nsa language:xml size:100
-
-搜索conf目录下包含pass的xml代码
-pass path:conf language:xml
-
-除去名为normal_name的repo
--repo:normal_name
-
-搜索star大于20，20&amp;lt;fork&amp;lt;30的项目
-stars: &amp;gt;20 fork: 20..30
-
-
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-&lt;p&gt;另外，类github平台如果做了查询限制，可以考虑采用以下几点去绕过：&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;IP池
-多账号轮询
-UA池
-降频处理
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;h4 id=&quot;安全监控&quot;&gt;安全监控&lt;/h4&gt;
-
-&lt;p&gt;在大一点的企业平台，做项目管控时，会接入gitlab或者类github平台的私有项目。&lt;/p&gt;
-
-&lt;p&gt;那么，如果要坚持精简的原则，我们需要完成哪些基础点呢？&lt;/p&gt;
-
-&lt;p&gt;第一，版本监控
-每次漏洞大规模爆发时，常常需要去检查下，己方线上环境的组件，是否出于漏洞影响范围之内。&lt;/p&gt;
-
-&lt;p&gt;因此，维护和及时更新IT资产的checklist库，无论是实现的半自动化还是自动化监控，都是有一定积极作用的。&lt;/p&gt;
-
-&lt;p&gt;第二，安全审计
-对于项目本身，我们需要做一些代码安全审计和日常扫描。&lt;/p&gt;
-
-&lt;p&gt;一般在代码上线，以及测试分支代码变更时，在条件允许的情况下，都应该触发自动化安全扫描。&lt;/p&gt;
-
-&lt;p&gt;在CI自动化和日常扫描时，一旦检测到问题，需要发送报告到安全运维人员过审，再决定要不要通告开发人员，去进行整改或者代码回退。&lt;/p&gt;
-
-&lt;p&gt;对于代码本身，可提供配置文件或者接口，供第三方软件，进行安全审计，这里不再多提。&lt;/p&gt;
-
-&lt;h4 id=&quot;舆情监控&quot;&gt;舆情监控&lt;/h4&gt;
-
-&lt;p&gt;现如今类github平台因为某些zz原因，成为了某些有心人撰写博客和放新闻的地方。&lt;/p&gt;
-
-&lt;p&gt;笔者当初做舆情监控接口的时候，也添加了对这类平台的接口支持，效果感觉尚可。&lt;/p&gt;
-
-&lt;h3 id=&quot;平台优化tips&quot;&gt;平台优化Tips&lt;/h3&gt;
-
-&lt;h4 id=&quot;关键词定制&quot;&gt;关键词定制&lt;/h4&gt;
-
-&lt;p&gt;如果我们在开发后期，想要去定制一些关键词咋办？&lt;/p&gt;
-
-&lt;p&gt;存在配置文件的情况下，我们可以做关键词命中。&lt;/p&gt;
-
-&lt;p&gt;一旦触发命中我们自己添加的关键词（不一定是标准搜索语法），也会直接通过微信或者邮件，将结果推送到负责人那里。&lt;/p&gt;
-
-&lt;h4 id=&quot;规则可配置&quot;&gt;规则可配置&lt;/h4&gt;
-
-&lt;p&gt;规则配置可以是多样化的，比如类github平台定期巡检，更新触发扫描，主动扫描检查。&lt;/p&gt;
-
-&lt;p&gt;多少时间没响应，会自动再次触发报警推送，多种方式报送警报消息。&lt;/p&gt;
-
-&lt;p&gt;制定repo或者author白名单，避免更多的误报。&lt;/p&gt;
-
-&lt;p&gt;优化读取的内容，指定显示关键词前后文行数。&lt;/p&gt;
-
-&lt;p&gt;设置关键词权重，避免大量冗余数据掩盖了低频高危数据。&lt;/p&gt;
-
-&lt;h4 id=&quot;污点化&quot;&gt;污点化&lt;/h4&gt;
-
-&lt;p&gt;在为了防止企业git项目被泄露到公网，我们在命名规范时，可以尝试制定编码规范，必须带上容易识别的特征，或者带上关键词。&lt;/p&gt;
-
-&lt;p&gt;这样有个好处，在代码泄露时能及时监控到，但防君子不防小人，内部人员可能会做关键词替换。但这种情况，也可以通过一些特殊技巧去提升保密性。&lt;/p&gt;
-
-&lt;p&gt;另外，白帽子提交速度可能比监控响应更快，这就需要考验规范制定者的素质了。&lt;/p&gt;
-
-&lt;h4 id=&quot;参考文章&quot;&gt;参考文章&lt;/h4&gt;
-
-&lt;p&gt;&lt;a href=&quot;https://www.freebuf.com/articles/web/150638.html&quot;&gt;深入分析一款简单的Github信息泄露爬虫&lt;/a&gt;&lt;/p&gt;
-
-&lt;p&gt;&lt;a href=&quot;https://blog.csdn.net/xpx1995/article/details/79031397&quot;&gt;Github代码高级搜索小技巧&lt;/a&gt;&lt;/p&gt;
-
-&lt;p&gt;&lt;a href=&quot;https://www.freebuf.com/sectool/114017.html&quot;&gt;基于Github的源码白盒扫描工具Raptor&lt;/a&gt;&lt;/p&gt;
-
-&lt;p&gt;&lt;a href=&quot;https://www.freebuf.com/column/178342.html&quot;&gt;Github信息泄露专项&lt;/a&gt;&lt;/p&gt;</content><author><name>HellSec</name></author><category term="operation" /><summary type="html">笔者原来在涉猎git监控产品时，就只做了敏感关键词监控。后来在工作中逐渐发现，对于一般量级的企业单位，其实复合型的监控平台更符合这类企业的需求。</summary></entry></feed>
+&lt;p&gt;&lt;a href=&quot;http://blog.sina.com.cn/s/blog_63041bb80102uy5o.html&quot;&gt;《Python设置函数调用超时》&lt;/a&gt;&lt;/p&gt;</content><author><name>HellSec</name></author><category term="coding" /><summary type="html">以前在使用celery任务时，老是被其超时机制不奏效所困扰，没有一个比较完美的解决方案。前两天琢磨出新的方案，故此借机梳理下过往细节。</summary></entry></feed>
