@@ -1,4 +1,213 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.5.2">Jekyll</generator><link href="http://localhost:4000/atom.xml" rel="self" type="application/atom+xml" /><link href="http://localhost:4000/" rel="alternate" type="text/html" /><updated>2021-02-20T21:30:11+08:00</updated><id>http://localhost:4000/</id><title type="html">HellSec</title><subtitle>原创网络安全博客&lt;-|-&gt;匠心独运，做有深度的良品。</subtitle><author><name>HellSec</name></author><entry><title type="html">被动漏扫系统实践</title><link href="http://localhost:4000/scanner/2021/02/05/axe-scan/" rel="alternate" type="text/html" title="被动漏扫系统实践" /><published>2021-02-05T20:46:00+08:00</published><updated>2021-02-05T20:46:00+08:00</updated><id>http://localhost:4000/scanner/2021/02/05/axe-scan</id><content type="html" xml:base="http://localhost:4000/scanner/2021/02/05/axe-scan/">&lt;p&gt;
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.5.2">Jekyll</generator><link href="http://localhost:4000/atom.xml" rel="self" type="application/atom+xml" /><link href="http://localhost:4000/" rel="alternate" type="text/html" /><updated>2021-03-17T17:04:50+08:00</updated><id>http://localhost:4000/</id><title type="html">HellSec</title><subtitle>原创网络安全博客&lt;-|-&gt;匠心独运，做有深度的良品。</subtitle><author><name>HellSec</name></author><entry><title type="html">业务SDL的上岸体历（一）</title><link href="http://localhost:4000/operation/2021/02/14/sdl-result1/" rel="alternate" type="text/html" title="业务SDL的上岸体历（一）" /><published>2021-02-14T21:46:00+08:00</published><updated>2021-02-14T21:46:00+08:00</updated><id>http://localhost:4000/operation/2021/02/14/sdl-result1</id><content type="html" xml:base="http://localhost:4000/operation/2021/02/14/sdl-result1/">&lt;p&gt;
+	&lt;span style=&quot;color:#DAA520;&quot;&gt;&lt;strong&gt;在甲方做业务SDL的几年，在落地方面也做了不少努力。一是得看着业务大爷们的脸色，二是得假装硬气的扮猪吃老虎，一路走来可谓是一把辛酸泪。&lt;/strong&gt;&lt;/span&gt;
+&lt;/p&gt;
+&lt;p&gt;系列文章，针对业务安全的从0-1的介绍，从小团队到大团队的风格转变，&lt;/p&gt;
+
+&lt;p&gt;闲话不多扯，我们团队在SDL方向，针对公司现状进行了多个维度的治理。&lt;/p&gt;
+
+&lt;p&gt;在本文笔者会根据过往的治理工作，在业务建设从0到1进行剖析，给大家落地经验的参考。&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;https://gitee.com/hellsec/ppp/raw/master/2020-12-7/1607328853415-SDLGO.png&quot; alt=&quot;SDL建设落地&quot; /&gt;&lt;/p&gt;
+
+&lt;h3 id=&quot;基础审计运营&quot;&gt;基础审计运营&lt;/h3&gt;
+
+&lt;p&gt;在安全建设初期，我们会着重针对事前、事中、事后为单位，进行安全审计运营。&lt;/p&gt;
+
+&lt;h4 id=&quot;事前审计&quot;&gt;&lt;em&gt;事前审计&lt;/em&gt;&lt;/h4&gt;
+
+&lt;p&gt;在事前的维度，我们会以域名和服务Key为单位，对前后端的资产进行梳理，嵌入SOC进行运营管理，并进行安全审计流程闭环。&lt;/p&gt;
+
+&lt;p&gt;在项目上线前，我们会对提测前的代码进行人工Review，进行安全合规的风险评估。&lt;/p&gt;
+
+&lt;p&gt;对于安全检查大致包括：&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;OWASP TOP 10&lt;/li&gt;
+  &lt;li&gt;OWASP API Security TOP 10&lt;/li&gt;
+  &lt;li&gt;常见的逻辑漏洞&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;此外，我们还会根据研发同学的习惯，制定相关核查制度，进行重点检查，提升检察效率。&lt;/p&gt;
+
+&lt;p&gt;对于数据合规会重点检查：&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;数据接口是否脱敏&lt;/li&gt;
+  &lt;li&gt;数据存储是否加密&lt;/li&gt;
+  &lt;li&gt;传输是否加密&lt;/li&gt;
+  &lt;li&gt;数据关联性是否解耦&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;还有部分没有全部例举出来，会严格的按照合规白皮书的标准来实施。&lt;/p&gt;
+
+&lt;p&gt;在审计完毕后，会在SOC平台进行数据留存，发工单向业务同学督促修复。&lt;/p&gt;
+
+&lt;p&gt;如果出现了延期，系统工单会进行逐级递进，通知其上级，直到业务方响应闭环为止。&lt;/p&gt;
+
+&lt;p&gt;虽然这些制度可能比较难推行，但确实是非常有必要的，这需要自上而下的认可才能完成。&lt;/p&gt;
+
+&lt;p&gt;只有把代码安全的指标，像代码质量考核那样，加入业务研发同学的KPI之中，才能真正引起大家对安全的重视。&lt;/p&gt;
+
+&lt;h4 id=&quot;事中监督&quot;&gt;&lt;em&gt;事中监督&lt;/em&gt;&lt;/h4&gt;
+
+&lt;p&gt;在每个项目的大型迭代时，我们也会进行人工安全审计。&lt;/p&gt;
+
+&lt;p&gt;除了针对迭代出现的安全问题以外，主要还会检查部分误添加的线上测试数据，以及研发同学无意中进行的硬编码、弱口令配置、敏感数据打印等等。&lt;/p&gt;
+
+&lt;p&gt;由于当时工具比较原始，除了借助半自动化的代码审计工具（如IDE、Fortify）以外，也会读取第三方设备收集入库的日志，自行写脚本筛选核查。&lt;/p&gt;
+
+&lt;p&gt;当然这些工作，后面也逐步被接入CICD流水线的自动化平台所替代。&lt;/p&gt;
+
+&lt;h4 id=&quot;事后管控&quot;&gt;&lt;em&gt;事后管控&lt;/em&gt;&lt;/h4&gt;
+
+&lt;p&gt;在各个系统正常运营期间，我们需要做的是借助各种安全入侵防护产品（自研or商采），譬如IDS、WAF、RASP之类的进行纵深体系检测，再借助风控与法务部门的力量，对出现的风险事件进行溯源和应急响应。&lt;/p&gt;
+
+&lt;p&gt;为啥这里说的是纵深检测而不是纵深防御，其实是早期在使用安全产品的时候，更多的需要去借助人工去复核，没有很好的进行产品联动。&lt;/p&gt;
+
+&lt;p&gt;当然大家可能觉得是因为没有采购同一家产品，造成了兼容性缺失的问题，才会导致工作量指数级别上升。&lt;/p&gt;
+
+&lt;p&gt;其实笔者觉得这块儿的工作，无论是厂商本身来做，还是依靠团队人工对信息流进行补齐，都是相对次要的。&lt;/p&gt;
+
+&lt;p&gt;更关键的点在于，是我们需要优化好安全运营规则，让更严重的事务和更优先的级别，及早的被我们感知到并进行应急处理，而不是淹没在海量告警和镭射动态展示大盘之中。&lt;/p&gt;
+
+&lt;h3 id=&quot;自动化能力建设&quot;&gt;自动化能力建设&lt;/h3&gt;
+
+&lt;p&gt;在这个阶段，我们投入了更多的精力去建设团队的安全自动化能力，以求解放人力去搞研究工作。&lt;/p&gt;
+
+&lt;p&gt;在此期间，我们针对性的对缺失的安全能力，对标业内互联网企业的标杆进行剖析，发现主要有几个点是亟待改善的。&lt;/p&gt;
+
+&lt;h4 id=&quot;黑盒安全能力&quot;&gt;&lt;em&gt;黑盒安全能力&lt;/em&gt;&lt;/h4&gt;
+
+&lt;p&gt;我们利用线下测试环境和镜像流量，重点建设了主被动扫描器（DAST），其中包含黑盒漏扫和基线核查平台；同时，也针对交互式扫描（IAST）能力进行强化，对代码执行进行污点插桩和编号，监控系统的输出和落地执行结果，方便向源头进行追溯。&lt;/p&gt;
+
+&lt;h4 id=&quot;白盒安全能力&quot;&gt;&lt;em&gt;白盒安全能力&lt;/em&gt;&lt;/h4&gt;
+
+&lt;p&gt;针对白盒扫描（SAST），我们接入了多个扫描引擎。除了质量CICD流水线平台自带了安全插件进行优化外，还对商业化的白盒安全产品进行了外采接入；除此之外，自研的引擎里，还加入了针对Git平台的关键词和配置、组件版本依赖检查（支持分支），保障在接入流水线后，能尽可能完整的覆盖到所有代码的检查。&lt;/p&gt;
+
+&lt;h4 id=&quot;数据合规检查&quot;&gt;&lt;em&gt;数据合规检查&lt;/em&gt;&lt;/h4&gt;
+
+&lt;p&gt;针对这块儿，我们着重对数据库里存储敏感数据字段进行核查，也结合XIDS对流量里包含的敏感数据进行了监控。&lt;/p&gt;
+
+&lt;p&gt;同时，我们还结合DLP监管的记录，以及对明暗水印机制的设计，对数据外泄事件起到了一定的防控作用。&lt;/p&gt;
+
+&lt;h4 id=&quot;安全sdk治理&quot;&gt;&lt;em&gt;安全SDK治理&lt;/em&gt;&lt;/h4&gt;
+
+&lt;p&gt;每个公司的技术栈是不同的，所以针对内部应用最多的技术栈代码，针对性的开发安全SDK也显得比较重要。&lt;/p&gt;
+
+&lt;p&gt;除了本身对研发团队提出安全编码制度以外，我们还对研发团队提供了安全SDK，也提供了IDE安全检查插件，通过微侵入式的方法，在一定程度上保障了代码的安全。&lt;/p&gt;
+
+&lt;p&gt;当然，这样产出的代码，可能在交付给第三方合作厂商时，会单独进行脱敏分支开发，在一定程度上会提升成本。但考虑到这方面的业务量不多，还是合算的。&lt;/p&gt;
+
+&lt;h3 id=&quot;风险链路治理&quot;&gt;风险链路治理&lt;/h3&gt;
+
+&lt;p&gt;在SDL建设到了这个阶段，我们已经有了一定的安全自动化能力，那么如何去实现突破呢？&lt;/p&gt;
+
+&lt;p&gt;在梳理业务链路中的风险后，我们开始针对威胁进行建模，从体系架构上自上而下进行治理。&lt;/p&gt;
+
+&lt;p&gt;其中，我们重点关注了IPDRR和STRIDE模型，并辅以DREAD模型进行威胁评级，针对原有安全能力的缺失进行优化联动，也对现有的安全风险点进行收敛治理。&lt;/p&gt;
+
+&lt;p&gt;从不同的业务场景，以及不同的数据流程，分别对风险定制了削减措施，分配人力形成项目组，推进治理优化工作。&lt;/p&gt;
+
+&lt;p&gt;具体的风险链路大盘，这里由于内容敏感不方便直接发出来，我们就简单谈谈重点项目的建设工作。&lt;/p&gt;
+
+&lt;h4 id=&quot;资产库的收敛&quot;&gt;&lt;em&gt;资产库的收敛&lt;/em&gt;&lt;/h4&gt;
+
+&lt;p&gt;在原先的工作中，我们自己的资产库更多的会去依赖于运维部门的注册信息，然后我们内部通过扫描器进行的资产补充。&lt;/p&gt;
+
+&lt;p&gt;后来发现这样做有个问题，我们在针对细粒度的资产标签，譬如新增端口、机器所属域、服务类型列表、迭代接口等等，无法及时的掌控，这样对我们的纵深体系的监测是不利的。&lt;/p&gt;
+
+&lt;p&gt;所以在我们着重进行了这方面能力的补充，通过被动监控流量，以及主动对代码AST树进行梳理的方式，对复杂的调用进行网状关系绘制，以及对标签关联的资产进行聚类。&lt;/p&gt;
+
+&lt;p&gt;这样，在出现问题后，我们也能很快的进行阻断和溯源定位。&lt;/p&gt;
+
+&lt;h4 id=&quot;内部巡检&quot;&gt;&lt;em&gt;内部巡检&lt;/em&gt;&lt;/h4&gt;
+
+&lt;p&gt;针对内部的一些通用型漏洞，由于信息关联度问题，我们在原来的工作中没有很好的进行横向打通。&lt;/p&gt;
+
+&lt;p&gt;在不断加强内部对于0day、1day的识别能力后，我们能更好的去识别入侵事件。&lt;/p&gt;
+
+&lt;p&gt;在后面的SOC运营平台的建设工作中，会针对漏洞元素进行细粒度的手动标签，也支持了自动化识别，加强了针对资产的测试环境和边界环境，及时进行横向巡检，将风险扼杀于摇篮之中。&lt;/p&gt;
+
+&lt;h4 id=&quot;边界治理&quot;&gt;&lt;em&gt;边界治理&lt;/em&gt;&lt;/h4&gt;
+
+&lt;p&gt;在针对诸多风险进行治理时，必不可少的需要考虑到对边界安全进行收敛。&lt;/p&gt;
+
+&lt;p&gt;在这方面的工作中，我们可以考虑做以下的工作：&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;针对出入的流量进行重点核查&lt;/li&gt;
+  &lt;li&gt;对开放的外网服务进行一键式深度防护&lt;/li&gt;
+  &lt;li&gt;启用备份机制，随时对出现漏洞升级故障的边界服务进行替换&lt;/li&gt;
+  &lt;li&gt;对边界资产进行即时扫描防控&lt;/li&gt;
+  &lt;li&gt;自动化核查应该把边界的优先级提升到最高&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;我们前面对于资产库的优化工作，也是能为边界安全的治理提供效能的。&lt;/p&gt;
+
+&lt;h4 id=&quot;接口人制度&quot;&gt;&lt;em&gt;接口人制度&lt;/em&gt;&lt;/h4&gt;
+
+&lt;p&gt;我们原来的业务方接口人，都是资产定位到项目组为止。&lt;/p&gt;
+
+&lt;p&gt;这样的话，很难在具体风险发生时，最快速度联系到个体接洽解决，在推进修复的过程中也很容易扯皮。&lt;/p&gt;
+
+&lt;p&gt;所以后来我们采用了业务方接口注册制度，让业务方主动去做项目归属个体和人员backup的填写，并且结合内部的人力资源存留的注册信息，定期向业务方确认项目变动情况。&lt;/p&gt;
+
+&lt;p&gt;总之，我们需要保障在项目存活的安全生命周期中，实现人员响应可控、权限周期可控、人员备用可控。&lt;/p&gt;
+
+&lt;h4 id=&quot;第三方合作建设&quot;&gt;&lt;em&gt;第三方合作建设&lt;/em&gt;&lt;/h4&gt;
+
+&lt;p&gt;在第三方合作体系的建设过程中，我们也参照业内的情况，做了不少工作。&lt;/p&gt;
+
+&lt;p&gt;在这方面的治理上，虽然有不少标准可以参考，但并没有统一的方案。&lt;/p&gt;
+
+&lt;p&gt;其中需要治理的内容有：&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;第三方合作商的业务&lt;/li&gt;
+  &lt;li&gt;第三方SDK的引入核查&lt;/li&gt;
+  &lt;li&gt;第三方流量接入时的监控前置&lt;/li&gt;
+  &lt;li&gt;第三方账号监控的核查&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;这些东西太多，只能稍微例举几项。真正想要做好，需要对各业务线的情况进行深入了解，结合企业自身的情况进行定制。&lt;/p&gt;
+
+&lt;p&gt;同时，这也是外部审计公司很难在短时间内给出完整方案的，需要内部的安全人员去做更多的探索。&lt;/p&gt;
+
+&lt;p&gt;后面的话，针对这块儿可能会单独提出来跟大家聊聊，讨论下有哪些通用的解决方案。&lt;/p&gt;
+
+&lt;h3 id=&quot;指标订立和回归&quot;&gt;指标订立和回归&lt;/h3&gt;
+
+&lt;p&gt;在针对SDL实现流程化管理，对治理成果进行验收时，我们需要重点注意的是，得对前期订立的指标做验证回归。&lt;/p&gt;
+
+&lt;p&gt;这些无论是在安全工作的KPI中体现，还是向业务方进行成果透明化展示，都是有意义的。&lt;/p&gt;
+
+&lt;p&gt;这里举例几个方面，给大家参考下指标订立的原则：&lt;/p&gt;
+
+&lt;h4 id=&quot;风险收敛&quot;&gt;&lt;em&gt;风险收敛&lt;/em&gt;&lt;/h4&gt;
+
+&lt;p&gt;我们针对需要重要防控的项目，在风险收敛比例和收敛耗时方面，是需要订立一定的指标的。&lt;/p&gt;
+
+&lt;p&gt;如果在这期间发生了安全风险引起的资损事件，会侧重考核我们是否做出了合适的应对措施，针对资损事件进行弥补和挽回。&lt;/p&gt;
+
+&lt;h4 id=&quot;漏洞回归&quot;&gt;&lt;em&gt;漏洞回归&lt;/em&gt;&lt;/h4&gt;
+
+&lt;p&gt;对于漏洞指标订立，我们会针对高危漏洞的数量、漏洞类型趋势进行统计。&lt;/p&gt;
+
+&lt;p&gt;其中，会区分外部SRC提交和内部发现情况，从不同维度进行趋势计算。&lt;/p&gt;
+
+&lt;p&gt;同时，我们针对黑白盒自动化漏扫的召回率和精确率，也会做同期的月度、季度、年度对比。&lt;/p&gt;
+
+&lt;p&gt;最终，我们也会添加插件数、服务数、接口数等作为变量，从综合层面去判定成果，避免在判定权重方面发生缺失。&lt;/p&gt;
+
+&lt;h4 id=&quot;服务健康&quot;&gt;&lt;em&gt;服务健康&lt;/em&gt;&lt;/h4&gt;
+
+&lt;p&gt;这个有点类似于QA的质量考核指标，如果一个服务经常出现代码风险，经常出现漏洞，通常这个服务的健康评分会比较低。&lt;/p&gt;
+
+&lt;p&gt;这个是针对业务方的，也是对我们治理结果的的反馈之一。&lt;/p&gt;
+
+&lt;p&gt;对于服务安全，我们订立了几个指标，譬如漏洞修复率、安全产品接入率、漏洞反复率、风险发生率、鉴权接入率等等。&lt;/p&gt;
+
+&lt;p&gt;最后，通过单个服务乃至业务线作为基准元素，我们也会反过来对比考核各个业务线安全的质量，从而在更高的维度评价业务安全的产出。&lt;/p&gt;</content><author><name>HellSec</name></author><category term="operation" /><summary type="html">在甲方做业务SDL的几年，在落地方面也做了不少努力。一是得看着业务大爷们的脸色，二是得假装硬气的扮猪吃老虎，一路走来可谓是一把辛酸泪。 系列文章，针对业务安全的从0-1的介绍，从小团队到大团队的风格转变，</summary></entry><entry><title type="html">被动漏扫系统实践</title><link href="http://localhost:4000/scanner/2021/02/05/axe-scan/" rel="alternate" type="text/html" title="被动漏扫系统实践" /><published>2021-02-05T20:46:00+08:00</published><updated>2021-02-05T20:46:00+08:00</updated><id>http://localhost:4000/scanner/2021/02/05/axe-scan</id><content type="html" xml:base="http://localhost:4000/scanner/2021/02/05/axe-scan/">&lt;p&gt;
 	&lt;span style=&quot;color:#00B050;&quot;&gt;&lt;strong&gt;做被动漏扫也有很长一段时间了，期间自用的版本和企业公用的版本，各单独起分支做持续迭代。目前市面上优秀的轮子已经不少，所以这里只简单讲讲企业内部漏扫设计的思路。&lt;/strong&gt;&lt;/span&gt;
 &lt;/p&gt;
 
@@ -1743,139 +1952,4 @@ xdebug.remote_host = &quot;127.0.0.1&quot;
 
 &lt;p&gt;&lt;a href=&quot;https://blog.csdn.net/universee/article/details/74516250&quot;&gt;《PhpStorm和WAMP配置调试参数，问题描述Error. Interpreter is not specified or invalid. Press “Fix” to edit your pro》&lt;/a&gt;&lt;/p&gt;
 
-&lt;p&gt;&lt;a href=&quot;https://www.cnblogs.com/yjken/p/6555438.html&quot;&gt;《phpstorm中配置真正的远程调试(xdebug)》&lt;/a&gt;&lt;/p&gt;</content><author><name>HellSec</name></author><category term="vuln" /><summary type="html">这两天用idea审java比较顺手，顺便也迁移了下php调试环境，从vscode迁移到jetbrains家的phpstorm。以前习惯了纯搜索字符串，通过打印调试，没有动态hook变量看起来比较费劲。迁移过程中遇到一些坑，故此记录一下。</summary></entry><entry><title type="html">celery超时机制小结</title><link href="http://localhost:4000/coding/2019/10/08/celery-timeout-tips/" rel="alternate" type="text/html" title="celery超时机制小结" /><published>2019-10-08T11:35:00+08:00</published><updated>2019-10-08T11:35:00+08:00</updated><id>http://localhost:4000/coding/2019/10/08/celery-timeout-tips</id><content type="html" xml:base="http://localhost:4000/coding/2019/10/08/celery-timeout-tips/">&lt;p&gt;
-	&lt;span style=&quot;color:#DAA520;&quot;&gt;&lt;strong&gt;以前在使用celery任务时，老是被其超时机制不奏效所困扰，没有一个比较完美的解决方案。前两天琢磨出新的方案，故此借机梳理下过往细节。&lt;/strong&gt;&lt;/span&gt;
-&lt;/p&gt;
-
-&lt;h3 id=&quot;自带超时机制&quot;&gt;自带超时机制&lt;/h3&gt;
-
-&lt;p&gt;首先，celery是自带超时机制的，主要分两种：&lt;/p&gt;
-
-&lt;h4 id=&quot;软超时soft_time_limit&quot;&gt;软超时（soft_time_limit）&lt;/h4&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;@celery.task(soft_time_limit=360)
-def soft_time_out_try(args,url_array):
-    pass
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;在这种情况下，就算超时了，也是平滑过渡不会报错，推荐优先考虑。&lt;/p&gt;
-
-&lt;p&gt;但是这种情况有个问题，在该机制下，如果函数中含有容易超时的第三方模块，是可能存在软超时以后，任务继续卡住的情况的。&lt;/p&gt;
-
-&lt;p&gt;笔者在测试时使用的是celery v3，在升级v4后暂时没遇到这种情况。&lt;/p&gt;
-
-&lt;h4 id=&quot;硬超时time_limit&quot;&gt;硬超时（time_limit）&lt;/h4&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;@celery.task(time_limit=40)
-def hard_time_out_try(args,url_array):
-    pass
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-&lt;p&gt;在此情况下，超时阻断效果很给力，基本不会出现卡住的情况下。&lt;/p&gt;
-
-&lt;p&gt;但是这种模式会直接抛出异常，不是特别友好。&lt;/p&gt;
-
-&lt;p&gt;另外，在chord和group之类等聚合链路模式下，如果单个链路超时，会直接导致整体聚合失败，不会得到最终结果，也调用不了callback，比如下面的&lt;strong&gt;chord_return_value&lt;/strong&gt;函数：&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;results = chord( (hard_time_out_try_single.s(path, PASSWORD_DIC, host, port) for port in service_ports for path in plugin_www_paths ), chord_return_value.s(sys._getframe().f_code.co_name , url) )().get()
-
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;h3 id=&quot;自定义超时机制&quot;&gt;自定义超时机制&lt;/h3&gt;
-
-&lt;p&gt;如果celery自带的超时机制不能满足需求，我们可以尝试去构造监控，采用双保险避免模块超时。&lt;/p&gt;
-
-&lt;h4 id=&quot;双保险之软超时优先&quot;&gt;双保险之软超时优先&lt;/h4&gt;
-
-&lt;p&gt;先采用&lt;strong&gt;time_limit&lt;/strong&gt;进行最有效的阻断，再采用&lt;strong&gt;soft_time_limit&lt;/strong&gt;去处理抛出的错误。&lt;/p&gt;
-
-&lt;p&gt;这样的话，&lt;strong&gt;优点&lt;/strong&gt;在于可以比较平滑的过度，适用于chord之类的聚合不会报错，&lt;strong&gt;缺点&lt;/strong&gt;在于会平白增加许多额外的task，会消耗更多人力和机器资源。&lt;/p&gt;
-
-&lt;p&gt;具体案例如下（celery v3有时还是会出问题，celery v4未尝试）：&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;@celery.task(soft_time_limit=120)
-def hard_time_out_try_pre(path, PASSWORD_DIC, host, port):
-    try:
-        result= hard_time_out_try_single.apply_async( args=(path, PASSWORD_DIC, host, port) )
-        while True:
-            if result.ready() or result.status == &quot;Failed&quot;:
-                break
-        r = result.get()
-        return r
-
-    except Exception,e:
-        print e
-        
-@celery.task(time_limit=100)
-def soft_time_out_try(args,url_array):
-    pass
-
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;h4 id=&quot;双保险之硬超时优先&quot;&gt;双保险之硬超时优先&lt;/h4&gt;
-
-&lt;p&gt;跟前面不同，这里优点在于比较保险地杀死超时函数，没有一开始就直接武断的使用time_limit，而带有一定的缓冲效果。&lt;/p&gt;
-
-&lt;p&gt;当然，这里是不太适用于chord之类需要结果聚合的场景。&lt;/p&gt;
-
-&lt;p&gt;简单解释下，TimeLimitExceeded会直接杀掉进程，raise一个TimeLimitExceeded，不能被 task捕捉，所以应该两种方案配合使用，&lt;strong&gt;soft_time_limit&lt;/strong&gt;=小int，&lt;strong&gt;time_limit&lt;/strong&gt;=大int，使用soft试图关闭进程超时就会被干掉。&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;from celery.exceptions import SoftTimeLimitExceeded
-
-@celery.task
-def mytask():
-    try:
-        return time_out_try_single()
-    except SoftTimeLimitExceeded:
-        cleanup_in_a_hurry()
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;h4 id=&quot;使用信号处理遏制函数超时&quot;&gt;使用信号处理，遏制函数超时&lt;/h4&gt;
-
-&lt;p&gt;具体流程如下，尝试了对遏制函数超时比较有效，暂时没发现副作用。&lt;/p&gt;
-
-&lt;p&gt;但这里没能再次复现第三方模块超时的场景，后续如若遇到相应情况不能解决，会继续更新其他解决方案，具体流程如下：&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;调用&lt;strong&gt;time_out_try_single&lt;/strong&gt;函数进行超时监控，使用sleep模拟函数执行超时&lt;/li&gt;
-  &lt;li&gt;引入signal模块，设置handler捕获超时信息，返回断言错误&lt;/li&gt;
-  &lt;li&gt;alarm(120)，设置120秒闹钟，函数调用超时120秒则直接返回&lt;/li&gt;
-  &lt;li&gt;捕获异常，打印超时信息。&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;import time
-import signal
-
-def time_out_try_single(i):
-    time.sleep(i%4)
-    print &quot;%d within time&quot;%(i)
-    return i
-
-if __name__ == '__main__':
-    def handler(signum, frame):
-        raise AssertionError
-
-    i = 0
-    for i in range(1,10):
-        try:
-            signal.signal(signal.SIGALRM, handler)
-            signal.alarm(120)
-            time_out_try_single(i)
-            i = i + 1
-            signal.alarm(0)
-        except AssertionError:
-            print &quot;%d timeout&quot;%(i)
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;h3 id=&quot;参考文档&quot;&gt;参考文档&lt;/h3&gt;
-
-&lt;p&gt;&lt;a href=&quot;http://docs.celeryproject.org/en/latest/userguide/configuration.html#std:setting-task_time_limit&quot;&gt;《setting-task_time_limit》&lt;/a&gt;&lt;/p&gt;
-
-&lt;p&gt;&lt;a href=&quot;https://www.jianshu.com/p/5a969b067ce6&quot;&gt;《hard杀死soft》&lt;/a&gt;&lt;/p&gt;
-
-&lt;p&gt;&lt;a href=&quot;http://blog.sina.com.cn/s/blog_63041bb80102uy5o.html&quot;&gt;《Python设置函数调用超时》&lt;/a&gt;&lt;/p&gt;</content><author><name>HellSec</name></author><category term="coding" /><summary type="html">以前在使用celery任务时，老是被其超时机制不奏效所困扰，没有一个比较完美的解决方案。前两天琢磨出新的方案，故此借机梳理下过往细节。</summary></entry></feed>
+&lt;p&gt;&lt;a href=&quot;https://www.cnblogs.com/yjken/p/6555438.html&quot;&gt;《phpstorm中配置真正的远程调试(xdebug)》&lt;/a&gt;&lt;/p&gt;</content><author><name>HellSec</name></author><category term="vuln" /><summary type="html">这两天用idea审java比较顺手，顺便也迁移了下php调试环境，从vscode迁移到jetbrains家的phpstorm。以前习惯了纯搜索字符串，通过打印调试，没有动态hook变量看起来比较费劲。迁移过程中遇到一些坑，故此记录一下。</summary></entry></feed>
