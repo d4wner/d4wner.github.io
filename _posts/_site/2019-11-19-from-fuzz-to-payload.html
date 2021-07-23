@@ -14,7 +14,9 @@
 
 <p>在检测时，先通过<strong>字符键值对</strong>进行探测，如果不通过，则在黑名单库里加上该<strong>字符键值对</strong>。然后，我们再接着尝试<strong>单边字符</strong>是否被过滤，过滤了再把<strong>单边字符</strong>加入黑名单，这样能在一定程度上提升检测效率。</p>
 
-<p>校验存在键值对的流程：</p>
+<p>校验存在键值对的流程：
+<img src="https://s2.ax1x.com/2019/12/26/lEax00.png" alt="lEax00.png" /></p>
+
 <div class="highlighter-rouge"><pre class="highlight"><code>graph LR
 字符键值对--&gt;payload流程
 </code></pre>
@@ -36,6 +38,8 @@
 </div>
 
 <p>校验不存在键值对的流程：</p>
+
+<p><img src="https://s2.ax1x.com/2019/12/26/lEavmq.png" alt="lEavmq.png" /></p>
 
 <div class="highlighter-rouge"><pre class="highlight"><code>graph LR
 字符键值对--&gt;单个字符

